@@ -2,6 +2,7 @@
 export const DEFAULT_MAP_STYLE =
   "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json";
 
-export const DEFAULT_MAP_CENTER: [number, number] = [0, 20];
+/** Centred on India — shows the country label, Arabian Sea, and Bay of Bengal. */
+export const DEFAULT_MAP_CENTER: [number, number] = [78.9629, 20.5937];
 
-export const DEFAULT_MAP_ZOOM = 1.2;
+export const DEFAULT_MAP_ZOOM = 3.8;

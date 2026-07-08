@@ -17,7 +17,7 @@ export function AppMainContent({ children }: AppMainContentProps) {
   return (
     <main className="workspace-canvas relative flex-1 overflow-hidden">
       <MapWorkspaceLayer />
-      <div className="pointer-events-none absolute inset-0 z-10 overflow-y-auto">
+      <div className="pointer-events-auto absolute inset-0 z-10 overflow-y-auto">
         {children}
       </div>
     </main>

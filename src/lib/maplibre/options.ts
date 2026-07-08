@@ -10,11 +10,18 @@ export const WORLD_MAP_OPTIONS = {
   style: DEFAULT_MAP_STYLE,
   center: DEFAULT_MAP_CENTER,
   zoom: DEFAULT_MAP_ZOOM,
-  minZoom: 1,
-  maxZoom: 18,
+  minZoom: DEFAULT_MAP_ZOOM,
+  maxZoom: DEFAULT_MAP_ZOOM,
+  // Disable all interactions — map is a static decorative backdrop
+  scrollZoom: false,
+  dragPan: false,
   dragRotate: false,
-  pitchWithRotate: false,
+  doubleClickZoom: false,
+  keyboard: false,
+  touchZoomRotate: false,
   touchPitch: false,
+  // Pitch/rotation locked flat
+  pitchWithRotate: false,
   maxPitch: 0,
   minPitch: 0,
   bearing: 0,
@@ -36,8 +43,13 @@ export function createWorldMapOptions(
 }
 
 export function configureWorldMapInteractions(map: MapInstance) {
+  // Belt-and-suspenders: disable all handlers after map creation too
+  map.scrollZoom.disable();
+  map.dragPan.disable();
   map.dragRotate.disable();
-  map.touchZoomRotate.disableRotation();
+  map.doubleClickZoom.disable();
+  map.keyboard.disable();
+  map.touchZoomRotate.disable();
   map.setMaxPitch(0);
   map.setMinPitch(0);
 }
