@@ -1,0 +1,5 @@
+/**
+ * Shared application types.
+ */
+
+export {};
