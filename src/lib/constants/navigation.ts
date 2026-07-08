@@ -31,7 +31,7 @@ export const NAV_ITEMS: NavItem[] = [
     label: "Geopolitical Risk",
     href: "/geopolitical-risk",
     icon: ShieldAlert,
-    enabled: false,
+    enabled: true,
   },
   {
     id: "procurement",

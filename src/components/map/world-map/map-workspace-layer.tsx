@@ -4,6 +4,7 @@ import { MapControls } from "@/components/map/map-controls";
 import { MapProvider } from "@/components/map/map-provider";
 import { MapOverlayRoot } from "@/components/map/overlays";
 import { MapBackground } from "@/components/map/background";
+import { ShipLayer } from "@/components/map/ships";
 
 import { WorldMap } from "./world-map";
 
@@ -13,6 +14,7 @@ export function MapWorkspaceLayer() {
       <div className="absolute inset-0 z-0">
         <WorldMap />
         <MapBackground />
+        <ShipLayer />
       </div>
       <MapOverlayRoot />
       <MapControls />

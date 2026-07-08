@@ -6,7 +6,10 @@ import {
   AIS_SUBSCRIPTION_BOUNDING_BOXES,
   MAX_RETURNED_SHIPS,
 } from "./constants";
-import { matchesIndiaEnergyCorridorFilter, sortByRecency } from "./filters";
+import {
+  matchesIndiaEnergyCorridorFilter,
+  sortByRecency,
+} from "./filters";
 import type { AisEnvelope, VesselCacheEntry } from "./normalize";
 import {
   resolveCountryFromMmsi,
@@ -43,18 +46,31 @@ class AisStreamManager {
       return { ships: [], message: UNAVAILABLE_MESSAGE };
     }
 
-    const ships = sortByRecency(
-      Array.from(this.vessels.values())
-        .map((entry) => this.toShip(entry))
-        .filter((ship): ship is Ship => ship !== null)
-        .filter((ship) =>
+    const filtered = Array.from(this.vessels.values())
+      .map((entry) => this.toShip(entry))
+      .filter((ship): ship is Ship => ship !== null)
+      .filter((ship) => {
+        const isCargoOrTanker =
+          ship.shipType === "Cargo" ||
+          ship.shipType === "Tanker" ||
+          ship.shipType === "Vessel" ||
+          ship.shipType === "Unknown" ||
+          !ship.shipType;
+        
+        const isRelevantToIndia =
+          ship.country === "India" ||
           matchesIndiaEnergyCorridorFilter({
             latitude: ship.latitude,
             longitude: ship.longitude,
             destination: ship.destination,
-          }),
-        ),
-    ).slice(0, MAX_RETURNED_SHIPS);
+          });
+        
+        return isCargoOrTanker && isRelevantToIndia;
+      });
+
+    console.log(`Live ships - Total cached: ${this.vessels.size}, Filtered matching India/Cargo: ${filtered.length}`);
+
+    const ships = sortByRecency(filtered).slice(0, MAX_RETURNED_SHIPS);
 
     if (ships.length === 0 && !this.lastMessageAt) {
       return { ships: [], message: UNAVAILABLE_MESSAGE };
@@ -82,6 +98,7 @@ class AisStreamManager {
     this.socket = socket;
 
     socket.on("open", () => {
+      console.log("AISStream WebSocket opened, sending subscription...");
       this.connecting = false;
       socket.send(
         JSON.stringify({
@@ -96,11 +113,13 @@ class AisStreamManager {
       this.handleMessage(raw.toString());
     });
 
-    socket.on("error", () => {
+    socket.on("error", (err) => {
+      console.error("AISStream WebSocket error details:", err);
       this.serviceError = UNAVAILABLE_MESSAGE;
     });
 
-    socket.on("close", () => {
+    socket.on("close", (code, reason) => {
+      console.warn(`AISStream WebSocket closed. Code: ${code}, Reason: ${reason ? reason.toString() : "No reason provided"}`);
       this.connecting = false;
       this.socket = null;
       this.scheduleReconnect();
@@ -123,16 +142,19 @@ class AisStreamManager {
 
     try {
       envelope = JSON.parse(raw) as AisEnvelope;
-    } catch {
+    } catch (e) {
+      console.error("Failed to parse raw AIS message:", e);
       return;
     }
 
     if (envelope.error) {
+      console.error("AISStream API error envelope received:", envelope.error);
       this.serviceError = UNAVAILABLE_MESSAGE;
       return;
     }
 
     const messageType = envelope.MessageType;
+    console.log("AISStream message received type:", messageType);
     const mmsi = String(
       envelope.MetaData?.MMSI ??
         envelope.Message?.[messageType ?? ""]?.UserID ??
@@ -200,6 +222,7 @@ class AisStreamManager {
     existing.country = existing.country || resolveCountryFromMmsi(mmsi);
     this.vessels.set(mmsi, existing);
     this.lastMessageAt = Date.now();
+    console.log(`AISStream cached vessel ${mmsi}. Name: ${existing.name}. Total cached: ${this.vessels.size}`);
     this.serviceError = null;
   }
 

@@ -1,3 +1,4 @@
+import type { GeoJSONSource } from "maplibre-gl";
 import type { MapInstance } from "@/lib/map-engine";
 import { AIRCRAFT_ROUTES } from "../constants";
 import { buildCurvedPath, createPathSampler, SamplerFunction } from "../animations/path-utils";
@@ -45,31 +46,35 @@ export function addAircraftBackgroundLayer(map: MapInstance) {
     const curvedCoordinates = buildCurvedPath(route.waypoints);
     const sampler = createPathSampler(curvedCoordinates);
 
-    // 1 plane per flight path (4 routes = 4 planes total)
-    const progress = Math.random(); // random initial position
-    const durationMs = 60_000 + Math.random() * 30_000; // completes flight in 60-90s
-    const speed = 1 / durationMs;
-    const planeId = `plane-${idx}`;
+    // 4 planes per flight path (4 routes = 16 planes total)
+    const numPlanes = 4;
+    for (let i = 0; i < numPlanes; i++) {
+      // Stagger start positions along the flight path to prevent bunching
+      const progress = (i / numPlanes) + (Math.random() * (1 / numPlanes));
+      const durationMs = 60_000 + Math.random() * 30_000; // completes flight in 60-90s
+      const speed = 1 / durationMs;
+      const planeId = `plane-${idx}-${i}`;
 
-    aircrafts.push({
-      sampler,
-      progress,
-      speed,
-      id: planeId,
-    });
-
-    const motion = sampler(progress);
-    aircraftFeatures.push({
-      type: "Feature",
-      properties: {
+      aircrafts.push({
+        sampler,
+        progress,
+        speed,
         id: planeId,
-        heading: motion.bearing,
-      },
-      geometry: {
-        type: "Point",
-        coordinates: motion.position,
-      },
-    });
+      });
+
+      const motion = sampler(progress);
+      aircraftFeatures.push({
+        type: "Feature",
+        properties: {
+          id: planeId,
+          heading: motion.bearing,
+        },
+        geometry: {
+          type: "Point",
+          coordinates: motion.position,
+        },
+      });
+    }
   });
 
   map.addSource(AIRCRAFT_SOURCE, {
@@ -120,13 +125,14 @@ export function updateAircraftBackgroundLayer(map: MapInstance, deltaTimeMs: num
     };
   });
 
-  (source as any).setData({
+  (source as GeoJSONSource).setData({
     type: "FeatureCollection",
     features,
   });
 }
 
 export function removeAircraftBackgroundLayer(map: MapInstance) {
+  if (!map || typeof map.getLayer !== "function") return;
   if (map.getLayer(AIRCRAFT_LAYER)) {
     map.removeLayer(AIRCRAFT_LAYER);
   }

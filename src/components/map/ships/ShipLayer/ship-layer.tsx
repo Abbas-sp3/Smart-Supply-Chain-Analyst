@@ -126,6 +126,11 @@ export function ShipLayer() {
         }
       }
 
+      if (map.getLayer("bg-ships-layer")) {
+        const visibility = ships.length > 0 ? "none" : "visible";
+        map.setLayoutProperty("bg-ships-layer", "visibility", visibility);
+      }
+
       animationStartRef.current = performance.now();
     },
     [map, openPopup],
@@ -226,8 +231,12 @@ export function ShipLayer() {
       }
 
       markers.clear();
+
+      if (map && typeof map.getLayer === "function" && map.getLayer("bg-ships-layer")) {
+        map.setLayoutProperty("bg-ships-layer", "visibility", "visible");
+      }
     };
-  }, []);
+  }, [map]);
 
   if (!statusMessage) {
     return null;

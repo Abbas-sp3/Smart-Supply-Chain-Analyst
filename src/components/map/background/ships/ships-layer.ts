@@ -1,3 +1,4 @@
+import type { GeoJSONSource } from "maplibre-gl";
 import type { MapInstance } from "@/lib/map-engine";
 import { getResolvedRoutes } from "../routes/routes-layer";
 import { createPathSampler, SamplerFunction } from "../animations/path-utils";
@@ -49,14 +50,14 @@ export function addShipsBackgroundLayer(map: MapInstance) {
   ships = [];
   const shipFeatures: GeoJSON.Feature[] = [];
 
-  // Distribute approximately 20 cargo ships (approx 3 ships per route for the 7 routes)
+  // Distribute more cargo ships (approx 6-8 ships per route for the 7 routes -> ~44 ships total)
   resolvedRoutes.forEach((route, routeIdx) => {
     const sampler = createPathSampler(route.coordinates);
-    const numShips = routeIdx === 0 || routeIdx === 1 || routeIdx === 4 || routeIdx === 5 ? 3 : 2; // busier routes get 3, others get 2 -> 3*4 + 2*3 = 18 ships
+    const numShips = routeIdx === 0 || routeIdx === 1 || routeIdx === 4 || routeIdx === 5 ? 7 : 5; // busier routes get 7, others get 5
 
     for (let i = 0; i < numShips; i++) {
       // Stagger start positions along the route to prevent bunching
-      const progress = (i / numShips) + (Math.random() * 0.15); // e.g. 0.0, 0.33, 0.66 + slight randomization
+      const progress = (i / numShips) + (Math.random() * (1 / numShips));
       
       // Ships move VERY slowly (takes between 180s and 300s to complete a full loop)
       const loopDurationMs = 180_000 + Math.random() * 120_000;
@@ -135,13 +136,14 @@ export function updateShipsBackgroundLayer(map: MapInstance, deltaTimeMs: number
     };
   });
 
-  (source as any).setData({
+  (source as GeoJSONSource).setData({
     type: "FeatureCollection",
     features,
   });
 }
 
 export function removeShipsBackgroundLayer(map: MapInstance) {
+  if (!map || typeof map.getLayer !== "function") return;
   if (map.getLayer(SHIPS_LAYER)) {
     map.removeLayer(SHIPS_LAYER);
   }

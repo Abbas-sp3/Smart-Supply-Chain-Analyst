@@ -1,3 +1,4 @@
+import type { GeoJSONSource } from "maplibre-gl";
 import type { MapInstance } from "@/lib/map-engine";
 import { DECORATIVE_ROUTES, type LngLat } from "../constants";
 import {
@@ -149,7 +150,7 @@ export function updateRoutesParticlesLayer(map: MapInstance, deltaTimeMs: number
     };
   });
 
-  (source as any).setData({
+  (source as GeoJSONSource).setData({
     type: "FeatureCollection",
     features,
   });

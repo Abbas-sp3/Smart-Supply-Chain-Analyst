@@ -5,14 +5,14 @@ type Point = {
   longitude: number;
 };
 
-const ARABIAN_SEA_POLYGON: Point[] = [
+export const ARABIAN_SEA_POLYGON: Point[] = [
   { latitude: 5, longitude: 48 },
   { latitude: 25, longitude: 48 },
   { latitude: 25, longitude: 78 },
   { latitude: 5, longitude: 78 },
 ];
 
-const BAY_OF_BENGAL_POLYGON: Point[] = [
+export const BAY_OF_BENGAL_POLYGON: Point[] = [
   { latitude: 5, longitude: 78 },
   { latitude: 22, longitude: 78 },
   { latitude: 22, longitude: 98 },
@@ -56,7 +56,7 @@ function haversineKm(a: Point, b: Point) {
   return 2 * earthRadiusKm * Math.asin(Math.sqrt(h));
 }
 
-function isPointInPolygon(point: Point, polygon: Point[]) {
+export function isPointInPolygon(point: Point, polygon: Point[]) {
   let inside = false;
 
   for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
@@ -77,7 +77,7 @@ function isPointInPolygon(point: Point, polygon: Point[]) {
   return inside;
 }
 
-function isNearIndiaCoast(point: Point) {
+export function isNearIndiaCoast(point: Point) {
   return INDIA_COAST_REFERENCE_POINTS.some(
     (reference) => haversineKm(point, reference) <= INDIA_COAST_DISTANCE_KM,
   );
@@ -93,7 +93,16 @@ export function matchesIndiaEnergyCorridorFilter(input: {
     longitude: input.longitude,
   };
 
-  if (input.destination.toLowerCase().includes("india")) {
+  const dest = input.destination.toLowerCase().trim();
+  const isIndianPort =
+    dest.includes("india") ||
+    dest.startsWith("in ") ||
+    dest.startsWith("in/") ||
+    dest.startsWith("inloc") ||
+    /\bin[a-z]{3}\b/.test(dest) ||
+    ["mumbai", "bombay", "nhava", "sheva", "jamnagar", "mundra", "kandla", "chennai", "cochin", "calcutta", "haldia", "paradip", "visakhapatnam", "vizag", "sikka", "pipavav", "hazira"].some(port => dest.includes(port));
+
+  if (isIndianPort) {
     return true;
   }
 
