@@ -13,7 +13,6 @@ An enterprise-grade platform that continuously monitors global geopolitical deve
 | Feature | Status | Description |
 | :--- | :---: | :--- |
 | 🗺️ Live World Map | ✅ Live | Fixed MapLibre world map centred on India with maritime trade corridors. |
-| 🚢 Live AIS Vessel Tracking | ✅ Live | Real-time cargo ship tracking using AISStream WebSocket. |
 | 🧠 AI Geopolitical Intelligence | ✅ Live | AI-generated supply chain intelligence powered by Groq LLM. |
 | 📦 Procurement Dashboard | ✅ Live | Procurement management dashboard with suppliers, spending analytics and procurement insights. |
 | 📊 Analytics Module | 🚧 Planned | Supply chain KPIs and business analytics. |
