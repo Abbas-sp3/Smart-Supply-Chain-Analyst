@@ -1,186 +1,376 @@
 # 🌐 Smart Supply Chain Analyst
+
 > **AI-Powered Geopolitical & Supply Chain Intelligence Platform for India's Import Ecosystem**
 
-An enterprise-grade platform that continuously monitors global geopolitical developments, maritime activity, and logistics disruptions — then uses AI to generate structured operational intelligence on how these events may impact India's imports and supply chains.
+An enterprise-grade platform that continuously monitors global geopolitical developments, maritime activity, logistics disruptions, and procurement workflows to generate AI-powered operational intelligence for India's import ecosystem.
 
-**This is NOT a news dashboard.** News is only an input. The platform displays AI-generated operational intelligence.
+**This is NOT a news dashboard.** News is only an input. The platform transforms real-time data into structured, actionable business intelligence for supply chain professionals.
 
 ---
 
-## ✨ Live Features
+# ✨ Features
 
 | Feature | Status | Description |
-|:---|:---|:---|
-| 🗺️ Live World Map | ✅ Live | Fixed MapLibre backdrop centred on India — shows Arabian Sea, Bay of Bengal and surrounding trade corridors. Non-interactable by design. |
-| 🚢 Live AIS Vessel Tracking | ✅ Live | Real-time cargo ship positions via AISStream.io WebSocket — filtered to vessels relevant to Indian trade routes |
-| 🧠 Geopolitical Intelligence Engine | ✅ Live | AI-generated supply chain intelligence: fetches live news → Groq LLM analysis → Zod-validated report → 12 structured dashboard sections |
+| :--- | :---: | :--- |
+| 🗺️ Live World Map | ✅ Live | Fixed MapLibre world map centred on India with maritime trade corridors. |
+| 🚢 Live AIS Vessel Tracking | ✅ Live | Real-time cargo ship tracking using AISStream WebSocket. |
+| 🧠 AI Geopolitical Intelligence | ✅ Live | AI-generated supply chain intelligence powered by Groq LLM. |
+| 📦 Procurement Dashboard | ✅ Live | Procurement management dashboard with suppliers, spending analytics and procurement insights. |
+| 📊 Analytics Module | 🚧 Planned | Supply chain KPIs and business analytics. |
+| 📈 Historical Replay | 🚧 Planned | Replay historical geopolitical and logistics events. |
+| 🏭 Refinery Module | 🚧 Planned | Refinery monitoring and operational insights. |
+| 🎯 Scenario Simulator | 🚧 Planned | AI-driven supply chain scenario planning. |
+| 🛢 Strategic Reserve | 🚧 Planned | Strategic reserve monitoring and forecasting. |
 
 ---
 
-## 🚀 Quick Start
+# 🚀 Quick Start
 
-### 1. Prerequisites
-- **Node.js** v18.x or higher
-- **npm** v9.x or higher
-- **Git**
+## Prerequisites
 
-### 2. Clone
+- Node.js 18+
+- npm 9+
+- Git
+
+---
+
+## Clone Repository
+
 ```bash
 git clone https://github.com/Abbas-sp3/Smart-Supply-Chain-Analyst.git
+
 cd Smart-Supply-Chain-Analyst
 ```
 
-### 3. Environment Setup
-```bash
-cp .env.example .env.local
-```
+---
 
-Then fill in `.env.local`:
+## Install Dependencies
 
-```env
-# Live vessel tracking (required for AIS ships on map)
-AISSTREAM_API_KEY=your_key         # https://aisstream.io/apikeys
-
-# AI Intelligence Engine (required for Geopolitical Intelligence page)
-GROQ_API_KEY=your_key              # https://console.groq.com/keys
-
-# News data source (optional — embedded mock articles used as fallback)
-NEWS_API_KEY=your_key              # https://newsapi.org/register
-```
-
-> **Note:** Each key has a graceful fallback. The platform runs without any keys, using mock data for the intelligence engine.
-
-### 4. Install & Run
 ```bash
 npm install
+```
+
+---
+
+## Environment Variables
+
+Create a file named
+
+```
+.env.local
+```
+
+Add the following variables:
+
+```env
+# AIS Vessel Tracking
+AISSTREAM_API_KEY=your_api_key
+
+# Groq AI
+GROQ_API_KEY=your_api_key
+
+# News API
+NEWS_API_KEY=your_api_key
+```
+
+The application works even without API keys by using built-in mock data.
+
+---
+
+## Run Development Server
+
+```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
-
----
-
-## 🛠️ Project Scripts
-
-| Command | Action |
-|:---|:---|
-| `npm run dev` | Start dev server on http://localhost:3000 with hot-reloading |
-| `npm run build` | Production build (must pass before any PR merge) |
-| `npm run start` | Serve the production build |
-| `npm run lint` | ESLint — must pass clean (zero errors) |
-
----
-
-## 🏗️ Architecture & Project Structure
-
-The project follows a **Feature-Driven Architecture** — each domain is a self-contained module under `src/features/`.
+Visit
 
 ```
-src/
-├── app/
-│   ├── api/
-│   │   ├── intelligence/     # GET /api/intelligence  — AI report generation
-│   │   └── ships/            # GET /api/ships         — Live AIS vessel data
-│   ├── geopolitical-risk/    # /geopolitical-risk page
-│   └── layout.tsx / globals.css
+http://localhost:3000
+```
+
+---
+
+# 📂 Project Structure
+
+```
+src
 │
-├── components/
-│   ├── app-shell/            # Root layout (DO NOT MODIFY)
-│   ├── app-main-content/     # Map + content overlay layout
-│   ├── map/                  # MapLibre map system
-│   │   ├── world-map/        # Map initialisation & interaction config
-│   │   ├── background/       # Animated ship/aircraft/route layers
-│   │   └── ships/            # Live AIS ship marker layer
-│   └── ui/                   # Shadcn UI primitives
-│
-├── features/
-│   ├── geopolitical-intelligence/   # ✅ IMPLEMENTED
-│   │   ├── types/            # TypeScript types (IntelligenceReport, etc.)
-│   │   ├── schemas/          # Zod validation schema
-│   │   ├── constants/        # Keywords, TTL, model config
-│   │   ├── prompts/          # System prompt & user prompt builder
-│   │   ├── services/
-│   │   │   ├── newsService.ts       # NewsAPI fetch + mock fallback
-│   │   │   ├── groqService.ts       # Groq LLM communication (only file using groq-sdk)
-│   │   │   └── intelligenceService.ts  # Orchestration + 30min cache
-│   │   ├── hooks/            # useIntelligence() data hook
-│   │   ├── components/       # 12 display components (no raw news ever shown)
-│   │   └── index.ts          # Public API surface
+├── app
+│   ├── api
+│   │   ├── intelligence
+│   │   └── ships
 │   │
-│   ├── analytics/            # (stub)
-│   ├── historical-replay/    # (stub)
-│   ├── procurement/          # (stub)
-│   ├── refinery/             # (stub)
-│   ├── scenario-simulator/   # (stub)
-│   └── strategic-reserve/    # (stub)
+│   ├── geopolitical-risk
+│   ├── procurement
+│   ├── layout.tsx
+│   └── globals.css
 │
-├── lib/
-│   ├── aisstream/            # AIS WebSocket manager, filters, normalizer
-│   ├── maplibre/             # MapLibre config, options, interaction control
-│   └── constants/            # Navigation, layout panel registry
+├── assets
 │
-└── types/                    # Global shared TypeScript models
+├── components
+│   ├── app-shell
+│   ├── map
+│   ├── ui
+│   └── shared
+│
+├── features
+│   ├── geopolitical-intelligence
+│   ├── procurement
+│   ├── analytics
+│   ├── refinery
+│   ├── scenario-simulator
+│   ├── historical-replay
+│   └── strategic-reserve
+│
+├── hooks
+│
+├── lib
+│   ├── aisstream
+│   ├── constants
+│   ├── map-engine
+│   └── maplibre
+│
+├── services
+│
+├── types
+│
+└── utils
 ```
 
 ---
 
-## 🧠 Intelligence Engine Architecture
+# 🧠 AI Intelligence Engine
+
+The platform generates intelligence through the following pipeline:
 
 ```
-Browser → GET /geopolitical-risk
-  → useIntelligence() hook → GET /api/intelligence
-    → intelligenceService (30min cache)
-      → newsService.fetch()        (NewsAPI or 10 curated mock articles)
-      → buildUserPrompt(articles)
-      → groqService.callGroq()     (llama-3.3-70b-versatile)
-      → JSON.parse() + Zod.parse() (full schema validation)
-      → IntelligenceReport
-    → 12 frontend sections rendered
-       (Executive Summary, Key Developments, Why India Should Care,
-        Affected Categories, Affected Products, Trade Corridors,
-        Ports, Countries, Industries, Supply Chain Impacts,
-        Alternative Sourcing, Recommendations, Evidence Citations)
+Live News
+      │
+      ▼
+News Collection
+      │
+      ▼
+Groq LLM Analysis
+      │
+      ▼
+JSON Validation (Zod)
+      │
+      ▼
+Structured Intelligence Report
+      │
+      ▼
+Dashboard Components
 ```
 
-**Key design decisions:**
-- Users **never** see raw news articles — only AI-structured intelligence
-- Recommendations use **qualitative language only** (no fake percentages)
-- `DataSourcePlugin` interface allows future sources (AIS, commodity prices, weather, sanctions DB) to be plugged in without touching the frontend
-- In-memory cache deduplicates concurrent requests and avoids hammering Groq
+The dashboard provides:
+
+- Executive Summary
+- Key Developments
+- Why India Should Care
+- Affected Products
+- Trade Corridors
+- Countries
+- Ports
+- Industries
+- Supply Chain Impacts
+- Alternative Sourcing
+- Recommendations
+- Evidence References
+
+Users never interact with raw news articles.
 
 ---
 
-## 🗺️ Map System
+# 📦 Procurement Module
 
-The world map is a **fixed, non-interactive backdrop** centred on India (78.96°E, 20.59°N) at zoom 3.8. It shows:
-- India's country label
-- Arabian Sea and Bay of Bengal
-- Surrounding trade corridor geography
-- Animated simulated cargo routes (background layer)
-- Live AIS vessel positions (when `AISSTREAM_API_KEY` is set)
+The Procurement Dashboard provides:
 
-All map interactions (scroll, pan, zoom, drag, keyboard) are disabled at both the MapLibre handler level and the CSS level so page scroll always works correctly.
+- Procurement Overview
+- Supplier Management
+- Category Management
+- Procurement Analytics
+- Spend Monitoring
+- Procurement Insights
+- Purchase Activity Tracking
+- Dashboard Cards
+- Interactive Tables
+- Clean Enterprise UI
 
----
-
-## 🤝 Contribution Guidelines
-
-1. **Architecture First**: All new capabilities go under `src/features/<feature-name>/` — never add logic directly to `src/app/` pages.
-2. **Public APIs Only**: Never cross-import non-exported internals from another feature. Use the feature's `index.ts` barrel file.
-3. **API Routes Only**: Never call third-party APIs (AIS, news, Groq, weather) from React components. Route everything through `src/app/api/`.
-4. **No Frontend Redesign**: Do not modify `AppShell`, `AppSidebar`, `AppHeader`, or `WorldMap` without explicit approval.
-5. **Build & Lint Must Pass**: `npm run build` and `npm run lint` must both pass clean before any commit.
-6. **Document Changes**: Update `.agents/docs/PROJECT_SUMMARY.md` with your task entry after any significant change.
-7. **No Fake Data in Intelligence**: Recommendations must never contain specific percentages. Use qualitative language.
+Designed for procurement professionals to monitor sourcing activities from one centralized dashboard.
 
 ---
 
-## 📂 AI Agent Onboarding
+# 🚢 Maritime Intelligence
 
-> If you are an AI coding assistant working on this repository, read this first:
->
-> The single source of truth for project architecture, task history, and AI-specific rules is located at:
->
-> **`.agents/docs/PROJECT_SUMMARY.md`**
->
-> Read it before making any changes.
+Live vessel tracking is powered by AISStream.
+
+Features include:
+
+- Real-time Cargo Ship Tracking
+- India Focused Maritime Region
+- Arabian Sea Monitoring
+- Bay of Bengal Monitoring
+- Trade Corridor Visualization
+- Vessel Filtering
+
+---
+
+# 🗺 Map System
+
+The map is intentionally non-interactive.
+
+It provides:
+
+- India-focused viewport
+- Fixed zoom
+- Maritime trade routes
+- Live vessel markers
+- Animated background layers
+
+Scroll, zoom and drag are disabled to improve dashboard usability.
+
+---
+
+# 🚀 Technology Stack
+
+## Frontend
+
+- Next.js 15
+- React
+- TypeScript
+- Tailwind CSS
+- Shadcn UI
+
+## Mapping
+
+- MapLibre GL JS
+- AISStream API
+
+## Backend
+
+- Next.js API Routes
+
+## AI
+
+- Groq LLM
+
+## Validation
+
+- Zod
+
+## APIs
+
+- News API
+- AISStream
+
+---
+
+# 📜 Available Scripts
+
+| Command | Description |
+|----------|-------------|
+| npm run dev | Start development server |
+| npm run build | Production build |
+| npm run start | Start production server |
+| npm run lint | Run ESLint |
+
+---
+
+# 🏗 Architecture Principles
+
+- Feature Driven Architecture
+- Modular Components
+- API-first Communication
+- AI-powered Intelligence
+- Strong Type Safety
+- Zod Validation
+- Reusable Components
+- Separation of Business Logic
+
+---
+
+# 📈 Roadmap
+
+## Completed
+
+- ✅ AI Intelligence Engine
+- ✅ Live Vessel Tracking
+- ✅ Procurement Dashboard
+- ✅ India-focused Map
+
+## In Progress
+
+- 🚧 Analytics
+- 🚧 Historical Replay
+- 🚧 Refinery Dashboard
+- 🚧 Strategic Reserve
+- 🚧 Scenario Simulator
+
+---
+
+# 🤝 Contribution Guidelines
+
+Before contributing:
+
+- Pull latest changes
+- Create meaningful commits
+- Ensure `npm run build` passes
+- Ensure `npm run lint` passes
+- Follow Feature Driven Architecture
+- Keep components modular
+- Route all external API calls through API routes
+
+---
+
+# 📸 Screenshots
+
+## Dashboard
+
+_Add dashboard screenshot here_
+
+---
+
+## Procurement Module
+
+_Add procurement dashboard screenshot here_
+
+---
+
+## AI Intelligence Dashboard
+
+_Add intelligence dashboard screenshot here_
+
+---
+
+# 👨‍💻 Contributors
+
+- **Abbas** — Project Lead
+- **Sanskar Soni** — Procurement Module Development
+- Other Contributors
+
+---
+
+# 📄 License
+
+This project is developed for research, innovation and educational purposes.
+
+---
+
+# ⭐ Future Vision
+
+Smart Supply Chain Analyst aims to become a complete AI-powered decision support platform for India's import ecosystem by integrating:
+
+- AI Intelligence
+- Procurement
+- Logistics
+- Maritime Tracking
+- Commodity Prices
+- Weather Intelligence
+- Port Congestion
+- Sanctions Monitoring
+- Demand Forecasting
+- Risk Prediction
+- Scenario Simulation
+
+bringing all critical supply chain intelligence into a single enterprise platform.
