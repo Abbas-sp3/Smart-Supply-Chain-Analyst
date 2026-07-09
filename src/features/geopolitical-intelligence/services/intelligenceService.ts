@@ -1,46 +1,43 @@
 /**
  * intelligenceService.ts — Intelligence Orchestration Layer
  *
- * Responsibilities:
- * 1. Collect data from all registered DataSourcePlugins
- * 2. Generate Knowledge Graph context
- * 3. Build the AI prompt from collected data + graph context
- * 4. Call Groq via groqService
- * 5. Parse and validate the JSON response with Zod
- * 6. Cache the result for INTELLIGENCE_CACHE_TTL_MS
- * 7. Return a typed IntelligenceReport
+ * Pipeline:
+ *   Collectors → Normalizers → Fact Extraction → Knowledge Graph → Priority Engine
+ *   → Compact Intelligence Context → 5 Independent Groq Modules → Report Assembly
  *
- * Future data sources (commodity prices, weather, port congestion,
- * satellite imagery, sanctions databases) are plugged in by registering
- * a new DataSourcePlugin — this file and the frontend never change.
+ * Each module runs independently with its own cache TTL.
+ * React renders the assembled IntelligenceReport — Groq never generates UI prose.
  */
 
 import type { DataSourcePlugin, IntelligenceReport } from "../types";
 import { intelligenceReportSchema } from "../schemas/intelligence.schema";
-import { SYSTEM_PROMPT, buildUserPrompt } from "../prompts/system.prompt";
-import { callGroq } from "./groqService";
 import { newsDataSource } from "./newsService";
 import { openSkyDataSource } from "./openSkyService";
 import { aisIntelligenceDataSource } from "./aisIntelligenceService";
 import { preprocessIntelligence } from "./preprocessingService";
+import {
+  buildIntelligenceContext,
+  hashIntelligenceContext,
+} from "./intelligenceContextService";
+import { assembleIntelligenceReport } from "./reportAssembler";
+import { runExecutiveSummaryModule } from "../modules/executiveSummaryModule";
+import { runSupplyChainImpactModule } from "../modules/supplyChainImpactModule";
+import { runRecommendationsModule } from "../modules/recommendationsModule";
+import { runScenarioAnalysisModule } from "../modules/scenarioAnalysisModule";
+import { runEvidenceModule } from "../modules/evidenceModule";
 import { INTELLIGENCE_CACHE_TTL_MS } from "../constants";
 
 // ---------------------------------------------------------------------------
 // Registered data source plugins
-// Add new sources here — the rest of the system is unaffected.
 // ---------------------------------------------------------------------------
 const DATA_SOURCES: DataSourcePlugin[] = [
   newsDataSource,
   openSkyDataSource,
   aisIntelligenceDataSource,
-  // Future: commodityPriceDataSource
-  // Future: portCongestionDataSource
-  // Future: sanctionsDataSource
-  // Future: weatherDataSource
 ];
 
 // ---------------------------------------------------------------------------
-// In-memory cache
+// Full-report cache (assembled output)
 // ---------------------------------------------------------------------------
 type CacheEntry = {
   report: IntelligenceReport;
@@ -66,38 +63,18 @@ function setCache(report: IntelligenceReport): void {
 }
 
 // ---------------------------------------------------------------------------
-// JSON extraction — handles cases where the model wraps JSON in markdown
-// ---------------------------------------------------------------------------
-function extractJson(raw: string): string {
-  // Strip markdown code fences if the model wrapped it anyway
-  const fenceMatch = raw.match(/```(?:json)?\s*([\s\S]*?)```/);
-  if (fenceMatch) return fenceMatch[1].trim();
-
-  // Find the first { and last } to extract the JSON object
-  const start = raw.indexOf("{");
-  const end = raw.lastIndexOf("}");
-  if (start !== -1 && end !== -1 && end > start) {
-    return raw.slice(start, end + 1);
-  }
-
-  return raw.trim();
-}
-
-// ---------------------------------------------------------------------------
-// Core generation function
+// Core generation — modular pipeline
 // ---------------------------------------------------------------------------
 async function generateFresh(): Promise<IntelligenceReport> {
-  console.log("[intelligenceService] Generating fresh intelligence report...");
+  console.log("[intelligenceService] Generating fresh intelligence report (modular pipeline)...");
 
-  // Step 1: Collect from all data source plugins in parallel
+  // Step 1: Collect from all data source plugins
   const pluginResults = await Promise.allSettled(
     DATA_SOURCES.map((plugin) => plugin.fetch()),
   );
 
   const allSources = pluginResults.flatMap((result, i) => {
-    if (result.status === "fulfilled") {
-      return result.value;
-    }
+    if (result.status === "fulfilled") return result.value;
     console.error(
       `[intelligenceService] Plugin "${DATA_SOURCES[i]?.name}" failed:`,
       result.reason,
@@ -115,32 +92,42 @@ async function generateFresh(): Promise<IntelligenceReport> {
     `[intelligenceService] Collected ${allSources.length} data items from ${DATA_SOURCES.length} plugin(s).`,
   );
 
-  // Step 2: Preprocess, Extract Facts, Augment with Graph, and Filter
+  // Step 2: Preprocess — fact extraction, knowledge graph, prioritization
   const augmentedObservations = await preprocessIntelligence(allSources);
 
-  // Step 3: Build the constrained AI prompt
-  const userPrompt = buildUserPrompt(augmentedObservations);
+  // Step 3: Build compact intelligence context (no raw payloads)
+  const context = buildIntelligenceContext(augmentedObservations);
+  const contextHash = hashIntelligenceContext(context);
 
-  // Step 4: Call Groq
-  const rawResponse = await callGroq(SYSTEM_PROMPT, userPrompt);
+  console.log(
+    `[intelligenceService] Compact context: ${context.critical_events.length} events, ` +
+      `${context.military_observations.length} military, ${context.maritime_observations.length} maritime.`,
+  );
 
-  // Step 5: Extract and parse JSON
-  const jsonString = extractJson(rawResponse);
+  // Step 4: Run independent Groq modules in parallel
+  const [executive, supplyChain, recommendations, scenarios, evidence] =
+    await Promise.all([
+      runExecutiveSummaryModule(context),
+      runSupplyChainImpactModule(context),
+      runRecommendationsModule(context),
+      runScenarioAnalysisModule(context, contextHash),
+      runEvidenceModule(context),
+    ]);
 
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(jsonString);
-  } catch (err) {
-    console.error("[intelligenceService] Failed to parse JSON from Groq response:", jsonString.slice(0, 500));
-    throw new Error(`[intelligenceService] Groq returned invalid JSON: ${String(err)}`);
-  }
+  // Step 5: Assemble into unified IntelligenceReport
+  const report = assembleIntelligenceReport(
+    executive,
+    supplyChain,
+    recommendations,
+    scenarios,
+    evidence,
+  );
 
-  // Step 6: Validate with Zod
-  const validated = intelligenceReportSchema.parse(parsed);
+  // Step 6: Validate assembled report
+  const validated = intelligenceReportSchema.parse(report);
 
-  console.log("[intelligenceService] Report validated successfully.");
+  console.log("[intelligenceService] Modular report assembled and validated.");
 
-  // Step 7: Cache and return
   setCache(validated);
   return validated;
 }
@@ -149,21 +136,13 @@ async function generateFresh(): Promise<IntelligenceReport> {
 // Public API
 // ---------------------------------------------------------------------------
 
-/**
- * Returns an IntelligenceReport.
- * Uses the cached version if still fresh; generates a new one otherwise.
- * Deduplicates concurrent in-flight requests so Groq is only called once.
- */
 export async function generateIntelligenceReport(): Promise<IntelligenceReport> {
-  // Return cached report if still valid
   const cached = getCached();
   if (cached) {
     console.log("[intelligenceService] Returning cached report.");
     return cached;
   }
 
-  // Deduplicate concurrent requests — if generation is already in progress,
-  // wait for it rather than spawning a second Groq call
   if (globalStore.__intelligenceInProgress) {
     console.log("[intelligenceService] Generation in progress — awaiting existing promise.");
     return globalStore.__intelligenceInProgress;

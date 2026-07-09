@@ -126,9 +126,21 @@ export type MonitoringPriority = {
   reason: string;
 };
 
+// Re-export modular architecture types
+export type { IntelligenceContext } from "./intelligence-context";
+export type {
+  SupplyChainFact,
+  ExecutiveSummaryModuleOutput,
+  SupplyChainImpactModuleOutput,
+  RecommendationsModuleOutput,
+  ScenarioAnalysisModuleOutput,
+  EvidenceModuleOutput,
+  IntelligenceModuleName,
+} from "./module-outputs";
+
 // ---------------------------------------------------------------------------
-// Top-level report — what intelligenceService returns, what the API serves,
-// and what the frontend renders
+// Top-level report — assembled from module outputs, served by API,
+// rendered by frontend components (React handles presentation)
 // ---------------------------------------------------------------------------
 export type IntelligenceReport = {
   executive_summary: string;

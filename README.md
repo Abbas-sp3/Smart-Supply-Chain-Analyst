@@ -141,26 +141,48 @@ src
 
 # 🧠 AI Intelligence Engine
 
-The platform generates intelligence through the following pipeline:
+The platform generates intelligence through a modular pipeline that separates **AI reasoning** from **React presentation**:
 
 ```
-Live News
+Collectors (NewsAPI, OpenSky, AISStream)
       │
       ▼
-News Collection
+Normalizers & Fact Extraction
       │
       ▼
-Groq LLM Analysis
+Knowledge Graph Augmentation
       │
       ▼
-JSON Validation (Zod)
+Priority Engine (CRITICAL → BACKGROUND)
       │
       ▼
-Structured Intelligence Report
+Compact Intelligence Context
       │
       ▼
-Dashboard Components
+┌─────────────────────────────────────────────┐
+│  5 Independent Groq Modules (parallel)      │
+│  • Executive Summary      (15 min cache)    │
+│  • Supply Chain Impact    (30 min cache)    │
+│  • Recommendations        (30 min cache)    │
+│  • Scenario Analysis      (on context change)│
+│  • Evidence               (30 min cache)      │
+└─────────────────────────────────────────────┘
+      │
+      ▼
+Report Assembler (one fact → many UI sections)
+      │
+      ▼
+Zod Validation → IntelligenceReport JSON
+      │
+      ▼
+Dashboard Components (React renders structured data)
 ```
+
+**Key design principles:**
+- Groq generates **structured data**, not dashboard prose
+- Each module has a concise prompt (≤500 words) and independent cache TTL
+- Supply chain facts are emitted once and projected to Countries, Products, Ports, etc.
+- Raw API payloads never reach Groq — only compact intelligence context
 
 The dashboard provides:
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Package, FileText, RefreshCw } from "lucide-react";
 
 type RankTier = "recommended" | "viable" | "caution";
@@ -49,24 +49,35 @@ export default function ProcurementPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const loadData = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/procurement");
-      if (!res.ok) throw new Error(`Request failed: ${res.status}`);
-      const json = await res.json();
-      setData(json);
-    } catch {
-      setError("Could not load procurement data. Check the server logs.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [fetchTrigger, setFetchTrigger] = useState(0);
+
+  const refetch = useCallback(() => {
+    setFetchTrigger((n) => n + 1);
+  }, []);
 
   useEffect(() => {
-    loadData();
-  }, []);
+    let cancelled = false;
+
+    async function run() {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await fetch("/api/procurement");
+        if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+        const json = await res.json();
+        if (!cancelled) setData(json);
+      } catch {
+        if (!cancelled) setError("Could not load procurement data. Check the server logs.");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    void run();
+    return () => {
+      cancelled = true;
+    };
+  }, [fetchTrigger]);
 
   return (
     <div className="space-y-4 p-6">
@@ -86,7 +97,7 @@ export default function ProcurementPage() {
         </div>
         <button
           type="button"
-          onClick={loadData}
+          onClick={refetch}
           disabled={loading}
           className="flex items-center gap-2 rounded-lg border border-white/10 px-3 py-1.5 text-xs text-foreground/90 hover:bg-white/5 disabled:opacity-50"
         >

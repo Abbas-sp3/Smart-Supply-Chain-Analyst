@@ -26,8 +26,15 @@ export const NEWS_KEYWORDS = [
   "Bay of Bengal",
 ];
 
-/** How long an intelligence report stays cached before a fresh generation is triggered */
+/** How long the assembled report stays cached before a fresh generation is triggered */
 export const INTELLIGENCE_CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes
+
+/** Per-module cache TTLs — modules refresh independently */
+export const MODULE_TTL_EXECUTIVE_MS = 15 * 60 * 1000; // 15 minutes
+export const MODULE_TTL_SUPPLY_CHAIN_MS = 30 * 60 * 1000; // 30 minutes
+export const MODULE_TTL_RECOMMENDATIONS_MS = 30 * 60 * 1000; // 30 minutes
+export const MODULE_TTL_EVIDENCE_MS = 30 * 60 * 1000; // 30 minutes
+// Scenario module invalidates on intelligence context hash change, not time
 
 /** Maximum articles to pass to the AI per generation cycle */
 export const MAX_ARTICLES_PER_FETCH = 25;
@@ -35,5 +42,8 @@ export const MAX_ARTICLES_PER_FETCH = 25;
 /** Groq model to use for intelligence generation */
 export const GROQ_MODEL = "llama-3.3-70b-versatile";
 
-/** Max tokens for the AI response (increased for expanded fusion engine schema) */
+/** Max tokens for the legacy single-call path (kept for fact extraction) */
 export const GROQ_MAX_TOKENS = 4096;
+
+/** Max tokens per intelligence module — smaller prompts need fewer tokens */
+export const GROQ_MODULE_MAX_TOKENS = 1536;
