@@ -39,14 +39,19 @@ function createGroqClient(): Groq {
 export async function callGroq(
   systemPrompt: string,
   userPrompt: string,
+  modelOverride?: string,
+  maxTokensOverride?: number
 ): Promise<string> {
   const client = createGroqClient();
 
-  console.log(`[groqService] Calling ${GROQ_MODEL}...`);
+  const targetModel = modelOverride || GROQ_MODEL;
+  const targetTokens = maxTokensOverride || GROQ_MAX_TOKENS;
+
+  console.log(`[groqService] Calling ${targetModel}...`);
 
   const completion = await client.chat.completions.create({
-    model: GROQ_MODEL,
-    max_tokens: GROQ_MAX_TOKENS,
+    model: targetModel,
+    max_tokens: targetTokens,
     temperature: 0.3, // Low temperature for factual, consistent intelligence output
     messages: [
       { role: "system", content: systemPrompt },

@@ -3,13 +3,14 @@
  *
  * Responsibilities:
  * 1. Collect data from all registered DataSourcePlugins
- * 2. Build the AI prompt from collected data
- * 3. Call Groq via groqService
- * 4. Parse and validate the JSON response with Zod
- * 5. Cache the result for INTELLIGENCE_CACHE_TTL_MS
- * 6. Return a typed IntelligenceReport
+ * 2. Generate Knowledge Graph context
+ * 3. Build the AI prompt from collected data + graph context
+ * 4. Call Groq via groqService
+ * 5. Parse and validate the JSON response with Zod
+ * 6. Cache the result for INTELLIGENCE_CACHE_TTL_MS
+ * 7. Return a typed IntelligenceReport
  *
- * Future data sources (AIS, commodity prices, weather, port congestion,
+ * Future data sources (commodity prices, weather, port congestion,
  * satellite imagery, sanctions databases) are plugged in by registering
  * a new DataSourcePlugin — this file and the frontend never change.
  */
@@ -19,6 +20,9 @@ import { intelligenceReportSchema } from "../schemas/intelligence.schema";
 import { SYSTEM_PROMPT, buildUserPrompt } from "../prompts/system.prompt";
 import { callGroq } from "./groqService";
 import { newsDataSource } from "./newsService";
+import { openSkyDataSource } from "./openSkyService";
+import { aisIntelligenceDataSource } from "./aisIntelligenceService";
+import { preprocessIntelligence } from "./preprocessingService";
 import { INTELLIGENCE_CACHE_TTL_MS } from "../constants";
 
 // ---------------------------------------------------------------------------
@@ -27,7 +31,8 @@ import { INTELLIGENCE_CACHE_TTL_MS } from "../constants";
 // ---------------------------------------------------------------------------
 const DATA_SOURCES: DataSourcePlugin[] = [
   newsDataSource,
-  // Future: aisDataSource
+  openSkyDataSource,
+  aisIntelligenceDataSource,
   // Future: commodityPriceDataSource
   // Future: portCongestionDataSource
   // Future: sanctionsDataSource
@@ -35,7 +40,7 @@ const DATA_SOURCES: DataSourcePlugin[] = [
 ];
 
 // ---------------------------------------------------------------------------
-// In-memory cache (same pattern as AIS manager)
+// In-memory cache
 // ---------------------------------------------------------------------------
 type CacheEntry = {
   report: IntelligenceReport;
@@ -110,13 +115,16 @@ async function generateFresh(): Promise<IntelligenceReport> {
     `[intelligenceService] Collected ${allSources.length} data items from ${DATA_SOURCES.length} plugin(s).`,
   );
 
-  // Step 2: Build the AI prompt
-  const userPrompt = buildUserPrompt(allSources);
+  // Step 2: Preprocess, Extract Facts, Augment with Graph, and Filter
+  const augmentedObservations = await preprocessIntelligence(allSources);
 
-  // Step 3: Call Groq
+  // Step 3: Build the constrained AI prompt
+  const userPrompt = buildUserPrompt(augmentedObservations);
+
+  // Step 4: Call Groq
   const rawResponse = await callGroq(SYSTEM_PROMPT, userPrompt);
 
-  // Step 4: Extract and parse JSON
+  // Step 5: Extract and parse JSON
   const jsonString = extractJson(rawResponse);
 
   let parsed: unknown;
@@ -127,12 +135,12 @@ async function generateFresh(): Promise<IntelligenceReport> {
     throw new Error(`[intelligenceService] Groq returned invalid JSON: ${String(err)}`);
   }
 
-  // Step 5: Validate with Zod
+  // Step 6: Validate with Zod
   const validated = intelligenceReportSchema.parse(parsed);
 
   console.log("[intelligenceService] Report validated successfully.");
 
-  // Step 6: Cache and return
+  // Step 7: Cache and return
   setCache(validated);
   return validated;
 }

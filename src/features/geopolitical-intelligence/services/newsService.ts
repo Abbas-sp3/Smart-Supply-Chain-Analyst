@@ -112,17 +112,28 @@ function stripHtml(text: string): string {
   return text.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
 }
 
-function cleanArticleContent(raw: string): string {
-  return stripHtml(raw).slice(0, 800);
+// Simple Jaccard similarity for title deduplication
+function getSimilarity(s1: string, s2: string): number {
+  const w1 = new Set(s1.toLowerCase().split(/\W+/).filter(Boolean));
+  const w2 = new Set(s2.toLowerCase().split(/\W+/).filter(Boolean));
+  if (w1.size === 0 || w2.size === 0) return 0;
+  let intersection = 0;
+  for (const w of w1) {
+    if (w2.has(w)) intersection++;
+  }
+  return intersection / (w1.size + w2.size - intersection);
 }
 
-function deduplicateByUrl(articles: RawArticle[]): RawArticle[] {
-  const seen = new Set<string>();
-  return articles.filter((a) => {
-    if (seen.has(a.url)) return false;
-    seen.add(a.url);
-    return true;
-  });
+function deduplicateByContent(articles: RawArticle[]): RawArticle[] {
+  const unique: RawArticle[] = [];
+  for (const article of articles) {
+    // If it's more than 40% similar to an existing title, skip it
+    const isDuplicate = unique.some((u) => getSimilarity(u.title, article.title) > 0.4);
+    if (!isDuplicate) {
+      unique.push(article);
+    }
+  }
+  return unique;
 }
 
 // ---------------------------------------------------------------------------
@@ -135,7 +146,6 @@ async function fetchFromNewsApi(): Promise<RawArticle[]> {
     return [];
   }
 
-  // Pick a rotating subset of keywords to keep queries fresh
   const keyword = NEWS_KEYWORDS[Math.floor(Date.now() / 3_600_000) % NEWS_KEYWORDS.length];
   const query = `(${keyword}) AND (India OR shipping OR supply chain OR trade)`;
 
@@ -143,7 +153,7 @@ async function fetchFromNewsApi(): Promise<RawArticle[]> {
   url.searchParams.set("q", query);
   url.searchParams.set("language", "en");
   url.searchParams.set("sortBy", "publishedAt");
-  url.searchParams.set("pageSize", String(MAX_ARTICLES_PER_FETCH));
+  url.searchParams.set("pageSize", String(MAX_ARTICLES_PER_FETCH * 2)); // Fetch more to allow deduplication
   url.searchParams.set("apiKey", apiKey);
 
   const res = await fetch(url.toString(), {
@@ -167,14 +177,12 @@ async function fetchFromNewsApi(): Promise<RawArticle[]> {
   };
 
   return (json.articles ?? [])
-    .filter((a) => a.title && a.url)
+    .filter((a) => a.title && a.description)
     .map((a) => ({
       title: a.title ?? "",
       source: a.source?.name ?? "Unknown",
       publishedAt: a.publishedAt ?? new Date().toISOString(),
-      content: cleanArticleContent(
-        [a.description ?? "", a.content ?? ""].join(" "),
-      ),
+      content: stripHtml(a.description ?? ""), // We only keep description now per instructions
       url: a.url ?? "",
     }));
 }
@@ -197,16 +205,24 @@ class NewsDataSourcePlugin implements DataSourcePlugin {
       articles = MOCK_ARTICLES;
     }
 
-    const unique = deduplicateByUrl(articles).slice(0, MAX_ARTICLES_PER_FETCH);
+    const unique = deduplicateByContent(articles).slice(0, MAX_ARTICLES_PER_FETCH);
 
     console.log(
       `[newsService] Articles ready: ${unique.length} (${unique.some((a) => MOCK_ARTICLES.includes(a)) ? "includes mock" : "live"})`,
     );
 
-    return unique.map((article) => ({
-      source: `${article.source} — "${article.title}" (${new Date(article.publishedAt).toDateString()})`,
-      content: article.content,
-    }));
+    // Return structured data instead of string formatting
+    return [
+      {
+        source: this.name,
+        data: unique.map((a) => ({
+          title: a.title,
+          description: a.content, // mapped to description
+          source: a.source,
+          publishedAt: a.publishedAt,
+        })),
+      },
+    ];
   }
 }
 

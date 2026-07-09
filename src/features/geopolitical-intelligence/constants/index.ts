@@ -35,5 +35,5 @@ export const MAX_ARTICLES_PER_FETCH = 25;
 /** Groq model to use for intelligence generation */
 export const GROQ_MODEL = "llama-3.3-70b-versatile";
 
-/** Max tokens for the AI response */
+/** Max tokens for the AI response (increased for expanded fusion engine schema) */
 export const GROQ_MAX_TOKENS = 4096;

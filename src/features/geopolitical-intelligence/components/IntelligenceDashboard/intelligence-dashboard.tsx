@@ -13,16 +13,24 @@ import { RefreshCw, AlertCircle, Brain } from "lucide-react";
 
 import { useIntelligence } from "../../hooks/useIntelligence";
 import { IntelligenceLoader } from "../IntelligenceLoader/intelligence-loader";
+import { OperationalAssessment } from "../OperationalAssessment/operational-assessment";
 import { ExecutiveSummary } from "../ExecutiveSummary/executive-summary";
 import { KeyDevelopments } from "../KeyDevelopments/key-developments";
+import { IntelligenceObservations } from "../IntelligenceObservations/intelligence-observations";
+import { MilitaryObservations } from "../MilitaryObservations/military-observations";
+import { MaritimeObservations } from "../MaritimeObservations/maritime-observations";
 import { AffectedCategories } from "../AffectedCategories/affected-categories";
 import { AffectedProducts } from "../AffectedProducts/affected-products";
 import { TradeCorridors } from "../TradeCorridors/trade-corridors";
 import { PortsAndCountries } from "../PortsAndCountries/ports-and-countries";
 import { AffectedIndustries } from "../AffectedIndustries/affected-industries";
+import { CriticalInfrastructure } from "../CriticalInfrastructure/critical-infrastructure";
 import { SupplyChainImpacts } from "../SupplyChainImpacts/supply-chain-impacts";
 import { AlternativeSupply } from "../AlternativeSupply/alternative-supply";
+import { ScenarioAnalysis } from "../ScenarioAnalysis/scenario-analysis";
 import { Recommendations } from "../Recommendations/recommendations";
+import { HistoricalContext } from "../HistoricalContext/historical-context";
+import { MonitoringPriorities } from "../MonitoringPriorities/monitoring-priorities";
 import { WhyIndiaShouldCare } from "../WhyIndiaShouldCare/why-india-should-care";
 import { SupportingEvidence } from "../SupportingEvidence/supporting-evidence";
 
@@ -139,11 +147,11 @@ export function IntelligenceDashboard() {
 
       {data && (
         <div className="space-y-4 sm:space-y-5">
-          <ExecutiveSummary summary={data.executive_summary} />
-
+          <OperationalAssessment assessment={data.current_operational_assessment} />
+          
           <KeyDevelopments developments={data.key_developments} />
 
-          <WhyIndiaShouldCare content={data.why_india_should_care} />
+          <ExecutiveSummary summary={data.executive_summary} />
 
           <div className="grid gap-4 sm:gap-5 lg:grid-cols-2">
             <AffectedCategories categories={data.affected_import_categories} />
@@ -159,14 +167,30 @@ export function IntelligenceDashboard() {
 
           <AffectedIndustries industries={data.affected_industries} />
 
+          <Recommendations recommendations={data.recommendations} />
+
+          <ScenarioAnalysis scenarios={data.scenario_analysis} />
+
+          <SupportingEvidence evidence={data.supporting_evidence} />
+
+          {/* Secondary / Contextual Information placed at the bottom */}
+          <IntelligenceObservations observations={data.intelligence_observations} />
+          <WhyIndiaShouldCare content={data.why_india_should_care} />
+
+          <div className="grid gap-4 sm:gap-5 lg:grid-cols-2">
+            <MilitaryObservations observations={data.military_observations} />
+            <MaritimeObservations observations={data.maritime_observations} />
+          </div>
+
+          <CriticalInfrastructure infrastructure={data.critical_infrastructure_at_risk} />
+
           <div className="grid gap-4 sm:gap-5 lg:grid-cols-2">
             <SupplyChainImpacts impacts={data.possible_supply_chain_impacts} />
             <AlternativeSupply options={data.alternative_supply_options} />
           </div>
 
-          <Recommendations recommendations={data.recommendations} />
-
-          <SupportingEvidence evidence={data.supporting_evidence} />
+          <HistoricalContext events={data.historical_similar_events} />
+          <MonitoringPriorities priorities={data.monitoring_priorities} />
         </div>
       )}
     </div>

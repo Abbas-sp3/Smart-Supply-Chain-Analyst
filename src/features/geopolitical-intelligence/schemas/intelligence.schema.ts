@@ -10,11 +10,22 @@ import { z } from "zod";
 // ---------------------------------------------------------------------------
 // Sub-schemas
 // ---------------------------------------------------------------------------
+
+const operationalAssessmentSchema = z.object({
+  threat_level: z.enum(["Critical", "High", "Medium", "Low"]),
+  summary: z.string(),
+});
+
 const keyDevelopmentSchema = z.object({
   title: z.string(),
   description: z.string(),
   importance: z.string(),
   why_it_matters: z.string(),
+});
+
+const intelligenceObservationSchema = z.object({
+  observation: z.string(),
+  significance: z.string(),
 });
 
 const affectedImportCategorySchema = z.object({
@@ -47,6 +58,11 @@ const affectedIndustrySchema = z.object({
   reason: z.string(),
 });
 
+const criticalInfrastructureRiskSchema = z.object({
+  infrastructure: z.string(),
+  risk: z.string(),
+});
+
 const supplyChainImpactSchema = z.object({
   impact: z.string(),
   reason: z.string(),
@@ -71,23 +87,62 @@ const supportingEvidenceSchema = z.object({
   headline: z.string(),
 });
 
+const militaryObservationSchema = z.object({
+  activity: z.string(),
+  implication: z.string(),
+});
+
+const maritimeObservationSchema = z.object({
+  anomaly: z.string(),
+  impact: z.string(),
+});
+
+const historicalEventSchema = z.object({
+  event: z.string(),
+  relevance: z.string(),
+});
+
+const scenarioCaseSchema = z.object({
+  description: z.string(),
+  impact_on_india: z.string(),
+});
+
+const scenarioAnalysisSchema = z.object({
+  best_case: scenarioCaseSchema,
+  most_likely: scenarioCaseSchema,
+  worst_case: scenarioCaseSchema,
+});
+
+const monitoringPrioritySchema = z.object({
+  priority: z.string(),
+  reason: z.string(),
+});
+
 // ---------------------------------------------------------------------------
 // Top-level schema
 // ---------------------------------------------------------------------------
 export const intelligenceReportSchema = z.object({
   executive_summary: z.string(),
-  key_developments: z.array(keyDevelopmentSchema),
-  affected_import_categories: z.array(affectedImportCategorySchema),
-  affected_products: z.array(affectedProductSchema),
-  affected_trade_corridors: z.array(affectedTradeCorridorSchema),
-  affected_ports: z.array(affectedPortSchema),
-  affected_countries: z.array(affectedCountrySchema),
-  affected_industries: z.array(affectedIndustrySchema),
-  possible_supply_chain_impacts: z.array(supplyChainImpactSchema),
-  alternative_supply_options: z.array(alternativeSupplyOptionSchema),
-  recommendations: z.array(recommendationSchema),
+  current_operational_assessment: operationalAssessmentSchema,
+  key_developments: z.array(keyDevelopmentSchema).optional().default([]),
+  intelligence_observations: z.array(intelligenceObservationSchema).optional().default([]),
+  affected_import_categories: z.array(affectedImportCategorySchema).optional().default([]),
+  affected_products: z.array(affectedProductSchema).optional().default([]),
+  affected_countries: z.array(affectedCountrySchema).optional().default([]),
+  affected_ports: z.array(affectedPortSchema).optional().default([]),
+  affected_trade_corridors: z.array(affectedTradeCorridorSchema).optional().default([]),
+  affected_industries: z.array(affectedIndustrySchema).optional().default([]),
+  critical_infrastructure_at_risk: z.array(criticalInfrastructureRiskSchema).optional().default([]),
+  possible_supply_chain_impacts: z.array(supplyChainImpactSchema).optional().default([]),
+  alternative_supply_options: z.array(alternativeSupplyOptionSchema).optional().default([]),
+  recommendations: z.array(recommendationSchema).optional().default([]),
   why_india_should_care: z.string(),
-  supporting_evidence: z.array(supportingEvidenceSchema),
+  supporting_evidence: z.array(supportingEvidenceSchema).optional().default([]),
+  military_observations: z.array(militaryObservationSchema).optional().default([]),
+  maritime_observations: z.array(maritimeObservationSchema).optional().default([]),
+  historical_similar_events: z.array(historicalEventSchema).optional().default([]),
+  scenario_analysis: scenarioAnalysisSchema,
+  monitoring_priorities: z.array(monitoringPrioritySchema).optional().default([]),
 });
 
 export type IntelligenceReportFromSchema = z.infer<
