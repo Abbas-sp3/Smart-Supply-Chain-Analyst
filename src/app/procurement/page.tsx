@@ -42,6 +42,7 @@ type ProcurementData = {
   alternatives: Alternative[];
   critical_cargo: CriticalCargo;
   disclaimer: string;
+  fallback?: boolean;
 };
 
 export default function ProcurementPage() {
@@ -64,8 +65,15 @@ export default function ProcurementPage() {
       try {
         const res = await fetch("/api/procurement");
         if (!res.ok) throw new Error(`Request failed: ${res.status}`);
-        const json = await res.json();
-        if (!cancelled) setData(json);
+        const json = (await res.json()) as ProcurementData | { error: string };
+        if (!cancelled) {
+          if ("error" in json) {
+            setError(json.error);
+            setData(null);
+          } else {
+            setData(json);
+          }
+        }
       } catch {
         if (!cancelled) setError("Could not load procurement data. Check the server logs.");
       } finally {
@@ -121,6 +129,12 @@ export default function ProcurementPage() {
       {error && (
         <div className="glass-surface rounded-xl border border-red-500/20 p-5 text-sm text-red-400">
           {error}
+        </div>
+      )}
+
+      {data?.fallback && (
+        <div className="glass-surface rounded-xl border border-amber-500/20 px-5 py-3 text-xs text-amber-400/90">
+          Showing cached sample briefing — Groq rate limit reached or API unavailable. Live AI generation will resume automatically when quota resets.
         </div>
       )}
 
