@@ -45,5 +45,14 @@ export const GROQ_MODEL = "llama-3.3-70b-versatile";
 /** Max tokens for the legacy single-call path (kept for fact extraction) */
 export const GROQ_MAX_TOKENS = 4096;
 
-/** Max tokens per intelligence module — smaller prompts need fewer tokens */
-export const GROQ_MODULE_MAX_TOKENS = 1536;
+/** Max tokens per intelligence module */
+export const GROQ_MODULE_MAX_TOKENS = 3072;
+
+/** Per-module token overrides — enriched context requires higher limits */
+export const MODULE_MAX_TOKENS: Record<string, number> = {
+  executive_summary: 3072,
+  supply_chain_impact: 3584,
+  recommendations: 4096,
+  scenario_analysis: 3584,
+  evidence: 3072,
+};

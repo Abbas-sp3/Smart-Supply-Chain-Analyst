@@ -1,67 +1,179 @@
 export type KnowledgeGraphNode = {
   id: string;
-  type: "country" | "corridor" | "port" | "product" | "category" | "industry" | "infrastructure" | "resource";
+  type:
+    | "country"
+    | "corridor"
+    | "port"
+    | "product"
+    | "category"
+    | "industry"
+    | "infrastructure"
+    | "resource";
   label: string;
   description: string;
+  aliases?: string[]; // alternative names for entity matching
   connections: KnowledgeGraphEdge[];
 };
 
 export type KnowledgeGraphEdge = {
   targetId: string;
-  relationship: "supplies" | "routes_through" | "depends_on" | "produces" | "imports" | "threatens";
+  relationship:
+    | "supplies"
+    | "routes_through"
+    | "depends_on"
+    | "produces"
+    | "imports"
+    | "threatens"
+    | "can_replace"
+    | "feeds_into"
+    | "operates_at";
   strategicWeight: "Critical" | "High" | "Medium" | "Low";
 };
 
 export const INDIA_TRADE_GRAPH: KnowledgeGraphNode[] = [
-  // Corridors
+  // =========================================================================
+  // TRADE CORRIDORS
+  // =========================================================================
   {
     id: "corridor_hormuz",
     type: "corridor",
     label: "Strait of Hormuz",
-    description: "Critical chokepoint between the Persian Gulf and the Gulf of Oman.",
+    aliases: ["hormuz", "persian gulf strait"],
+    description:
+      "Critical chokepoint handling ~20% of global oil trade between the Persian Gulf and Gulf of Oman.",
     connections: [
       { targetId: "product_crude_oil", relationship: "routes_through", strategicWeight: "Critical" },
       { targetId: "product_lng", relationship: "routes_through", strategicWeight: "Critical" },
+      { targetId: "product_lpg", relationship: "routes_through", strategicWeight: "High" },
+      { targetId: "port_mundra", relationship: "feeds_into", strategicWeight: "Critical" },
+      { targetId: "port_jnpt", relationship: "feeds_into", strategicWeight: "Critical" },
+      { targetId: "port_kandla", relationship: "feeds_into", strategicWeight: "High" },
+      { targetId: "port_mangalore", relationship: "feeds_into", strategicWeight: "High" },
     ],
   },
   {
     id: "corridor_bab_el_mandeb",
     type: "corridor",
     label: "Bab-el-Mandeb Strait / Red Sea",
-    description: "Chokepoint between the Red Sea and the Gulf of Aden.",
+    aliases: ["bab-el-mandeb", "bab el mandeb", "red sea", "houthi"],
+    description:
+      "Chokepoint between the Red Sea and the Gulf of Aden; gateway to Suez Canal.",
     connections: [
       { targetId: "corridor_suez", relationship: "routes_through", strategicWeight: "Critical" },
-      { targetId: "country_europe", relationship: "routes_through", strategicWeight: "High" },
+      { targetId: "product_crude_oil", relationship: "routes_through", strategicWeight: "High" },
+      { targetId: "port_jnpt", relationship: "feeds_into", strategicWeight: "High" },
+      { targetId: "port_mundra", relationship: "feeds_into", strategicWeight: "High" },
+      { targetId: "port_kochi", relationship: "feeds_into", strategicWeight: "High" },
     ],
   },
   {
     id: "corridor_suez",
     type: "corridor",
     label: "Suez Canal",
-    description: "Artificial sea-level waterway in Egypt, connecting the Mediterranean Sea to the Red Sea.",
+    aliases: ["suez"],
+    description:
+      "Artificial waterway in Egypt connecting Mediterranean to Red Sea; ~12% of global trade.",
     connections: [
       { targetId: "country_europe", relationship: "routes_through", strategicWeight: "Critical" },
+      { targetId: "product_machinery", relationship: "routes_through", strategicWeight: "High" },
+      { targetId: "port_jnpt", relationship: "feeds_into", strategicWeight: "Critical" },
+      { targetId: "port_mundra", relationship: "feeds_into", strategicWeight: "High" },
     ],
   },
   {
     id: "corridor_malacca",
     type: "corridor",
     label: "Strait of Malacca",
-    description: "Main shipping channel between the Indian Ocean and the Pacific Ocean.",
+    aliases: ["malacca", "malacca strait"],
+    description:
+      "Main shipping channel between Indian Ocean and Pacific Ocean; ~25% of global trade.",
     connections: [
       { targetId: "country_china", relationship: "routes_through", strategicWeight: "Critical" },
       { targetId: "country_taiwan", relationship: "routes_through", strategicWeight: "Critical" },
+      { targetId: "country_south_korea", relationship: "routes_through", strategicWeight: "High" },
+      { targetId: "country_japan", relationship: "routes_through", strategicWeight: "High" },
       { targetId: "product_semiconductors", relationship: "routes_through", strategicWeight: "Critical" },
       { targetId: "product_electronics", relationship: "routes_through", strategicWeight: "High" },
+      { targetId: "product_palm_oil", relationship: "routes_through", strategicWeight: "High" },
+      { targetId: "port_chennai", relationship: "feeds_into", strategicWeight: "Critical" },
+      { targetId: "port_vizag", relationship: "feeds_into", strategicWeight: "High" },
+      { targetId: "port_kolkata", relationship: "feeds_into", strategicWeight: "High" },
+      { targetId: "port_ennore", relationship: "feeds_into", strategicWeight: "High" },
+    ],
+  },
+  {
+    id: "corridor_south_china_sea",
+    type: "corridor",
+    label: "South China Sea",
+    aliases: ["south china sea", "scs", "spratly", "paracel"],
+    description:
+      "Contested waterway; ~$3 trillion in trade passes through annually.",
+    connections: [
+      { targetId: "country_china", relationship: "routes_through", strategicWeight: "Critical" },
+      { targetId: "country_taiwan", relationship: "routes_through", strategicWeight: "Critical" },
+      { targetId: "corridor_malacca", relationship: "routes_through", strategicWeight: "High" },
+      { targetId: "product_semiconductors", relationship: "routes_through", strategicWeight: "Critical" },
+    ],
+  },
+  {
+    id: "corridor_panama",
+    type: "corridor",
+    label: "Panama Canal",
+    aliases: ["panama canal", "panama"],
+    description:
+      "Connects Atlantic and Pacific; drought restrictions affect global shipping capacity.",
+    connections: [
+      { targetId: "product_lng", relationship: "routes_through", strategicWeight: "Medium" },
+      { targetId: "product_coal", relationship: "routes_through", strategicWeight: "Medium" },
+    ],
+  },
+  {
+    id: "corridor_black_sea",
+    type: "corridor",
+    label: "Black Sea",
+    aliases: ["black sea", "bosphorus", "turkish straits"],
+    description:
+      "Critical for grain and fertilizer exports from Russia and Ukraine.",
+    connections: [
+      { targetId: "product_fertilizers", relationship: "routes_through", strategicWeight: "Critical" },
+      { targetId: "product_food_grains", relationship: "routes_through", strategicWeight: "High" },
+      { targetId: "product_edible_oil", relationship: "routes_through", strategicWeight: "High" },
+    ],
+  },
+  {
+    id: "corridor_cape_good_hope",
+    type: "corridor",
+    label: "Cape of Good Hope",
+    aliases: ["cape of good hope", "cape route"],
+    description:
+      "Alternative route when Red Sea / Suez is disrupted; adds 10-14 days transit.",
+    connections: [
+      { targetId: "country_europe", relationship: "routes_through", strategicWeight: "Medium" },
     ],
   },
 
-  // Countries
+  // =========================================================================
+  // COUNTRIES (Source/Supplier Nations)
+  // =========================================================================
   {
     id: "country_saudi_arabia",
     type: "country",
     label: "Saudi Arabia",
-    description: "Major oil producer.",
+    aliases: ["saudi", "ksa", "kingdom of saudi arabia"],
+    description: "India's 2nd largest crude oil supplier; also supplies LPG and petrochemicals.",
+    connections: [
+      { targetId: "product_crude_oil", relationship: "supplies", strategicWeight: "Critical" },
+      { targetId: "product_lpg", relationship: "supplies", strategicWeight: "High" },
+      { targetId: "product_fertilizers", relationship: "supplies", strategicWeight: "Medium" },
+      { targetId: "corridor_hormuz", relationship: "routes_through", strategicWeight: "Critical" },
+    ],
+  },
+  {
+    id: "country_iraq",
+    type: "country",
+    label: "Iraq",
+    aliases: ["iraq"],
+    description: "India's largest crude oil supplier (~23% of imports).",
     connections: [
       { targetId: "product_crude_oil", relationship: "supplies", strategicWeight: "Critical" },
       { targetId: "corridor_hormuz", relationship: "routes_through", strategicWeight: "Critical" },
@@ -70,326 +182,1159 @@ export const INDIA_TRADE_GRAPH: KnowledgeGraphNode[] = [
   {
     id: "country_uae",
     type: "country",
-    label: "UAE",
-    description: "Major oil and gas producer.",
+    label: "United Arab Emirates",
+    aliases: ["uae", "emirates", "dubai", "abu dhabi"],
+    description: "Major oil/gas supplier and trading hub for India.",
     connections: [
       { targetId: "product_crude_oil", relationship: "supplies", strategicWeight: "High" },
+      { targetId: "product_lng", relationship: "supplies", strategicWeight: "High" },
       { targetId: "corridor_hormuz", relationship: "routes_through", strategicWeight: "High" },
     ],
   },
   {
-    id: "country_iraq",
+    id: "country_iran",
     type: "country",
-    label: "Iraq",
-    description: "Major oil producer.",
+    label: "Iran",
+    aliases: ["iran", "tehran"],
+    description: "Strategic oil supplier; sanctions affect supply availability.",
     connections: [
       { targetId: "product_crude_oil", relationship: "supplies", strategicWeight: "High" },
+      { targetId: "corridor_hormuz", relationship: "threatens", strategicWeight: "Critical" },
+    ],
+  },
+  {
+    id: "country_qatar",
+    type: "country",
+    label: "Qatar",
+    aliases: ["qatar", "doha"],
+    description: "World's largest LNG exporter; key supplier to India.",
+    connections: [
+      { targetId: "product_lng", relationship: "supplies", strategicWeight: "Critical" },
       { targetId: "corridor_hormuz", relationship: "routes_through", strategicWeight: "Critical" },
     ],
   },
   {
-    id: "country_russia",
+    id: "country_kuwait",
     type: "country",
-    label: "Russia",
-    description: "Major supplier of oil, coal, and fertilizers.",
+    label: "Kuwait",
+    aliases: ["kuwait"],
+    description: "Oil supplier to India.",
     connections: [
-      { targetId: "product_crude_oil", relationship: "supplies", strategicWeight: "Critical" },
-      { targetId: "product_fertilizers", relationship: "supplies", strategicWeight: "High" },
-      { targetId: "product_coal", relationship: "supplies", strategicWeight: "High" },
+      { targetId: "product_crude_oil", relationship: "supplies", strategicWeight: "Medium" },
+      { targetId: "corridor_hormuz", relationship: "routes_through", strategicWeight: "Critical" },
     ],
   },
   {
-    id: "country_usa",
+    id: "country_oman",
     type: "country",
-    label: "USA",
-    description: "Supplier of crude oil, LNG, and high-tech components.",
+    label: "Oman",
+    aliases: ["oman", "muscat"],
+    description: "Oil and LNG supplier near Hormuz.",
     connections: [
       { targetId: "product_crude_oil", relationship: "supplies", strategicWeight: "Medium" },
       { targetId: "product_lng", relationship: "supplies", strategicWeight: "Medium" },
     ],
   },
   {
+    id: "country_russia",
+    type: "country",
+    label: "Russia",
+    aliases: ["russia", "russian", "moscow", "kremlin"],
+    description:
+      "Major supplier of discounted crude oil, coal, fertilizers; sanctions create payment complexities.",
+    connections: [
+      { targetId: "product_crude_oil", relationship: "supplies", strategicWeight: "Critical" },
+      { targetId: "product_fertilizers", relationship: "supplies", strategicWeight: "High" },
+      { targetId: "product_coal", relationship: "supplies", strategicWeight: "High" },
+      { targetId: "product_defence_equipment", relationship: "supplies", strategicWeight: "High" },
+    ],
+  },
+  {
+    id: "country_usa",
+    type: "country",
+    label: "United States",
+    aliases: ["usa", "us", "united states", "america", "washington"],
+    description:
+      "Supplier of crude oil, LNG, high-tech components; sanctions/export controls affect supply chains.",
+    connections: [
+      { targetId: "product_crude_oil", relationship: "supplies", strategicWeight: "Medium" },
+      { targetId: "product_lng", relationship: "supplies", strategicWeight: "High" },
+      { targetId: "product_semiconductors", relationship: "supplies", strategicWeight: "High" },
+      { targetId: "product_defence_equipment", relationship: "supplies", strategicWeight: "Medium" },
+    ],
+  },
+  {
     id: "country_china",
     type: "country",
     label: "China",
-    description: "Major supplier of electronics, APIs, and rare earths.",
+    aliases: ["china", "chinese", "beijing", "prc"],
+    description:
+      "India's largest goods trading partner; critical supplier of electronics, APIs, rare earths, solar panels.",
     connections: [
       { targetId: "product_electronics", relationship: "supplies", strategicWeight: "Critical" },
       { targetId: "product_apis", relationship: "supplies", strategicWeight: "Critical" },
-      { targetId: "product_rare_earths", relationship: "supplies", strategicWeight: "High" },
+      { targetId: "product_rare_earths", relationship: "supplies", strategicWeight: "Critical" },
+      { targetId: "product_solar_panels", relationship: "supplies", strategicWeight: "Critical" },
+      { targetId: "product_machinery", relationship: "supplies", strategicWeight: "High" },
+      { targetId: "product_industrial_chemicals", relationship: "supplies", strategicWeight: "High" },
+      { targetId: "product_steel", relationship: "supplies", strategicWeight: "Medium" },
+      { targetId: "corridor_malacca", relationship: "routes_through", strategicWeight: "Critical" },
     ],
   },
   {
     id: "country_taiwan",
     type: "country",
     label: "Taiwan",
-    description: "Leading manufacturer of advanced semiconductors.",
+    aliases: ["taiwan", "taipei", "tsmc"],
+    description: "Leading manufacturer of advanced semiconductors (TSMC).",
     connections: [
       { targetId: "product_semiconductors", relationship: "supplies", strategicWeight: "Critical" },
+      { targetId: "corridor_malacca", relationship: "routes_through", strategicWeight: "Critical" },
+      { targetId: "corridor_south_china_sea", relationship: "routes_through", strategicWeight: "Critical" },
+    ],
+  },
+  {
+    id: "country_south_korea",
+    type: "country",
+    label: "South Korea",
+    aliases: ["south korea", "korea", "seoul", "samsung"],
+    description: "Major supplier of semiconductors, electronics, steel, and machinery.",
+    connections: [
+      { targetId: "product_semiconductors", relationship: "supplies", strategicWeight: "High" },
+      { targetId: "product_electronics", relationship: "supplies", strategicWeight: "High" },
+      { targetId: "product_steel", relationship: "supplies", strategicWeight: "Medium" },
+      { targetId: "corridor_malacca", relationship: "routes_through", strategicWeight: "High" },
+    ],
+  },
+  {
+    id: "country_japan",
+    type: "country",
+    label: "Japan",
+    aliases: ["japan", "tokyo"],
+    description: "Supplier of machinery, automotive components, and electronics.",
+    connections: [
+      { targetId: "product_machinery", relationship: "supplies", strategicWeight: "High" },
+      { targetId: "product_electronics", relationship: "supplies", strategicWeight: "Medium" },
+      { targetId: "product_steel", relationship: "supplies", strategicWeight: "Medium" },
+      { targetId: "corridor_malacca", relationship: "routes_through", strategicWeight: "High" },
     ],
   },
   {
     id: "country_australia",
     type: "country",
     label: "Australia",
-    description: "Major supplier of coal and critical minerals.",
+    aliases: ["australia", "canberra"],
+    description: "Major supplier of coal, LNG, and critical minerals.",
     connections: [
+      { targetId: "product_coal", relationship: "supplies", strategicWeight: "Critical" },
+      { targetId: "product_lng", relationship: "supplies", strategicWeight: "High" },
+      { targetId: "product_lithium", relationship: "supplies", strategicWeight: "High" },
+      { targetId: "product_rare_earths", relationship: "supplies", strategicWeight: "Medium" },
+    ],
+  },
+  {
+    id: "country_indonesia",
+    type: "country",
+    label: "Indonesia",
+    aliases: ["indonesia", "jakarta"],
+    description: "Major supplier of palm oil, coal, nickel, and rubber.",
+    connections: [
+      { targetId: "product_palm_oil", relationship: "supplies", strategicWeight: "Critical" },
       { targetId: "product_coal", relationship: "supplies", strategicWeight: "High" },
+      { targetId: "product_nickel", relationship: "supplies", strategicWeight: "High" },
+      { targetId: "product_rubber", relationship: "supplies", strategicWeight: "Medium" },
+      { targetId: "corridor_malacca", relationship: "routes_through", strategicWeight: "High" },
+    ],
+  },
+  {
+    id: "country_malaysia",
+    type: "country",
+    label: "Malaysia",
+    aliases: ["malaysia", "kuala lumpur"],
+    description: "Supplier of palm oil, LNG, electronics, and rubber.",
+    connections: [
+      { targetId: "product_palm_oil", relationship: "supplies", strategicWeight: "High" },
+      { targetId: "product_lng", relationship: "supplies", strategicWeight: "Medium" },
+      { targetId: "product_electronics", relationship: "supplies", strategicWeight: "Medium" },
+      { targetId: "product_rubber", relationship: "supplies", strategicWeight: "Medium" },
+      { targetId: "corridor_malacca", relationship: "routes_through", strategicWeight: "Critical" },
+    ],
+  },
+  {
+    id: "country_vietnam",
+    type: "country",
+    label: "Vietnam",
+    aliases: ["vietnam", "hanoi"],
+    description: "Emerging alternative supplier for electronics and textiles.",
+    connections: [
+      { targetId: "product_electronics", relationship: "supplies", strategicWeight: "Medium" },
+      { targetId: "corridor_malacca", relationship: "routes_through", strategicWeight: "High" },
+    ],
+  },
+  {
+    id: "country_nigeria",
+    type: "country",
+    label: "Nigeria",
+    aliases: ["nigeria", "abuja", "lagos"],
+    description: "African oil supplier to India.",
+    connections: [
+      { targetId: "product_crude_oil", relationship: "supplies", strategicWeight: "Medium" },
+    ],
+  },
+  {
+    id: "country_canada",
+    type: "country",
+    label: "Canada",
+    aliases: ["canada", "ottawa"],
+    description: "Potential supplier of potash fertilizers and critical minerals.",
+    connections: [
+      { targetId: "product_fertilizers", relationship: "supplies", strategicWeight: "Medium" },
+      { targetId: "product_lithium", relationship: "supplies", strategicWeight: "Medium" },
+    ],
+  },
+  {
+    id: "country_morocco",
+    type: "country",
+    label: "Morocco",
+    aliases: ["morocco", "rabat"],
+    description: "World's largest phosphate producer; alternative fertilizer source.",
+    connections: [
+      { targetId: "product_fertilizers", relationship: "supplies", strategicWeight: "High" },
+    ],
+  },
+  {
+    id: "country_belarus",
+    type: "country",
+    label: "Belarus",
+    aliases: ["belarus", "minsk"],
+    description: "Major potash exporter; sanctions affect supply.",
+    connections: [
+      { targetId: "product_fertilizers", relationship: "supplies", strategicWeight: "Medium" },
+    ],
+  },
+  {
+    id: "country_ukraine",
+    type: "country",
+    label: "Ukraine",
+    aliases: ["ukraine", "kyiv", "kiev"],
+    description: "Supplier of sunflower oil and food grains; conflict disrupts Black Sea trade.",
+    connections: [
+      { targetId: "product_edible_oil", relationship: "supplies", strategicWeight: "High" },
+      { targetId: "product_food_grains", relationship: "supplies", strategicWeight: "High" },
+      { targetId: "corridor_black_sea", relationship: "routes_through", strategicWeight: "Critical" },
+    ],
+  },
+  {
+    id: "country_turkey",
+    type: "country",
+    label: "Turkey",
+    aliases: ["turkey", "türkiye", "turkiye", "ankara", "istanbul"],
+    description: "Controls Bosphorus strait; supplier of steel and industrial goods.",
+    connections: [
+      { targetId: "product_steel", relationship: "supplies", strategicWeight: "Medium" },
+      { targetId: "corridor_black_sea", relationship: "routes_through", strategicWeight: "High" },
+    ],
+  },
+  {
+    id: "country_egypt",
+    type: "country",
+    label: "Egypt",
+    aliases: ["egypt", "cairo"],
+    description: "Controls the Suez Canal.",
+    connections: [
+      { targetId: "corridor_suez", relationship: "threatens", strategicWeight: "Critical" },
+    ],
+  },
+  {
+    id: "country_singapore",
+    type: "country",
+    label: "Singapore",
+    aliases: ["singapore"],
+    description: "World's 2nd busiest container port; critical transshipment hub for India.",
+    connections: [
+      { targetId: "corridor_malacca", relationship: "routes_through", strategicWeight: "Critical" },
+      { targetId: "port_chennai", relationship: "feeds_into", strategicWeight: "High" },
+      { targetId: "port_vizag", relationship: "feeds_into", strategicWeight: "High" },
+      { targetId: "port_kochi", relationship: "feeds_into", strategicWeight: "High" },
     ],
   },
   {
     id: "country_europe",
     type: "country",
     label: "Europe",
-    description: "Trading partner for manufactured goods and machinery.",
+    aliases: ["eu", "european union", "germany", "france", "uk", "britain", "european"],
+    description: "Trading partner for machinery, chemicals, and manufactured goods.",
     connections: [
-      { targetId: "corridor_suez", relationship: "routes_through", strategicWeight: "High" },
+      { targetId: "product_machinery", relationship: "supplies", strategicWeight: "High" },
+      { targetId: "product_industrial_chemicals", relationship: "supplies", strategicWeight: "Medium" },
+      { targetId: "corridor_suez", relationship: "routes_through", strategicWeight: "Critical" },
     ],
   },
-  
-  // Ports
+  {
+    id: "country_chile",
+    type: "country",
+    label: "Chile",
+    aliases: ["chile", "santiago"],
+    description: "Major copper and lithium producer.",
+    connections: [
+      { targetId: "product_copper", relationship: "supplies", strategicWeight: "High" },
+      { targetId: "product_lithium", relationship: "supplies", strategicWeight: "High" },
+    ],
+  },
+  {
+    id: "country_drc",
+    type: "country",
+    label: "Democratic Republic of Congo",
+    aliases: ["drc", "congo", "kinshasa"],
+    description: "Supplies ~70% of global cobalt.",
+    connections: [
+      { targetId: "product_cobalt", relationship: "supplies", strategicWeight: "Critical" },
+    ],
+  },
+  {
+    id: "country_india",
+    type: "country",
+    label: "India",
+    aliases: ["india", "new delhi", "delhi", "indian"],
+    description: "Primary import destination — the focal point of all analysis.",
+    connections: [
+      { targetId: "industry_refining", relationship: "depends_on", strategicWeight: "Critical" },
+      { targetId: "industry_automotive", relationship: "depends_on", strategicWeight: "Critical" },
+      { targetId: "industry_pharmaceuticals", relationship: "depends_on", strategicWeight: "Critical" },
+      { targetId: "industry_electronics", relationship: "depends_on", strategicWeight: "Critical" },
+      { targetId: "industry_agriculture", relationship: "depends_on", strategicWeight: "Critical" },
+      { targetId: "industry_power", relationship: "depends_on", strategicWeight: "Critical" },
+      { targetId: "industry_defence", relationship: "depends_on", strategicWeight: "Critical" },
+    ],
+  },
+
+  // =========================================================================
+  // INDIAN PORTS
+  // =========================================================================
   {
     id: "port_jnpt",
     type: "port",
     label: "JNPT (Nhava Sheva)",
-    description: "Largest container port in India, west coast.",
+    aliases: ["jnpt", "nhava sheva", "navi mumbai port"],
+    description: "India's largest container port, west coast (Maharashtra).",
     connections: [
-      { targetId: "corridor_suez", relationship: "depends_on", strategicWeight: "High" },
-      { targetId: "corridor_hormuz", relationship: "depends_on", strategicWeight: "Medium" },
+      { targetId: "corridor_suez", relationship: "depends_on", strategicWeight: "Critical" },
+      { targetId: "corridor_hormuz", relationship: "depends_on", strategicWeight: "Critical" },
+      { targetId: "industry_manufacturing", relationship: "feeds_into", strategicWeight: "Critical" },
     ],
   },
   {
     id: "port_mundra",
     type: "port",
     label: "Mundra Port",
-    description: "Largest private port in India, major commercial hub.",
+    aliases: ["mundra", "adani port"],
+    description: "India's largest private port (Gujarat); major oil/gas/container terminal.",
     connections: [
+      { targetId: "corridor_hormuz", relationship: "depends_on", strategicWeight: "Critical" },
       { targetId: "corridor_suez", relationship: "depends_on", strategicWeight: "High" },
+      { targetId: "infra_refineries_west", relationship: "feeds_into", strategicWeight: "Critical" },
+    ],
+  },
+  {
+    id: "port_kandla",
+    type: "port",
+    label: "Kandla / Deendayal Port",
+    aliases: ["kandla", "deendayal port", "deendayal"],
+    description: "Major bulk cargo port in Gujarat; handles oil, fertilizers, grains.",
+    connections: [
       { targetId: "corridor_hormuz", relationship: "depends_on", strategicWeight: "High" },
-    ],
-  },
-  {
-    id: "port_vizag",
-    type: "port",
-    label: "Visakhapatnam (Vizag) Port",
-    description: "Major port on the east coast of India.",
-    connections: [
-      { targetId: "corridor_malacca", relationship: "depends_on", strategicWeight: "High" },
-    ],
-  },
-  {
-    id: "port_kochi",
-    type: "port",
-    label: "Kochi Port",
-    description: "Major port on the Arabian Sea (west coast).",
-    connections: [
-      { targetId: "corridor_suez", relationship: "depends_on", strategicWeight: "High" },
+      { targetId: "infra_fertilizer_plants", relationship: "feeds_into", strategicWeight: "High" },
     ],
   },
   {
     id: "port_chennai",
     type: "port",
     label: "Chennai Port",
-    description: "Major port on the Coromandel Coast (east coast).",
+    aliases: ["chennai port"],
+    description: "Major port on east coast; automotive and electronics hub.",
+    connections: [
+      { targetId: "corridor_malacca", relationship: "depends_on", strategicWeight: "Critical" },
+      { targetId: "infra_electronics_tn", relationship: "feeds_into", strategicWeight: "Critical" },
+      { targetId: "industry_automotive", relationship: "feeds_into", strategicWeight: "High" },
+    ],
+  },
+  {
+    id: "port_vizag",
+    type: "port",
+    label: "Visakhapatnam (Vizag) Port",
+    aliases: ["vizag", "visakhapatnam"],
+    description: "Major east coast port; steel and industrial cargo.",
     connections: [
       { targetId: "corridor_malacca", relationship: "depends_on", strategicWeight: "High" },
+      { targetId: "industry_steel", relationship: "feeds_into", strategicWeight: "High" },
+    ],
+  },
+  {
+    id: "port_kochi",
+    type: "port",
+    label: "Kochi Port",
+    aliases: ["kochi", "cochin"],
+    description: "Major west coast port on Arabian Sea (Kerala).",
+    connections: [
+      { targetId: "corridor_suez", relationship: "depends_on", strategicWeight: "High" },
+      { targetId: "corridor_hormuz", relationship: "depends_on", strategicWeight: "Medium" },
+      { targetId: "infra_refineries_south", relationship: "feeds_into", strategicWeight: "High" },
+    ],
+  },
+  {
+    id: "port_kolkata",
+    type: "port",
+    label: "Kolkata / Haldia Port",
+    aliases: ["kolkata port", "haldia", "calcutta port"],
+    description: "Major east coast port; serves eastern industrial belt.",
+    connections: [
+      { targetId: "corridor_malacca", relationship: "depends_on", strategicWeight: "High" },
+      { targetId: "industry_manufacturing", relationship: "feeds_into", strategicWeight: "High" },
     ],
   },
   {
     id: "port_paradip",
     type: "port",
     label: "Paradip Port",
-    description: "Major port on the east coast, known for bulk cargo.",
+    aliases: ["paradip", "paradeep"],
+    description: "Major east coast bulk cargo port (Odisha); handles coal, oil, fertilizers.",
     connections: [
       { targetId: "corridor_malacca", relationship: "depends_on", strategicWeight: "Medium" },
+      { targetId: "infra_refineries_east", relationship: "feeds_into", strategicWeight: "High" },
+    ],
+  },
+  {
+    id: "port_mangalore",
+    type: "port",
+    label: "New Mangalore Port (NMPT)",
+    aliases: ["mangalore port", "nmpt", "mangalore"],
+    description: "West coast port handling crude oil and LPG imports.",
+    connections: [
+      { targetId: "corridor_hormuz", relationship: "depends_on", strategicWeight: "High" },
+      { targetId: "infra_refineries_south", relationship: "feeds_into", strategicWeight: "High" },
+    ],
+  },
+  {
+    id: "port_tuticorin",
+    type: "port",
+    label: "Tuticorin (V.O. Chidambaranar) Port",
+    aliases: ["tuticorin", "thoothukudi"],
+    description: "South coast port handling coal, salt, and containers.",
+    connections: [
+      { targetId: "industry_power", relationship: "feeds_into", strategicWeight: "Medium" },
+    ],
+  },
+  {
+    id: "port_ennore",
+    type: "port",
+    label: "Ennore (Kamarajar) Port",
+    aliases: ["ennore", "kamarajar port"],
+    description: "Coal and LNG import terminal near Chennai.",
+    connections: [
+      { targetId: "corridor_malacca", relationship: "depends_on", strategicWeight: "High" },
+      { targetId: "infra_power_grid", relationship: "feeds_into", strategicWeight: "High" },
     ],
   },
 
-  // Products
+  // =========================================================================
+  // PRODUCTS / COMMODITIES
+  // =========================================================================
   {
     id: "product_crude_oil",
     type: "product",
     label: "Crude Oil",
-    description: "Unrefined petroleum.",
+    aliases: ["crude oil", "petroleum", "crude", "oil imports", "brent", "wti"],
+    description: "India imports ~85% of crude oil requirements.",
     connections: [
+      { targetId: "category_energy", relationship: "feeds_into", strategicWeight: "Critical" },
       { targetId: "industry_refining", relationship: "supplies", strategicWeight: "Critical" },
+      { targetId: "infra_refineries_west", relationship: "feeds_into", strategicWeight: "Critical" },
+      { targetId: "infra_refineries_east", relationship: "feeds_into", strategicWeight: "Critical" },
+      { targetId: "infra_refineries_south", relationship: "feeds_into", strategicWeight: "Critical" },
     ],
   },
   {
     id: "product_lng",
     type: "product",
     label: "Liquefied Natural Gas (LNG)",
-    description: "Natural gas cooled to liquid state.",
+    aliases: ["lng", "natural gas", "liquefied natural gas"],
+    description: "India is the 4th largest LNG importer globally.",
     connections: [
+      { targetId: "category_energy", relationship: "feeds_into", strategicWeight: "Critical" },
       { targetId: "industry_power", relationship: "supplies", strategicWeight: "High" },
+      { targetId: "industry_chemicals", relationship: "supplies", strategicWeight: "Medium" },
+      { targetId: "infra_power_grid", relationship: "feeds_into", strategicWeight: "High" },
     ],
   },
   {
     id: "product_lpg",
     type: "product",
     label: "Liquefied Petroleum Gas (LPG)",
-    description: "Flammable mixture of hydrocarbon gases.",
-    connections: [],
+    aliases: ["lpg", "cooking gas"],
+    description: "Critical household fuel; India is world's 2nd largest LPG consumer.",
+    connections: [
+      { targetId: "category_energy", relationship: "feeds_into", strategicWeight: "High" },
+    ],
   },
   {
     id: "product_coal",
     type: "product",
     label: "Coal",
-    description: "Combustible black or brownish-black sedimentary rock.",
+    aliases: ["coal", "thermal coal", "coking coal", "metallurgical coal"],
+    description: "India's power generation and steel production depend on coal imports.",
     connections: [
+      { targetId: "category_energy", relationship: "feeds_into", strategicWeight: "Critical" },
       { targetId: "industry_power", relationship: "supplies", strategicWeight: "Critical" },
-      { targetId: "industry_steel", relationship: "supplies", strategicWeight: "High" },
+      { targetId: "industry_steel", relationship: "supplies", strategicWeight: "Critical" },
+      { targetId: "infra_power_grid", relationship: "feeds_into", strategicWeight: "Critical" },
     ],
   },
   {
     id: "product_semiconductors",
     type: "product",
     label: "Semiconductors",
-    description: "Materials used in electronics.",
+    aliases: ["semiconductor", "semiconductors", "chip", "chips", "integrated circuit", "ic"],
+    description: "Critical for electronics, automotive, defence, and telecom.",
     connections: [
+      { targetId: "category_electronics_semi", relationship: "feeds_into", strategicWeight: "Critical" },
       { targetId: "industry_electronics", relationship: "supplies", strategicWeight: "Critical" },
       { targetId: "industry_automotive", relationship: "supplies", strategicWeight: "High" },
+      { targetId: "industry_defence", relationship: "supplies", strategicWeight: "High" },
     ],
   },
   {
     id: "product_rare_earths",
     type: "product",
     label: "Rare Earth Minerals",
-    description: "Set of seventeen metallic elements.",
+    aliases: ["rare earth", "rare earths", "neodymium", "dysprosium", "terbium", "gallium", "germanium"],
+    description: "Essential for EV motors, wind turbines, defence electronics.",
     connections: [
+      { targetId: "category_minerals", relationship: "feeds_into", strategicWeight: "Critical" },
       { targetId: "industry_electronics", relationship: "supplies", strategicWeight: "High" },
-      { targetId: "industry_defense", relationship: "supplies", strategicWeight: "High" },
+      { targetId: "industry_defence", relationship: "supplies", strategicWeight: "High" },
+      { targetId: "industry_renewable_energy", relationship: "supplies", strategicWeight: "High" },
     ],
   },
   {
     id: "product_apis",
     type: "product",
     label: "Pharmaceutical APIs",
-    description: "Active Pharmaceutical Ingredients.",
+    aliases: ["api", "apis", "active pharmaceutical ingredient", "pharmaceutical ingredient", "drug ingredient", "paracetamol", "ibuprofen"],
+    description: "India imports ~68% of APIs from China.",
     connections: [
+      { targetId: "category_pharma", relationship: "feeds_into", strategicWeight: "Critical" },
       { targetId: "industry_pharmaceuticals", relationship: "supplies", strategicWeight: "Critical" },
+      { targetId: "infra_pharma_clusters", relationship: "feeds_into", strategicWeight: "Critical" },
     ],
   },
   {
     id: "product_fertilizers",
     type: "product",
     label: "Fertilizers",
-    description: "Substances added to soil to increase productivity.",
+    aliases: ["fertilizer", "fertilizers", "urea", "potash", "dap", "phosphate", "nitrogen fertilizer"],
+    description: "Critical for food security; India imports significant quantities.",
     connections: [
+      { targetId: "category_agri", relationship: "feeds_into", strategicWeight: "Critical" },
       { targetId: "industry_agriculture", relationship: "supplies", strategicWeight: "Critical" },
+      { targetId: "infra_fertilizer_plants", relationship: "feeds_into", strategicWeight: "Critical" },
     ],
   },
   {
     id: "product_electronics",
     type: "product",
-    label: "Electronics",
-    description: "Electronic components and devices.",
-    connections: [],
+    label: "Electronics & Components",
+    aliases: ["electronics", "electronic components", "pcb", "display", "battery"],
+    description: "India imports electronics worth $80B+ annually.",
+    connections: [
+      { targetId: "category_electronics_semi", relationship: "feeds_into", strategicWeight: "High" },
+      { targetId: "industry_electronics", relationship: "supplies", strategicWeight: "Critical" },
+      { targetId: "infra_electronics_tn", relationship: "feeds_into", strategicWeight: "High" },
+      { targetId: "infra_electronics_noida", relationship: "feeds_into", strategicWeight: "High" },
+    ],
+  },
+  {
+    id: "product_steel",
+    type: "product",
+    label: "Steel",
+    aliases: ["steel", "iron", "iron ore", "stainless steel"],
+    description: "India imports specialty steel grades.",
+    connections: [
+      { targetId: "category_minerals", relationship: "feeds_into", strategicWeight: "High" },
+      { targetId: "industry_steel", relationship: "supplies", strategicWeight: "Critical" },
+      { targetId: "industry_construction", relationship: "supplies", strategicWeight: "High" },
+      { targetId: "industry_automotive", relationship: "supplies", strategicWeight: "High" },
+    ],
+  },
+  {
+    id: "product_copper",
+    type: "product",
+    label: "Copper",
+    aliases: ["copper"],
+    description: "Critical for electrical infrastructure and construction.",
+    connections: [
+      { targetId: "category_minerals", relationship: "feeds_into", strategicWeight: "High" },
+      { targetId: "industry_construction", relationship: "supplies", strategicWeight: "High" },
+      { targetId: "industry_electronics", relationship: "supplies", strategicWeight: "Medium" },
+    ],
+  },
+  {
+    id: "product_lithium",
+    type: "product",
+    label: "Lithium",
+    aliases: ["lithium", "lithium-ion"],
+    description: "Essential for EV batteries and energy storage.",
+    connections: [
+      { targetId: "category_minerals", relationship: "feeds_into", strategicWeight: "Critical" },
+      { targetId: "industry_automotive", relationship: "supplies", strategicWeight: "High" },
+      { targetId: "industry_renewable_energy", relationship: "supplies", strategicWeight: "High" },
+    ],
+  },
+  {
+    id: "product_cobalt",
+    type: "product",
+    label: "Cobalt",
+    aliases: ["cobalt"],
+    description: "Critical for battery cathodes and superalloys.",
+    connections: [
+      { targetId: "category_minerals", relationship: "feeds_into", strategicWeight: "High" },
+      { targetId: "industry_automotive", relationship: "supplies", strategicWeight: "High" },
+    ],
+  },
+  {
+    id: "product_nickel",
+    type: "product",
+    label: "Nickel",
+    aliases: ["nickel"],
+    description: "Used in stainless steel and EV battery cathodes.",
+    connections: [
+      { targetId: "category_minerals", relationship: "feeds_into", strategicWeight: "High" },
+      { targetId: "industry_steel", relationship: "supplies", strategicWeight: "Medium" },
+    ],
+  },
+  {
+    id: "product_palm_oil",
+    type: "product",
+    label: "Palm Oil",
+    aliases: ["palm oil", "crude palm oil", "cpo"],
+    description: "India is the world's largest palm oil importer.",
+    connections: [
+      { targetId: "category_agri", relationship: "feeds_into", strategicWeight: "Critical" },
+      { targetId: "industry_food_processing", relationship: "supplies", strategicWeight: "Critical" },
+    ],
+  },
+  {
+    id: "product_edible_oil",
+    type: "product",
+    label: "Edible Oil",
+    aliases: ["edible oil", "sunflower oil", "soybean oil", "vegetable oil", "cooking oil"],
+    description: "India imports ~60% of edible oil requirements.",
+    connections: [
+      { targetId: "category_agri", relationship: "feeds_into", strategicWeight: "Critical" },
+      { targetId: "industry_food_processing", relationship: "supplies", strategicWeight: "Critical" },
+    ],
+  },
+  {
+    id: "product_food_grains",
+    type: "product",
+    label: "Food Grains",
+    aliases: ["wheat", "grain", "food grains", "pulses", "lentils"],
+    description: "Strategic food security imports.",
+    connections: [
+      { targetId: "category_agri", relationship: "feeds_into", strategicWeight: "Critical" },
+      { targetId: "industry_food_processing", relationship: "supplies", strategicWeight: "High" },
+    ],
+  },
+  {
+    id: "product_machinery",
+    type: "product",
+    label: "Industrial Machinery",
+    aliases: ["machinery", "machine tools", "capital goods", "industrial equipment"],
+    description: "Capital goods imports for manufacturing.",
+    connections: [
+      { targetId: "category_industrial", relationship: "feeds_into", strategicWeight: "High" },
+      { targetId: "industry_manufacturing", relationship: "supplies", strategicWeight: "High" },
+    ],
+  },
+  {
+    id: "product_defence_equipment",
+    type: "product",
+    label: "Defence Equipment",
+    aliases: ["defence equipment", "defense equipment", "military equipment", "weapons", "arms"],
+    description: "India is one of the world's largest defence importers.",
+    connections: [
+      { targetId: "category_defence", relationship: "feeds_into", strategicWeight: "Critical" },
+      { targetId: "industry_defence", relationship: "supplies", strategicWeight: "Critical" },
+    ],
+  },
+  {
+    id: "product_solar_panels",
+    type: "product",
+    label: "Solar Panels & Modules",
+    aliases: ["solar panel", "solar panels", "solar module", "photovoltaic", "pv module"],
+    description: "India imports ~80% of solar modules from China.",
+    connections: [
+      { targetId: "category_energy", relationship: "feeds_into", strategicWeight: "High" },
+      { targetId: "industry_renewable_energy", relationship: "supplies", strategicWeight: "Critical" },
+    ],
+  },
+  {
+    id: "product_industrial_chemicals",
+    type: "product",
+    label: "Industrial Chemicals",
+    aliases: ["chemicals", "industrial chemicals", "chemical"],
+    description: "Key inputs for pharma, agriculture, and manufacturing.",
+    connections: [
+      { targetId: "category_industrial", relationship: "feeds_into", strategicWeight: "High" },
+      { targetId: "industry_chemicals", relationship: "supplies", strategicWeight: "Critical" },
+    ],
+  },
+  {
+    id: "product_rubber",
+    type: "product",
+    label: "Natural Rubber",
+    aliases: ["rubber", "natural rubber"],
+    description: "Used in automotive and manufacturing.",
+    connections: [
+      { targetId: "category_industrial", relationship: "feeds_into", strategicWeight: "Medium" },
+      { targetId: "industry_automotive", relationship: "supplies", strategicWeight: "Medium" },
+    ],
+  },
+  {
+    id: "product_fuel",
+    type: "product",
+    label: "Refined Petroleum Products",
+    aliases: ["fuel", "diesel", "petrol", "gasoline", "kerosene", "jet fuel"],
+    description: "Refined products from Indian refineries.",
+    connections: [
+      { targetId: "industry_transportation", relationship: "supplies", strategicWeight: "Critical" },
+    ],
   },
 
-  // Industries
+  // =========================================================================
+  // IMPORT CATEGORIES
+  // =========================================================================
+  {
+    id: "category_energy",
+    type: "category",
+    label: "Energy Imports",
+    aliases: ["energy imports", "energy security"],
+    description: "Crude oil, LNG, LPG, coal — India's largest import category by value.",
+    connections: [
+      { targetId: "infra_power_grid", relationship: "feeds_into", strategicWeight: "Critical" },
+      { targetId: "infra_refineries_west", relationship: "feeds_into", strategicWeight: "Critical" },
+    ],
+  },
+  {
+    id: "category_minerals",
+    type: "category",
+    label: "Critical Minerals & Metals",
+    aliases: ["critical minerals", "mineral imports", "metals"],
+    description: "Rare earths, lithium, cobalt, copper, nickel, steel.",
+    connections: [
+      { targetId: "industry_electronics", relationship: "feeds_into", strategicWeight: "High" },
+      { targetId: "industry_defence", relationship: "feeds_into", strategicWeight: "High" },
+      { targetId: "industry_automotive", relationship: "feeds_into", strategicWeight: "High" },
+    ],
+  },
+  {
+    id: "category_agri",
+    type: "category",
+    label: "Agricultural Inputs & Food",
+    aliases: ["agricultural imports", "food imports", "agri inputs"],
+    description: "Fertilizers, edible oils, pulses, food grains.",
+    connections: [
+      { targetId: "industry_agriculture", relationship: "feeds_into", strategicWeight: "Critical" },
+      { targetId: "industry_food_processing", relationship: "feeds_into", strategicWeight: "Critical" },
+    ],
+  },
+  {
+    id: "category_pharma",
+    type: "category",
+    label: "Pharmaceutical Inputs",
+    aliases: ["pharma imports", "pharmaceutical imports"],
+    description: "APIs and key starting materials for India's pharma sector.",
+    connections: [
+      { targetId: "industry_pharmaceuticals", relationship: "feeds_into", strategicWeight: "Critical" },
+      { targetId: "infra_pharma_clusters", relationship: "feeds_into", strategicWeight: "Critical" },
+    ],
+  },
+  {
+    id: "category_electronics_semi",
+    type: "category",
+    label: "Electronics & Semiconductors",
+    aliases: ["electronics imports", "semiconductor imports"],
+    description: "Chips, displays, PCBs, electronic components.",
+    connections: [
+      { targetId: "industry_electronics", relationship: "feeds_into", strategicWeight: "Critical" },
+      { targetId: "infra_electronics_tn", relationship: "feeds_into", strategicWeight: "High" },
+      { targetId: "infra_electronics_noida", relationship: "feeds_into", strategicWeight: "High" },
+    ],
+  },
+  {
+    id: "category_defence",
+    type: "category",
+    label: "Defence & Strategic",
+    aliases: ["defence imports", "defense imports", "strategic imports"],
+    description: "Military hardware, equipment, and strategic materials.",
+    connections: [
+      { targetId: "industry_defence", relationship: "feeds_into", strategicWeight: "Critical" },
+    ],
+  },
+  {
+    id: "category_industrial",
+    type: "category",
+    label: "Industrial Chemicals & Machinery",
+    aliases: ["industrial imports"],
+    description: "Chemical feedstock, machinery, and capital goods.",
+    connections: [
+      { targetId: "industry_chemicals", relationship: "feeds_into", strategicWeight: "High" },
+      { targetId: "industry_manufacturing", relationship: "feeds_into", strategicWeight: "High" },
+    ],
+  },
+
+  // =========================================================================
+  // INDUSTRIES
+  // =========================================================================
   {
     id: "industry_refining",
     type: "industry",
     label: "Petroleum Refining",
-    description: "Transforms crude oil into useful products.",
-    connections: [],
+    aliases: ["refinery", "refineries", "refining"],
+    description: "Transforms crude oil into fuel, petrochemicals, LPG.",
+    connections: [
+      { targetId: "product_fuel", relationship: "produces", strategicWeight: "Critical" },
+    ],
   },
   {
     id: "industry_pharmaceuticals",
     type: "industry",
     label: "Pharmaceuticals",
-    description: "Produces medications.",
+    aliases: ["pharma", "pharmaceuticals", "drug manufacturing"],
+    description: "India is 'pharmacy of the world'; depends on imported APIs.",
     connections: [],
   },
   {
     id: "industry_electronics",
     type: "industry",
     label: "Electronics Manufacturing",
-    description: "Produces electronic devices.",
+    aliases: ["electronics manufacturing", "electronics assembly"],
+    description: "Mobile phones, consumer electronics, industrial electronics.",
     connections: [],
   },
   {
     id: "industry_automotive",
     type: "industry",
     label: "Automotive",
-    description: "Produces motor vehicles.",
+    aliases: ["automotive", "automobile", "auto", "ev", "electric vehicle"],
+    description: "India's 3rd largest auto market; growing EV segment.",
     connections: [],
   },
   {
     id: "industry_agriculture",
     type: "industry",
     label: "Agriculture",
-    description: "Farming and cultivation.",
+    aliases: ["agriculture", "farming"],
+    description: "Employs ~42% of India's workforce; depends on imported fertilizers.",
     connections: [],
   },
   {
     id: "industry_power",
     type: "industry",
     label: "Power Generation",
-    description: "Generates electricity.",
-    connections: [],
+    aliases: ["power generation", "electricity", "power sector"],
+    description: "Coal and gas-fired generation; growing renewables.",
+    connections: [
+      { targetId: "infra_power_grid", relationship: "feeds_into", strategicWeight: "Critical" },
+    ],
   },
   {
     id: "industry_steel",
     type: "industry",
     label: "Steel Production",
-    description: "Manufactures steel.",
-    connections: [],
-  },
-  {
-    id: "industry_defense",
-    type: "industry",
-    label: "Defense",
-    description: "Military and national security manufacturing.",
-    connections: [],
-  },
-  {
-    id: "product_fuel",
-    type: "product",
-    label: "Fuel",
-    description: "Refined petroleum products.",
+    aliases: ["steel production", "steel manufacturing", "steelmaking"],
+    description: "India is world's 2nd largest steel producer; imports coking coal.",
     connections: [
-      { targetId: "industry_transportation", relationship: "supplies", strategicWeight: "Critical" },
+      { targetId: "industry_construction", relationship: "supplies", strategicWeight: "High" },
     ],
+  },
+  {
+    id: "industry_defence",
+    type: "industry",
+    label: "Defence & Aerospace",
+    aliases: ["defence", "defense", "aerospace", "military industry"],
+    description: "National security manufacturing and procurement.",
+    connections: [],
+  },
+  {
+    id: "industry_chemicals",
+    type: "industry",
+    label: "Chemicals & Petrochemicals",
+    aliases: ["chemicals", "petrochemicals", "chemical industry"],
+    description: "Feedstock for pharma, agriculture, and manufacturing.",
+    connections: [],
+  },
+  {
+    id: "industry_food_processing",
+    type: "industry",
+    label: "Food Processing",
+    aliases: ["food processing", "fmcg", "food industry"],
+    description: "Processes imported edible oils, grains, and ingredients.",
+    connections: [],
+  },
+  {
+    id: "industry_renewable_energy",
+    type: "industry",
+    label: "Renewable Energy",
+    aliases: ["renewable energy", "solar energy", "wind energy", "green energy"],
+    description: "India targets 500 GW renewable capacity by 2030.",
+    connections: [],
+  },
+  {
+    id: "industry_construction",
+    type: "industry",
+    label: "Construction & Infrastructure",
+    aliases: ["construction", "infrastructure", "real estate"],
+    description: "Major consumer of steel, copper, and cement.",
+    connections: [],
+  },
+  {
+    id: "industry_textiles",
+    type: "industry",
+    label: "Textiles & Apparel",
+    aliases: ["textiles", "apparel", "garment", "cotton"],
+    description: "Significant exporter but imports synthetic fibers and machinery.",
+    connections: [],
   },
   {
     id: "industry_transportation",
     type: "industry",
-    label: "Transportation Logistics",
-    description: "Movement of goods and people.",
-    connections: [
-      { targetId: "industry_agriculture", relationship: "supplies", strategicWeight: "Critical" },
-      { targetId: "industry_manufacturing", relationship: "supplies", strategicWeight: "Critical" },
-    ],
+    label: "Transportation & Logistics",
+    aliases: ["transportation", "logistics", "shipping", "freight"],
+    description: "Movement of goods; directly impacted by fuel costs and shipping disruptions.",
+    connections: [],
   },
   {
     id: "industry_manufacturing",
     type: "industry",
     label: "General Manufacturing",
-    description: "Production of goods.",
+    aliases: ["manufacturing", "make in india"],
+    description: "Broad manufacturing base dependent on imported machinery and materials.",
+    connections: [],
+  },
+
+  // =========================================================================
+  // CRITICAL INFRASTRUCTURE
+  // =========================================================================
+  {
+    id: "infra_refineries_west",
+    type: "infrastructure",
+    label: "West Coast Refineries (Jamnagar, MRPL, BPCL Mumbai)",
+    aliases: ["jamnagar refinery", "reliance refinery", "mrpl"],
+    description: "India's largest refining cluster; fed by Gulf crude via Hormuz.",
+    connections: [
+      { targetId: "product_fuel", relationship: "produces", strategicWeight: "Critical" },
+      { targetId: "infra_power_grid", relationship: "feeds_into", strategicWeight: "High" },
+    ],
+  },
+  {
+    id: "infra_refineries_east",
+    type: "infrastructure",
+    label: "East Coast Refineries (Paradip, Haldia, Vizag)",
+    aliases: ["paradip refinery", "haldia refinery", "vizag refinery"],
+    description: "Refineries serving eastern India; receive crude from multiple sources.",
+    connections: [
+      { targetId: "product_fuel", relationship: "produces", strategicWeight: "High" },
+    ],
+  },
+  {
+    id: "infra_refineries_south",
+    type: "infrastructure",
+    label: "South India Refineries (Kochi, Mangalore, Chennai Petroleum)",
+    aliases: ["kochi refinery", "mangalore refinery", "chennai petroleum"],
+    description: "Refineries on southern coast.",
+    connections: [
+      { targetId: "product_fuel", relationship: "produces", strategicWeight: "High" },
+    ],
+  },
+  {
+    id: "infra_power_grid",
+    type: "infrastructure",
+    label: "National Power Grid",
+    aliases: ["power grid", "electricity grid", "national grid"],
+    description: "India's interconnected power generation and distribution system.",
     connections: [],
   },
   {
-    id: "country_india",
-    type: "country",
-    label: "India",
-    description: "Primary destination.",
-    connections: [
-      { targetId: "industry_refining", relationship: "depends_on", strategicWeight: "Critical" },
-      { targetId: "industry_automotive", relationship: "depends_on", strategicWeight: "Critical" },
-    ],
-  }
+    id: "infra_fertilizer_plants",
+    type: "infrastructure",
+    label: "Fertilizer Manufacturing Plants",
+    aliases: ["fertilizer plant", "urea plant", "iffco"],
+    description: "Domestic fertilizer production depends on imported feedstock.",
+    connections: [],
+  },
+  {
+    id: "infra_pharma_clusters",
+    type: "infrastructure",
+    label: "Pharmaceutical Manufacturing Clusters (Hyderabad, Ahmedabad, Mumbai)",
+    aliases: ["pharma cluster", "hyderabad pharma", "bulk drug park"],
+    description: "India's API formulation and drug manufacturing hubs.",
+    connections: [],
+  },
+  {
+    id: "infra_electronics_tn",
+    type: "infrastructure",
+    label: "Electronics Assembly Zone (Tamil Nadu / Sriperumbudur)",
+    aliases: ["sriperumbudur", "foxconn india", "tamil nadu electronics"],
+    description: "Major electronics and mobile phone assembly corridor.",
+    connections: [],
+  },
+  {
+    id: "infra_electronics_noida",
+    type: "infrastructure",
+    label: "Electronics Assembly Zone (Noida / Greater Noida)",
+    aliases: ["noida electronics", "greater noida"],
+    description: "NCR electronics manufacturing hub.",
+    connections: [],
+  },
 ];
 
-// Update earlier nodes to connect the chain:
-const refiningNode = INDIA_TRADE_GRAPH.find(n => n.id === "industry_refining");
-if (refiningNode) {
-  refiningNode.connections.push({ targetId: "product_fuel", relationship: "produces", strategicWeight: "Critical" });
-}
+// =========================================================================
+// ALTERNATIVE SUPPLIER MAPPINGS
+// Maps: disrupted product → alternative source countries
+// =========================================================================
+export type AlternativeSupplierMapping = {
+  productId: string;
+  productLabel: string;
+  alternatives: Array<{
+    countryId: string;
+    countryLabel: string;
+    viability: "Established" | "Developing" | "Potential";
+    notes: string;
+  }>;
+};
 
-const oilNode = INDIA_TRADE_GRAPH.find(n => n.id === "product_crude_oil");
-if (oilNode) {
-  oilNode.connections.push({ targetId: "product_lpg", relationship: "produces", strategicWeight: "Medium" });
-  oilNode.connections.push({ targetId: "product_lng", relationship: "produces", strategicWeight: "Medium" });
-}
+export const ALTERNATIVE_SUPPLIERS: AlternativeSupplierMapping[] = [
+  {
+    productId: "product_crude_oil",
+    productLabel: "Crude Oil",
+    alternatives: [
+      { countryId: "country_russia", countryLabel: "Russia", viability: "Established", notes: "Discounted Urals crude; payment routing complexities" },
+      { countryId: "country_usa", countryLabel: "United States", viability: "Established", notes: "Shale oil; higher shipping cost" },
+      { countryId: "country_nigeria", countryLabel: "Nigeria", viability: "Established", notes: "Bonny Light grade; longer transit" },
+      { countryId: "country_iraq", countryLabel: "Iraq", viability: "Established", notes: "Basra crude; same corridor risk via Hormuz" },
+    ],
+  },
+  {
+    productId: "product_lng",
+    productLabel: "LNG",
+    alternatives: [
+      { countryId: "country_usa", countryLabel: "United States", viability: "Established", notes: "Long-term contracts via Sabine Pass" },
+      { countryId: "country_australia", countryLabel: "Australia", viability: "Established", notes: "Gorgon and Ichthys projects" },
+      { countryId: "country_oman", countryLabel: "Oman", viability: "Established", notes: "Shorter transit" },
+      { countryId: "country_malaysia", countryLabel: "Malaysia", viability: "Developing", notes: "PETRONAS LNG" },
+    ],
+  },
+  {
+    productId: "product_coal",
+    productLabel: "Coal",
+    alternatives: [
+      { countryId: "country_australia", countryLabel: "Australia", viability: "Established", notes: "Premium coking coal from Queensland" },
+      { countryId: "country_indonesia", countryLabel: "Indonesia", viability: "Established", notes: "Thermal coal; proximity advantage" },
+      { countryId: "country_russia", countryLabel: "Russia", viability: "Developing", notes: "Far East coal; logistics challenges" },
+    ],
+  },
+  {
+    productId: "product_semiconductors",
+    productLabel: "Semiconductors",
+    alternatives: [
+      { countryId: "country_south_korea", countryLabel: "South Korea", viability: "Established", notes: "Samsung foundries" },
+      { countryId: "country_japan", countryLabel: "Japan", viability: "Established", notes: "Renesas, Sony Semiconductor" },
+      { countryId: "country_usa", countryLabel: "United States", viability: "Developing", notes: "Intel, CHIPS Act expansion" },
+    ],
+  },
+  {
+    productId: "product_rare_earths",
+    productLabel: "Rare Earth Minerals",
+    alternatives: [
+      { countryId: "country_australia", countryLabel: "Australia", viability: "Developing", notes: "Lynas Corporation" },
+      { countryId: "country_canada", countryLabel: "Canada", viability: "Potential", notes: "Emerging mining projects" },
+      { countryId: "country_vietnam", countryLabel: "Vietnam", viability: "Potential", notes: "Significant reserves" },
+    ],
+  },
+  {
+    productId: "product_apis",
+    productLabel: "Pharmaceutical APIs",
+    alternatives: [
+      { countryId: "country_india", countryLabel: "India (domestic)", viability: "Developing", notes: "Bulk Drug Parks scheme; 3-5 year ramp-up" },
+      { countryId: "country_europe", countryLabel: "Europe", viability: "Established", notes: "Higher cost but reliable quality" },
+    ],
+  },
+  {
+    productId: "product_fertilizers",
+    productLabel: "Fertilizers",
+    alternatives: [
+      { countryId: "country_morocco", countryLabel: "Morocco", viability: "Established", notes: "OCP Group; world's largest phosphate exporter" },
+      { countryId: "country_canada", countryLabel: "Canada", viability: "Established", notes: "Nutrien; potash supplier" },
+      { countryId: "country_saudi_arabia", countryLabel: "Saudi Arabia", viability: "Developing", notes: "SABIC joint ventures" },
+    ],
+  },
+  {
+    productId: "product_palm_oil",
+    productLabel: "Palm Oil",
+    alternatives: [
+      { countryId: "country_malaysia", countryLabel: "Malaysia", viability: "Established", notes: "2nd largest producer" },
+      { countryId: "country_indonesia", countryLabel: "Indonesia", viability: "Established", notes: "Largest producer; export policy risk" },
+    ],
+  },
+  {
+    productId: "product_edible_oil",
+    productLabel: "Edible Oil",
+    alternatives: [
+      { countryId: "country_indonesia", countryLabel: "Indonesia", viability: "Established", notes: "Palm olein" },
+      { countryId: "country_ukraine", countryLabel: "Ukraine", viability: "Established", notes: "Sunflower oil; conflict risk" },
+    ],
+  },
+  {
+    productId: "product_electronics",
+    productLabel: "Electronics & Components",
+    alternatives: [
+      { countryId: "country_vietnam", countryLabel: "Vietnam", viability: "Developing", notes: "Samsung, LG manufacturing shift" },
+      { countryId: "country_south_korea", countryLabel: "South Korea", viability: "Established", notes: "Samsung, LG, SK Hynix" },
+      { countryId: "country_japan", countryLabel: "Japan", viability: "Established", notes: "Premium components" },
+    ],
+  },
+  {
+    productId: "product_solar_panels",
+    productLabel: "Solar Panels",
+    alternatives: [
+      { countryId: "country_india", countryLabel: "India (domestic)", viability: "Developing", notes: "PLI scheme for solar manufacturing" },
+      { countryId: "country_vietnam", countryLabel: "Vietnam", viability: "Developing", notes: "Emerging manufacturing base" },
+    ],
+  },
+  {
+    productId: "product_steel",
+    productLabel: "Steel",
+    alternatives: [
+      { countryId: "country_south_korea", countryLabel: "South Korea", viability: "Established", notes: "POSCO specialty steel" },
+      { countryId: "country_japan", countryLabel: "Japan", viability: "Established", notes: "High-grade specialty steel" },
+      { countryId: "country_turkey", countryLabel: "Turkey", viability: "Developing", notes: "Competitive pricing" },
+    ],
+  },
+  {
+    productId: "product_lithium",
+    productLabel: "Lithium",
+    alternatives: [
+      { countryId: "country_australia", countryLabel: "Australia", viability: "Established", notes: "Spodumene mining" },
+      { countryId: "country_chile", countryLabel: "Chile", viability: "Established", notes: "Brine extraction" },
+      { countryId: "country_canada", countryLabel: "Canada", viability: "Potential", notes: "Emerging projects" },
+    ],
+  },
+  {
+    productId: "product_cobalt",
+    productLabel: "Cobalt",
+    alternatives: [
+      { countryId: "country_australia", countryLabel: "Australia", viability: "Developing", notes: "Ethical sourcing" },
+      { countryId: "country_canada", countryLabel: "Canada", viability: "Developing", notes: "Mining projects" },
+    ],
+  },
+];

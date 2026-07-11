@@ -26,6 +26,10 @@ import { runRecommendationsModule } from "../modules/recommendationsModule";
 import { runScenarioAnalysisModule } from "../modules/scenarioAnalysisModule";
 import { runEvidenceModule } from "../modules/evidenceModule";
 import { INTELLIGENCE_CACHE_TTL_MS } from "../constants";
+import {
+  normalizeLLMObject,
+  validateNormalizedResponse,
+} from "@/services/llm";
 
 // ---------------------------------------------------------------------------
 // Registered data source plugins
@@ -95,13 +99,15 @@ async function generateFresh(): Promise<IntelligenceReport> {
   // Step 2: Preprocess — fact extraction, knowledge graph, prioritization
   const augmentedObservations = await preprocessIntelligence(allSources);
 
-  // Step 3: Build compact intelligence context (no raw payloads)
-  const context = buildIntelligenceContext(augmentedObservations);
+  // Step 3: Build enriched intelligence context (with KG tracing + evidence fusion)
+  const context = buildIntelligenceContext(augmentedObservations, allSources);
   const contextHash = hashIntelligenceContext(context);
 
   console.log(
-    `[intelligenceService] Compact context: ${context.critical_events.length} events, ` +
-      `${context.military_observations.length} military, ${context.maritime_observations.length} maritime.`,
+    `[intelligenceService] Enriched context: ${context.critical_events.length} events, ` +
+      `${context.military_observations.length} military, ${context.maritime_observations.length} maritime, ` +
+      `${context.supply_chain_exposure.affected_products.length} exposed products, ` +
+      `${context.evidence_signals.length} corroborated signals.`,
   );
 
   // Step 4: Run independent Groq modules in parallel
@@ -114,17 +120,34 @@ async function generateFresh(): Promise<IntelligenceReport> {
       runEvidenceModule(context),
     ]);
 
-  // Step 5: Assemble into unified IntelligenceReport
+  // Step 5: Assemble into unified IntelligenceReport (with KG gap-filling)
   const report = assembleIntelligenceReport(
     executive,
     supplyChain,
     recommendations,
     scenarios,
     evidence,
+    context.supply_chain_exposure,
   );
 
-  // Step 6: Validate assembled report
-  const validated = intelligenceReportSchema.parse(report);
+  // Step 6: Normalize assembled report, then validate
+  const { normalized, repairedFields } = normalizeLLMObject(
+    report,
+    "intelligence_report",
+    "intelligenceService",
+  );
+
+  if (repairedFields.length > 0) {
+    console.log(
+      `[intelligenceService] Repaired ${repairedFields.length} missing field(s) in assembled report.`,
+    );
+  }
+
+  const validated = validateNormalizedResponse(
+    normalized,
+    intelligenceReportSchema,
+    "intelligenceService",
+  );
 
   console.log("[intelligenceService] Modular report assembled and validated.");
 

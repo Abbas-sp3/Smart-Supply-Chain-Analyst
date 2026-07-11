@@ -238,13 +238,5 @@ export function ShipLayer() {
     };
   }, [map]);
 
-  if (!statusMessage) {
-    return null;
-  }
-
-  return (
-    <div className="pointer-events-none absolute bottom-20 left-4 z-[4] rounded-md border border-white/10 bg-slate-950/80 px-3 py-2 text-xs text-slate-300">
-      {statusMessage}
-    </div>
-  );
+  return null;
 }
