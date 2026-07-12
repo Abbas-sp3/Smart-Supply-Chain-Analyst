@@ -33,27 +33,23 @@ import type {
 
 const CATEGORY_META: Record<
   string,
-  { label: string; color: string; glow: string }
+  { label: string; badge: string }
 > = {
   energy: {
     label: "Energy",
-    color: "from-orange-500/20 to-red-500/10 border-orange-500/30",
-    glow: "shadow-orange-500/20",
+    badge: "border-orange-500/30 bg-orange-500/10 text-orange-400",
   },
   food_agriculture: {
     label: "Food & Agriculture",
-    color: "from-green-500/20 to-emerald-500/10 border-green-500/30",
-    glow: "shadow-green-500/20",
+    badge: "border-emerald-500/30 bg-emerald-500/10 text-emerald-400",
   },
   manufacturing: {
     label: "Manufacturing",
-    color: "from-blue-500/20 to-cyan-500/10 border-blue-500/30",
-    glow: "shadow-blue-500/20",
+    badge: "border-blue-500/30 bg-blue-500/10 text-blue-400",
   },
   multi_sector: {
     label: "Multi-Sector",
-    color: "from-violet-500/20 to-purple-500/10 border-violet-500/30",
-    glow: "shadow-violet-500/20",
+    badge: "border-violet-500/30 bg-violet-500/10 text-violet-400",
   },
 };
 
@@ -385,16 +381,14 @@ export function ScenarioSimulator() {
                     }}
                     className={cn(
                       "group relative overflow-hidden rounded-xl border p-4 text-left transition-all duration-200",
-                      "bg-gradient-to-br",
-                      meta.color,
                       isSelected
-                        ? "ring-2 ring-violet-400/60 shadow-lg " + meta.glow
-                        : "hover:ring-1 hover:ring-white/20",
+                        ? "border-white/20 bg-white/[0.06] shadow-xl"
+                        : "border-white/10 bg-white/[0.02] hover:bg-white/[0.04]",
                     )}
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1">
-                        <span className="mb-1 inline-flex items-center rounded-full bg-white/10 px-2 py-0.5 text-xs font-medium text-foreground/70">
+                        <span className={cn("mb-2 inline-flex items-center rounded border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide", meta.badge)}>
                           {meta.label}
                         </span>
                         <h3 className="mt-1 text-sm font-semibold text-foreground leading-tight">
@@ -407,7 +401,7 @@ export function ScenarioSimulator() {
                       <div className="shrink-0 text-right">
                         <div
                           className={cn(
-                            "text-lg font-bold tabular-nums",
+                            "text-lg font-normal tabular-nums",
                             SEVERITY_COLOR(preset.severityPct),
                           )}
                         >
@@ -449,11 +443,9 @@ export function ScenarioSimulator() {
               whileHover={!loading ? { scale: 1.01 } : {}}
               whileTap={!loading ? { scale: 0.99 } : {}}
               className={cn(
-                "relative w-full overflow-hidden rounded-xl px-6 py-4 font-semibold transition-all",
-                "bg-gradient-to-r from-violet-600 to-purple-600 text-white",
-                "shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40",
-                "disabled:cursor-not-allowed disabled:opacity-50",
-                "flex items-center justify-center gap-3 text-base",
+                "relative w-full overflow-hidden rounded-xl border border-white/10 bg-white/[0.04] px-6 py-4 transition-all hover:bg-white/[0.08]",
+                "disabled:cursor-not-allowed disabled:opacity-50 text-foreground",
+                "flex items-center justify-center gap-3 text-sm font-semibold uppercase tracking-wider",
               )}
             >
               {loading ? (
@@ -483,12 +475,7 @@ export function ScenarioSimulator() {
 
           {/* Right: Selected preset details */}
           <div className="space-y-4">
-            <div
-              className={cn(
-                "rounded-xl border bg-gradient-to-br p-5",
-                catMeta.color,
-              )}
-            >
+            <div className="glass-surface rounded-xl border border-white/10 p-5">
               <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Selected Scenario
               </div>
@@ -712,44 +699,40 @@ export function ScenarioSimulator() {
                       weight: result.metrics.ssiWeightsUsed.supplyGapVolume,
                       val: result.metrics.supplyGapMtpa.likely,
                       unit: "Mtpa",
-                      color: "bg-red-400/20 text-red-300",
                     },
                     {
                       label: "ETA Shift",
                       weight: result.metrics.ssiWeightsUsed.etaShift,
                       val: result.metrics.etaShiftDays.likely,
                       unit: "days",
-                      color: "bg-orange-400/20 text-orange-300",
                     },
                     {
                       label: "Reserve Trajectory",
                       weight: result.metrics.ssiWeightsUsed.reserveTrajectory,
                       val: result.metrics.reserveDepletionDaysToFloor ?? 0,
                       unit: "d to floor",
-                      color: "bg-blue-400/20 text-blue-300",
                     },
                     {
                       label: "Freight + Insurance",
                       weight: result.metrics.ssiWeightsUsed.freightAndInsuranceCost,
                       val: result.metrics.freightRateIndex.likely,
                       unit: "index",
-                      color: "bg-violet-400/20 text-violet-300",
                     },
                   ].map((item) => (
                     <div
                       key={item.label}
-                      className={cn("rounded-lg px-3 py-3", item.color)}
+                      className="glass-surface rounded-lg border border-white/10 p-4"
                     >
-                      <div className="text-xs font-medium opacity-80">
+                      <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                         {item.label}
                       </div>
-                      <div className="mt-1 text-2xl font-bold tabular-nums">
+                      <div className="mt-2 text-2xl font-bold tabular-nums text-foreground">
                         {Math.round(item.weight * 100)}%
                       </div>
-                      <div className="text-xs opacity-60">weight</div>
-                      <div className="mt-2 text-sm font-semibold tabular-nums">
+                      <div className="text-xs text-muted-foreground">weight</div>
+                      <div className="mt-3 text-sm font-semibold tabular-nums text-foreground">
                         {item.val.toFixed(1)}{" "}
-                        <span className="text-xs font-normal opacity-60">
+                        <span className="text-xs font-normal text-muted-foreground">
                           {item.unit}
                         </span>
                       </div>
