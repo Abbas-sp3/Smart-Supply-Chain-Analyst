@@ -29,6 +29,15 @@ export type KnowledgeGraphNode = {
   flexibilityFactor?: number;
   /** Provenance citation for the capacity figure — required when capacityMtpa is set. */
   dataSource?: string;
+  /**
+   * Semantic meaning of capacityMtpa for this node.
+   *   "throughput"         — volume that can FLOW THROUGH (corridor, port).
+   *                          Engine applies: spare_capacity vs. diverted_volume logic.
+   *   "production_output" — volume that can be MADE here (factory, refinery complex).
+   *                          Engine applies: output_loss logic; no rerouting concept.
+   * Defaults to "throughput" when absent — all existing nodes are transit nodes.
+   */
+  capacityType?: "throughput" | "production_output";
 };
 
 export type KnowledgeGraphEdge = {
@@ -1317,6 +1326,8 @@ export const INDIA_TRADE_GRAPH: KnowledgeGraphNode[] = [
     flexibilityFactor: 0.15,   // ANALYST_ESTIMATE: feedstock (natural gas, phosphate) is largely
                                //   contracted; substitution is slow (weeks, not days)
     dataSource: "CITED: Fertiliser Association of India Statistics 2022-23 (production capacity and utilisation); bufferDays from DoF strategic buffer norms; flexibilityFactor is analyst estimate",
+    // ENGINE SIGNAL: output loss formula applies — not the transit spare-capacity formula.
+    capacityType: "production_output",
     connections: [],
   },
   {
