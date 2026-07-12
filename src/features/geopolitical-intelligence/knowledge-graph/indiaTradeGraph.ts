@@ -13,6 +13,22 @@ export type KnowledgeGraphNode = {
   description: string;
   aliases?: string[]; // alternative names for entity matching
   connections: KnowledgeGraphEdge[];
+
+  // ── Capacity / constraint metadata (optional; only set on curated critical nodes) ──
+  /** Peak annual throughput ceiling (million tonnes per annum). */
+  capacityMtpa?: number;
+  /** Fraction of capacity currently utilised under normal conditions (0–100). */
+  baseUtilizationPct?: number;
+  /** Inventory / transit buffer before a disruption propagates downstream (days). */
+  bufferDays?: number;
+  /**
+   * Fraction of routed volume that can switch to an alternative route/supplier
+   * without a contract penalty or chartering constraint (0.0 – 1.0).
+   * Remaining volume (1 - flexibilityFactor) is locked to this node.
+   */
+  flexibilityFactor?: number;
+  /** Provenance citation for the capacity figure — required when capacityMtpa is set. */
+  dataSource?: string;
 };
 
 export type KnowledgeGraphEdge = {
@@ -41,6 +57,12 @@ export const INDIA_TRADE_GRAPH: KnowledgeGraphNode[] = [
     aliases: ["hormuz", "persian gulf strait"],
     description:
       "Critical chokepoint handling ~20% of global oil trade between the Persian Gulf and Gulf of Oman.",
+    // ── Capacity metadata ──
+    capacityMtpa: 920,          // ~18.5 Mbbl/d liquids + 4 bcf/d LNG at peak; converted to Mtpa
+    baseUtilizationPct: 88,
+    bufferDays: 3,              // India holds ~3 days crude in-transit buffer; strategic reserve separate
+    flexibilityFactor: 0.25,    // 25% spot-chartered; 75% long-term contracts through Hormuz
+    dataSource: "EIA World Chokepoints for Global Energy Security, 2025 update",
     connections: [
       { targetId: "product_crude_oil", relationship: "routes_through", strategicWeight: "Critical" },
       { targetId: "product_lng", relationship: "routes_through", strategicWeight: "Critical" },
@@ -58,6 +80,12 @@ export const INDIA_TRADE_GRAPH: KnowledgeGraphNode[] = [
     aliases: ["bab-el-mandeb", "bab el mandeb", "red sea", "houthi"],
     description:
       "Chokepoint between the Red Sea and the Gulf of Aden; gateway to Suez Canal.",
+    // ── Capacity metadata ──
+    capacityMtpa: 380,          // ~5.1 Mbbl/d oil + container volume; EIA 2024
+    baseUtilizationPct: 72,     // Post-Houthi disruption utilization down from ~85%
+    bufferDays: 5,              // Slightly longer buffer; ships can anchor or slow-steam
+    flexibilityFactor: 0.40,    // Higher spot mix for containerised cargo
+    dataSource: "EIA World Chokepoints for Global Energy Security, 2024; UNCTAD Review of Maritime Transport 2024",
     connections: [
       { targetId: "corridor_suez", relationship: "routes_through", strategicWeight: "Critical" },
       { targetId: "product_crude_oil", relationship: "routes_through", strategicWeight: "High" },
@@ -73,6 +101,12 @@ export const INDIA_TRADE_GRAPH: KnowledgeGraphNode[] = [
     aliases: ["suez"],
     description:
       "Artificial waterway in Egypt connecting Mediterranean to Red Sea; ~12% of global trade.",
+    // ── Capacity metadata ──
+    capacityMtpa: 1100,         // ~106 net transits/day at ~10,000 TEU avg; SCA Annual Report 2023
+    baseUtilizationPct: 65,     // Down ~30% from 2023 highs due to Red Sea rerouting
+    bufferDays: 7,              // Longer buffer; Europe-India transit = 18–22 days
+    flexibilityFactor: 0.50,    // High spot/tramp ratio for containerised cargo
+    dataSource: "Suez Canal Authority Statistical Year Book 2023; IMF PortWatch 2024",
     connections: [
       { targetId: "country_europe", relationship: "routes_through", strategicWeight: "Critical" },
       { targetId: "product_machinery", relationship: "routes_through", strategicWeight: "High" },
@@ -87,6 +121,12 @@ export const INDIA_TRADE_GRAPH: KnowledgeGraphNode[] = [
     aliases: ["malacca", "malacca strait"],
     description:
       "Main shipping channel between Indian Ocean and Pacific Ocean; ~25% of global trade.",
+    // ── Capacity metadata ──
+    capacityMtpa: 1650,         // ~100,000 vessels/yr × avg cargo; MPA Singapore 2023
+    baseUtilizationPct: 82,
+    bufferDays: 4,
+    flexibilityFactor: 0.35,
+    dataSource: "Maritime and Port Authority of Singapore 2023; IMF PortWatch Malacca Node",
     connections: [
       { targetId: "country_china", relationship: "routes_through", strategicWeight: "Critical" },
       { targetId: "country_taiwan", relationship: "routes_through", strategicWeight: "Critical" },
@@ -134,6 +174,12 @@ export const INDIA_TRADE_GRAPH: KnowledgeGraphNode[] = [
     aliases: ["black sea", "bosphorus", "turkish straits"],
     description:
       "Critical for grain and fertilizer exports from Russia and Ukraine.",
+    // ── Capacity metadata ──
+    capacityMtpa: 220,          // ~140 MT grain + 80 MT other; UNCTAD 2023
+    baseUtilizationPct: 55,     // Severely disrupted; conflict-era utilisation
+    bufferDays: 14,             // India holds seasonal grain buffer
+    flexibilityFactor: 0.45,
+    dataSource: "UNCTAD Review of Maritime Transport 2023; Black Sea Grain Initiative data",
     connections: [
       { targetId: "product_fertilizers", relationship: "routes_through", strategicWeight: "Critical" },
       { targetId: "product_food_grains", relationship: "routes_through", strategicWeight: "High" },
@@ -147,6 +193,14 @@ export const INDIA_TRADE_GRAPH: KnowledgeGraphNode[] = [
     aliases: ["cape of good hope", "cape route"],
     description:
       "Alternative route when Red Sea / Suez is disrupted; adds 10-14 days transit.",
+    // ── Capacity metadata ──
+    // No hard throughput ceiling (open ocean), but vessel speed and port capacity at
+    // transshipment hubs (Durban, Port Louis) creates a soft bottleneck.
+    capacityMtpa: 2800,         // Theoretical open-ocean capacity; practical constraint is bunker/hub
+    baseUtilizationPct: 68,     // Surge utilisation post-Red Sea crisis
+    bufferDays: 14,             // Adds 10–14 days to Europe-India transit
+    flexibilityFactor: 0.90,    // High flexibility — no congested chokepoint
+    dataSource: "IMF PortWatch Cape Route Node 2024; BIMCO Shipping Market Analysis Q1 2024",
     connections: [
       { targetId: "country_europe", relationship: "routes_through", strategicWeight: "Medium" },
     ],
@@ -517,6 +571,12 @@ export const INDIA_TRADE_GRAPH: KnowledgeGraphNode[] = [
     label: "JNPT (Nhava Sheva)",
     aliases: ["jnpt", "nhava sheva", "navi mumbai port"],
     description: "India's largest container port, west coast (Maharashtra).",
+    // ── Capacity metadata ──
+    capacityMtpa: 78,           // 7.8M TEU × ~10 MT per TEU equiv; JNPort Annual Report 2023-24
+    baseUtilizationPct: 84,
+    bufferDays: 5,
+    flexibilityFactor: 0.55,
+    dataSource: "Jawaharlal Nehru Port Authority Annual Report 2023-24; IMF PortWatch",
     connections: [
       { targetId: "corridor_suez", relationship: "depends_on", strategicWeight: "Critical" },
       { targetId: "corridor_hormuz", relationship: "depends_on", strategicWeight: "Critical" },
@@ -529,6 +589,12 @@ export const INDIA_TRADE_GRAPH: KnowledgeGraphNode[] = [
     label: "Mundra Port",
     aliases: ["mundra", "adani port"],
     description: "India's largest private port (Gujarat); major oil/gas/container terminal.",
+    // ── Capacity metadata ──
+    capacityMtpa: 210,          // 210 MT rated capacity; Adani Ports Annual Report 2023-24
+    baseUtilizationPct: 74,
+    bufferDays: 4,
+    flexibilityFactor: 0.40,    // Significant contracted crude crude volumes
+    dataSource: "Adani Ports & SEZ Annual Report 2023-24; Ministry of Ports, Shipping & Waterways",
     connections: [
       { targetId: "corridor_hormuz", relationship: "depends_on", strategicWeight: "Critical" },
       { targetId: "corridor_suez", relationship: "depends_on", strategicWeight: "High" },
@@ -541,6 +607,12 @@ export const INDIA_TRADE_GRAPH: KnowledgeGraphNode[] = [
     label: "Kandla / Deendayal Port",
     aliases: ["kandla", "deendayal port", "deendayal"],
     description: "Major bulk cargo port in Gujarat; handles oil, fertilizers, grains.",
+    // ── Capacity metadata ──
+    capacityMtpa: 140,          // 140 MT; Deendayal Port Authority Annual Report 2023-24
+    baseUtilizationPct: 79,
+    bufferDays: 5,
+    flexibilityFactor: 0.35,
+    dataSource: "Deendayal Port Authority Annual Report 2023-24; Ministry of Ports, Shipping & Waterways",
     connections: [
       { targetId: "corridor_hormuz", relationship: "depends_on", strategicWeight: "High" },
       { targetId: "infra_fertilizer_plants", relationship: "feeds_into", strategicWeight: "High" },
@@ -552,6 +624,12 @@ export const INDIA_TRADE_GRAPH: KnowledgeGraphNode[] = [
     label: "Chennai Port",
     aliases: ["chennai port"],
     description: "Major port on east coast; automotive and electronics hub.",
+    // ── Capacity metadata ──
+    capacityMtpa: 65,           // 65 MT; Chennai Port Trust Annual Report 2023-24
+    baseUtilizationPct: 70,
+    bufferDays: 6,
+    flexibilityFactor: 0.50,
+    dataSource: "Chennai Port Authority Annual Report 2023-24; IMF PortWatch",
     connections: [
       { targetId: "corridor_malacca", relationship: "depends_on", strategicWeight: "Critical" },
       { targetId: "infra_electronics_tn", relationship: "feeds_into", strategicWeight: "Critical" },
@@ -575,6 +653,12 @@ export const INDIA_TRADE_GRAPH: KnowledgeGraphNode[] = [
     label: "Kochi Port",
     aliases: ["kochi", "cochin"],
     description: "Major west coast port on Arabian Sea (Kerala).",
+    // ── Capacity metadata ──
+    capacityMtpa: 65,           // 65 MT; Cochin Port Authority Annual Report 2023-24
+    baseUtilizationPct: 66,
+    bufferDays: 4,
+    flexibilityFactor: 0.45,
+    dataSource: "Cochin Port Authority Annual Report 2023-24; Ministry of Ports, Shipping & Waterways",
     connections: [
       { targetId: "corridor_suez", relationship: "depends_on", strategicWeight: "High" },
       { targetId: "corridor_hormuz", relationship: "depends_on", strategicWeight: "Medium" },
@@ -1131,6 +1215,12 @@ export const INDIA_TRADE_GRAPH: KnowledgeGraphNode[] = [
     label: "West Coast Refineries (Jamnagar, MRPL, BPCL Mumbai)",
     aliases: ["jamnagar refinery", "reliance refinery", "mrpl"],
     description: "India's largest refining cluster; fed by Gulf crude via Hormuz.",
+    // ── Capacity metadata ──
+    capacityMtpa: 115,          // Reliance (68.2) + MRPL (15) + BPCL Mumbai (12) + others ~20 Mtpa
+    baseUtilizationPct: 105,    // Indian refineries run above nameplate (operational excellence)
+    bufferDays: 21,             // ~21 days crude tankage at typical inventory levels
+    flexibilityFactor: 0.30,    // Crude diet flexibility constrained by refinery configuration
+    dataSource: "Ministry of Petroleum & Natural Gas, Indian Petroleum & Natural Gas Statistics 2022-23; PPAC",
     connections: [
       { targetId: "product_fuel", relationship: "produces", strategicWeight: "Critical" },
       { targetId: "infra_power_grid", relationship: "feeds_into", strategicWeight: "High" },
@@ -1142,6 +1232,12 @@ export const INDIA_TRADE_GRAPH: KnowledgeGraphNode[] = [
     label: "East Coast Refineries (Paradip, Haldia, Vizag)",
     aliases: ["paradip refinery", "haldia refinery", "vizag refinery"],
     description: "Refineries serving eastern India; receive crude from multiple sources.",
+    // ── Capacity metadata ──
+    capacityMtpa: 45,           // IOC Paradip (15.5) + Haldia (7.5) + HPCL Vizag (8.3) + others
+    baseUtilizationPct: 98,
+    bufferDays: 18,
+    flexibilityFactor: 0.45,    // Can switch from Gulf to Russian/US crude more easily
+    dataSource: "Ministry of Petroleum & Natural Gas, Indian Petroleum & Natural Gas Statistics 2022-23; PPAC",
     connections: [
       { targetId: "product_fuel", relationship: "produces", strategicWeight: "High" },
     ],
@@ -1152,6 +1248,12 @@ export const INDIA_TRADE_GRAPH: KnowledgeGraphNode[] = [
     label: "South India Refineries (Kochi, Mangalore, Chennai Petroleum)",
     aliases: ["kochi refinery", "mangalore refinery", "chennai petroleum"],
     description: "Refineries on southern coast.",
+    // ── Capacity metadata ──
+    capacityMtpa: 30,           // BPCL Kochi (15.5) + MRPL Mangalore (a/c above) + CPCL (10.5)
+    baseUtilizationPct: 92,
+    bufferDays: 15,
+    flexibilityFactor: 0.40,
+    dataSource: "Ministry of Petroleum & Natural Gas, Indian Petroleum & Natural Gas Statistics 2022-23; PPAC",
     connections: [
       { targetId: "product_fuel", relationship: "produces", strategicWeight: "High" },
     ],
