@@ -35,7 +35,7 @@ export const NAV_ITEMS: NavItem[] = [
   },
   {
     id: "procurement",
-    label: "Procurement",
+    label: "Energy Procurement",
     href: "/procurement",
     icon: Package,
     enabled: true,
@@ -49,14 +49,14 @@ export const NAV_ITEMS: NavItem[] = [
   },
   {
     id: "refinery",
-    label: "Refinery",
+    label: "Refinery & Processing",
     href: "/refinery",
     icon: Factory,
     enabled: true,
   },
   {
     id: "strategic-reserve",
-    label: "Strategic Reserve",
+    label: "Energy Reserves",
     href: "/strategic-reserve",
     icon: Globe2,
     enabled: true,

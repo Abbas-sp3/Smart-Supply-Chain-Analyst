@@ -2,28 +2,27 @@
  * Geopolitical Intelligence Engine — Constants
  */
 
-/** NewsAPI search keywords targeting India trade corridors */
 export const NEWS_KEYWORDS = [
-  "India imports",
-  "India trade",
-  "India supply chain",
+  "India energy imports",
+  "India energy trade",
+  "energy supply chain",
   "Red Sea shipping",
   "Strait of Hormuz",
   "Persian Gulf oil",
-  "China India trade",
-  "semiconductor shortage",
   "oil price",
   "LNG supply",
-  "geopolitical risk",
+  "energy geopolitics",
   "port disruption",
-  "shipping lane",
-  "sanctions trade",
+  "energy sanctions",
   "OPEC oil",
-  "rare earth minerals",
-  "pharmaceutical supply chain",
-  "fertilizer shortage",
   "India crude oil",
-  "Bay of Bengal",
+  "natural gas prices",
+  "coal import",
+  "energy security",
+  "import dependency energy",
+  "energy corridor",
+  "energy transition",
+  "renewable energy supply chain",
 ];
 
 /** How long the assembled report stays cached before a fresh generation is triggered */

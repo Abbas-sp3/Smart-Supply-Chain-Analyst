@@ -1,7 +1,7 @@
 ﻿export type {
-  ProcurementBriefing,
-  ProcurementAlternative,
-  CriticalCargo,
+  EnergyBriefing,
+  EnergySourcingAlternative,
   RankTier,
-  ProcurementApiResponse,
+  EnergyApiResponse,
+  EnergyCommodityType,
 } from "./types";

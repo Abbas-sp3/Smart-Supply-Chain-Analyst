@@ -4,14 +4,19 @@ dns.setDefaultResultOrder("ipv4first");
 
 const EIA_API_KEY = process.env.EIA_API_KEY;
 
-const BRENT_SERIES = "RBRTE";
-const WTI_SERIES = "RWTC";
+const ENERGY_SERIES: Record<string, { label: string; eiaId: string }> = {
+  brent: { label: "Brent Crude Oil", eiaId: "RBRTE" },
+  wti: { label: "WTI Crude Oil", eiaId: "RWTC" },
+  natural_gas: { label: "Natural Gas (Henry Hub)", eiaId: "RNGWHHD" },
+  heating_oil: { label: "No. 2 Heating Oil", eiaId: "W_EPD2F_PRS_SI_d" },
+  propane: { label: "Propane", eiaId: "W_EPLLPA_PRS_SI_d" },
+};
 
 type SeriesPoint = { date: string; price: number };
-type MergedPoint = { date: string; brent?: number; wti?: number };
-type ForecastPoint = MergedPoint & { brent_predicted?: number; wti_predicted?: number };
+type MergedPoint = { date: string; [key: string]: number | string | undefined };
+type ForecastPoint = MergedPoint & { [key: string]: number | string | undefined };
 
-async function fetchSeries(seriesId: string): Promise<SeriesPoint[]> {
+async function fetchEiaSeries(seriesId: string): Promise<SeriesPoint[]> {
   try {
     const url = `https://api.eia.gov/v2/petroleum/pri/spt/data/?api_key=${EIA_API_KEY}&frequency=daily&data[0]=value&facets[series][]=${seriesId}&sort[0][column]=period&sort[0][direction]=desc&length=30`;
 
@@ -60,7 +65,7 @@ function predict(points: SeriesPoint[]): (number | undefined)[] {
 
 function mockSeries(label: string): SeriesPoint[] {
   const points: SeriesPoint[] = [];
-  const base = label === "BRENT" ? 72 : 68;
+  const base = label.includes("BRENT") ? 72 : label.includes("WTI") ? 68 : 50;
   const today = new Date();
   for (let i = 29; i >= 0; i--) {
     const d = new Date(today);
@@ -76,31 +81,32 @@ function mockSeries(label: string): SeriesPoint[] {
 }
 
 export async function GET() {
-  let [brentHistory, wtiHistory] = await Promise.all([
-    fetchSeries(BRENT_SERIES),
-    fetchSeries(WTI_SERIES),
-  ]);
+  const seriesKeys = Object.keys(ENERGY_SERIES);
 
-  if (brentHistory.length < 2) brentHistory = mockSeries("BRENT");
-  if (wtiHistory.length < 2) wtiHistory = mockSeries("WTI");
+  const results = await Promise.allSettled(
+    seriesKeys.map(async (key) => {
+      const config = ENERGY_SERIES[key];
+      let data = await fetchEiaSeries(config.eiaId);
+      if (data.length < 2) {
+        data = mockSeries(key.toUpperCase());
+      }
+      const predictions = predict(data);
+      return { key, label: config.label, data, predictions };
+    }),
+  );
 
-  const brentPred = predict(brentHistory);
-  const wtiPred = predict(wtiHistory);
+  const dateMap = new Map<string, MergedPoint>();
 
-  const dateMap = new Map<string, ForecastPoint>();
-
-  brentHistory.forEach((p, i) => {
-    const existing = dateMap.get(p.date) ?? { date: p.date };
-    existing.brent = p.price;
-    existing.brent_predicted = brentPred[i];
-    dateMap.set(p.date, existing);
-  });
-  wtiHistory.forEach((p, i) => {
-    const existing = dateMap.get(p.date) ?? { date: p.date };
-    existing.wti = p.price;
-    existing.wti_predicted = wtiPred[i];
-    dateMap.set(p.date, existing);
-  });
+  for (const result of results) {
+    if (result.status !== "fulfilled") continue;
+    const { key, data, predictions } = result.value;
+    data.forEach((p, i) => {
+      const existing = dateMap.get(p.date) ?? { date: p.date };
+      existing[key] = p.price;
+      existing[`${key}_predicted`] = predictions[i];
+      dateMap.set(p.date, existing);
+    });
+  }
 
   const forecast = Array.from(dateMap.values()).sort((a, b) =>
     a.date.localeCompare(b.date),
@@ -109,7 +115,8 @@ export async function GET() {
   return NextResponse.json(
     {
       forecast,
-      source: "EIA (U.S. Energy Information Administration), daily spot prices",
+      series: ENERGY_SERIES,
+      source: "EIA (U.S. Energy Information Administration), daily spot prices for energy commodities",
     },
     { status: 200 },
   );

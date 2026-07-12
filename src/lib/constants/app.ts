@@ -1,4 +1,4 @@
-export const APP_NAME = "Smart Supply Chain Analyst";
+export const APP_NAME = "Energy Supply Chain Resilience Platform";
 
 export const APP_DESCRIPTION =
-  "Enterprise geopolitical supply chain intelligence platform.";
+  "AI-driven energy supply chain resilience intelligence for import-dependent economies.";

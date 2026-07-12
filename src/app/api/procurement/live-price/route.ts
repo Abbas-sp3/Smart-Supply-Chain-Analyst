@@ -24,7 +24,6 @@ export async function GET() {
     );
   }
 
-  // Try snapshot first
   try {
     const res = await fetch("https://api.api-ninjas.com/v1/commoditysnapshot", {
       headers: { "X-Api-Key": API_NINJAS_KEY as string },
@@ -33,24 +32,22 @@ export async function GET() {
 
     if (res.ok) {
       const data = await res.json();
-      const commodities = (Array.isArray(data) ? data : []).map(normalizeItem);
+      const allCommodities = (Array.isArray(data) ? data : []).map(normalizeItem);
+      const commodities = allCommodities.filter((c) => c.category === "energy");
       if (commodities.length > 0) {
         cached = { data: commodities, fetchedAt: Date.now() };
-        return NextResponse.json({ commodities, fetched_at: new Date().toISOString() }, { status: 200 });
+        return NextResponse.json({ commodities, fetched_at: new Date().toISOString(), filtered: "energy_only" }, { status: 200 });
       }
     }
   } catch {
     // fall through
   }
 
-  // Fallback: try individual commodities that are most likely to work
   const tryList = [
     "crude_oil", "brent_crude_oil", "natural_gas",
-    "copper", "gold", "silver",
-    "corn", "wheat", "soybean",
-    "platinum", "coffee", "sugar",
-    "cotton", "aluminum", "heating_oil",
-    "gasoline_rbob", "soybean_oil", "live_cattle",
+    "heating_oil", "gasoline_rbob", "lng",
+    "coal", "propane", "ethanol",
+    "diesel", "jet_fuel", "uranium",
   ];
 
   const results = await Promise.allSettled(
@@ -65,7 +62,7 @@ export async function GET() {
         exchange: json.exchange ?? "Unknown",
         name: json.name ?? name.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase()),
         value: name,
-        category: getCategory(name),
+        category: "energy",
         price: typeof json.price === "number" ? json.price : 0,
         updated: json.updated ?? 0,
         currency_unit: json.currency_unit ?? "USD",
@@ -81,19 +78,14 @@ export async function GET() {
   cached = { data: commodities, fetchedAt: Date.now() };
 
   return NextResponse.json(
-    { commodities, fetched_at: new Date().toISOString(), fallback: true },
+    { commodities, fetched_at: new Date().toISOString(), fallback: true, filtered: "energy_only" },
     { status: 200 },
   );
 }
 
 function getCategory(value: string): string {
-  if (["crude_oil", "brent_crude_oil", "natural_gas", "heating_oil", "gasoline_rbob"].includes(value)) return "energy";
-  if (["gold", "silver", "platinum", "palladium", "micro_gold", "micro_silver"].includes(value)) return "precious_metals";
-  if (["copper", "aluminum", "zinc", "nickel", "lead", "tin"].includes(value)) return "base_metals";
-  if (["corn", "wheat", "soybean", "soybean_oil", "soybean_meal", "oat", "rough_rice"].includes(value)) return "grains";
-  if (["coffee", "sugar", "cocoa", "cotton", "orange_juice", "lumber"].includes(value)) return "softs";
-  if (["lean_hogs", "live_cattle", "feeder_cattle", "class_3_milk"].includes(value)) return "livestock";
-  return "various";
+  if (["crude_oil", "brent_crude_oil", "natural_gas", "heating_oil", "gasoline_rbob", "lng", "coal", "propane", "ethanol", "diesel", "jet_fuel", "uranium"].includes(value)) return "energy";
+  return "energy";
 }
 
 function normalizeItem(raw: any): CommodityItem {

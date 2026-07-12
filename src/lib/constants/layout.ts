@@ -7,23 +7,23 @@ export type WorkspacePanel = {
 export const WORKSPACE_PANELS: WorkspacePanel[] = [
   {
     id: "panel-alpha",
-    title: "Panel Alpha",
-    placeholder: "Placeholder content for operational panel alpha.",
+    title: "Energy Supply Overview",
+    placeholder: "Real-time energy supply flows and import dependency metrics.",
   },
   {
     id: "panel-beta",
-    title: "Panel Beta",
-    placeholder: "Placeholder content for operational panel beta.",
+    title: "Energy Price Monitor",
+    placeholder: "Live energy commodity prices and price trend indicators.",
   },
   {
     id: "panel-gamma",
-    title: "Panel Gamma",
-    placeholder: "Placeholder content for operational panel gamma.",
+    title: "Energy Corridor Watch",
+    placeholder: "Chokepoint monitoring for energy transit corridors and sea lanes.",
   },
   {
     id: "panel-delta",
-    title: "Panel Delta",
-    placeholder: "Placeholder content for operational panel delta.",
+    title: "Import Dependency Metrics",
+    placeholder: "Import dependency ratios for key energy commodities.",
   },
 ];
 

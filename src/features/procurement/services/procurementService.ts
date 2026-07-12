@@ -10,8 +10,8 @@ import {
   parseAndNormalizeLLMResponse,
   validateNormalizedResponse,
 } from "@/services/llm";
-import type { ProcurementArticle, ProcurementBriefing } from "../types";
-import { procurementBriefingSchema } from "../schemas/procurement.schema";
+import type { ProcurementArticle, EnergyBriefing } from "../types";
+import { energyBriefingSchema } from "../schemas/procurement.schema";
 import {
   PROCUREMENT_GROQ_MODEL,
   PROCUREMENT_GROQ_MAX_TOKENS,
@@ -28,11 +28,11 @@ import {
   MOCK_PROCUREMENT_BRIEFING,
 } from "../data/mock-briefing";
 
-type CacheEntry = { briefing: ProcurementBriefing; generatedAt: number };
+type CacheEntry = { briefing: EnergyBriefing; generatedAt: number };
 
 type GlobalProcurementState = typeof globalThis & {
   __procurementCache?: CacheEntry;
-  __procurementInProgress?: Promise<ProcurementBriefing>;
+  __procurementInProgress?: Promise<EnergyBriefing>;
 };
 
 const globalStore = globalThis as GlobalProcurementState;
@@ -87,7 +87,7 @@ async function fetchArticles(): Promise<ProcurementArticle[]> {
 
 async function generateFromLLM(
   articles: ProcurementArticle[],
-): Promise<ProcurementBriefing> {
+): Promise<EnergyBriefing> {
   const raw = await callGroq(
     PROCUREMENT_SYSTEM_PROMPT,
     buildProcurementUserPrompt(articles),
@@ -109,7 +109,7 @@ async function generateFromLLM(
 
   const validated = validateNormalizedResponse(
     normalized,
-    procurementBriefingSchema,
+    energyBriefingSchema,
     "procurementService",
   );
 
@@ -119,7 +119,7 @@ async function generateFromLLM(
   };
 }
 
-function buildFallbackBriefing(): ProcurementBriefing {
+function buildFallbackBriefing(): EnergyBriefing {
   return {
     ...MOCK_PROCUREMENT_BRIEFING,
     generated_at: new Date().toISOString(),
@@ -127,7 +127,7 @@ function buildFallbackBriefing(): ProcurementBriefing {
   };
 }
 
-async function generateFresh(): Promise<ProcurementBriefing> {
+async function generateFresh(): Promise<EnergyBriefing> {
   const articles = await fetchArticles();
 
   if (!process.env.GROQ_API_KEY && !process.env.GEMINI_API_KEY) {
@@ -153,21 +153,21 @@ async function generateFresh(): Promise<ProcurementBriefing> {
   }
 }
 
-function getCached(): ProcurementBriefing | null {
+function getCached(): EnergyBriefing | null {
   const entry = globalStore.__procurementCache;
   if (!entry) return null;
   if (Date.now() - entry.generatedAt > PROCUREMENT_CACHE_TTL_MS) return null;
   return entry.briefing;
 }
 
-function setCache(briefing: ProcurementBriefing): void {
+function setCache(briefing: EnergyBriefing): void {
   globalStore.__procurementCache = {
     briefing,
     generatedAt: Date.now(),
   };
 }
 
-export async function generateProcurementBriefing(): Promise<ProcurementBriefing> {
+export async function generateProcurementBriefing(): Promise<EnergyBriefing> {
   const cached = getCached();
   if (cached) {
     console.log("[procurementService] Returning cached briefing.");
@@ -190,3 +190,5 @@ export async function generateProcurementBriefing(): Promise<ProcurementBriefing
   globalStore.__procurementInProgress = promise;
   return promise;
 }
+
+export type { EnergyBriefing };

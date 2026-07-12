@@ -1,40 +1,30 @@
-/**
- * Procurement feature — Type definitions
- */
-
 export type RankTier = "recommended" | "viable" | "caution";
 
-export type ProcurementAlternative = {
+export type EnergyCommodityType = "crude_oil" | "natural_gas" | "coal" | "lng" | "gasoline" | "heating_oil" | "uranium" | "brent_crude_oil";
+
+export type EnergySourcingAlternative = {
   option_number: number;
   source: string;
   tier: RankTier;
+  commodity: string;
   summary: string;
   detail: string[];
-  refinery_compatibility: string;
+  compatibility: string;
   diplomatic_perspective: string[];
   source_article: { title: string; url: string } | null;
 };
 
-export type CriticalCargo = {
-  item: string;
-  detail: string;
-  mode: string;
-  eta: string;
-} | null;
-
-export type ProcurementBriefing = {
+export type EnergyBriefing = {
   generated_at: string;
   executive_summary: string;
   historical_comparison: string;
-  alternatives: ProcurementAlternative[];
-  critical_cargo: CriticalCargo;
+  alternatives: EnergySourcingAlternative[];
   disclaimer: string;
-  /** Present when Groq was unavailable and mock data was served */
   fallback?: boolean;
 };
 
-export type ProcurementApiResponse =
-  | { briefing: ProcurementBriefing; error?: never }
+export type EnergyApiResponse =
+  | { briefing: EnergyBriefing; error?: never }
   | { briefing?: never; error: string };
 
 export type ProcurementArticle = {
