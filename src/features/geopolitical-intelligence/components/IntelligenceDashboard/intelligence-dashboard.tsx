@@ -158,7 +158,12 @@ export function IntelligenceDashboard() {
             <AffectedProducts products={data.affected_products} />
           </div>
 
-          <TradeCorridors corridors={data.affected_trade_corridors} />
+          <TradeCorridors
+            corridors={data.affected_trade_corridors}
+            maritimeObservations={data.maritime_observations}
+            supportingEvidence={data.supporting_evidence}
+            keyDevelopments={data.key_developments}
+          />
 
           <PortsAndCountries
             ports={data.affected_ports}
