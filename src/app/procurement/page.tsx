@@ -187,7 +187,7 @@ export default function ProcurementPage() {
   const categories = [...new Set(commodities.map((c) => c.category).filter(Boolean))];
 
   return (
-    <div className="space-y-4 p-6">
+    <div className="space-y-4 p-6 bg-background">
       <div className="glass-surface flex items-center justify-between rounded-xl border border-white/10 p-5">
         <div className="flex items-center gap-3">
           <Package aria-hidden className="size-5 text-primary" />

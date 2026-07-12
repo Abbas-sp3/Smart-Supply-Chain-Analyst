@@ -132,7 +132,7 @@ export function IntelligenceDashboard() {
   const { data, isLoading, error, generatedAt, refetch } = useIntelligence();
 
   return (
-    <div className="space-y-4 p-4 sm:space-y-5 sm:p-5 lg:p-6">
+    <div className="space-y-4 p-4 sm:space-y-5 sm:p-5 lg:p-6 bg-background">
       <DashboardHeader
         generatedAt={generatedAt}
         isLoading={isLoading}

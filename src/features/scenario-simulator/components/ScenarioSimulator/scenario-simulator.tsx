@@ -324,7 +324,7 @@ export function ScenarioSimulator() {
   }, []);
 
   return (
-    <div className="flex h-full flex-col overflow-y-auto">
+    <div className="flex h-full flex-col overflow-y-auto bg-background">
       {/* Header */}
       <div className="sticky top-0 z-10 border-b border-white/10 bg-background/80 backdrop-blur-md">
         <div className="mx-auto max-w-7xl px-6 py-4">
