@@ -1,0 +1,16 @@
+{
+  "date": "2026-03-10",
+  "news_context_note": "Curated from public reporting available as of this date — reconstructed from news archive, not live-fetched",
+  "system_recommendation": {
+    "executive_summary": "Hormuz transit disruptions are now persistent with insurance premiums rising 40% for Gulf-origin crude cargoes. India's import-dependent economy should accelerate non-Gulf crude term contract negotiations and review SPR release triggers.",
+    "top_option": "Russia (ESPO Crude / Coal)",
+    "tier": "viable"
+  },
+  "actual_outcome": {
+    "real_price_brent": 76.80,
+    "real_price_wti": 72.45,
+    "documented_response": "India's Ministry of Petroleum and Natural Gas held inter-ministerial meeting on crude supply security. PPAC reported sufficient stocks for 22 days. No SPR release authorised.",
+    "source_url": null
+  },
+  "lead_time_days": null
+}

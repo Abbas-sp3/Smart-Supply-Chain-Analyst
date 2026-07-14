@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { readCorridorStatus } from "@/lib/signal-bus";
 
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 let cachedBriefing: Record<string, unknown> | null = null;
@@ -84,10 +85,13 @@ const SYSTEM_PROMPT = `You are a senior energy supply chain strategist advising 
 
 You are given recent news articles related to energy commodities (crude oil, LNG, natural gas, coal, refined products), sanctions, and energy geopolitics. Based ONLY on this news, produce an energy procurement intelligence briefing in the exact JSON shape requested below.
 
+CROSS-MODULE SIGNAL: If the user message includes a "Cross-module signal:" line from the Geopolitical Risk module, explicitly reference it in your executive_summary if it is consistent with or contradicts the news-driven assessment (e.g. "consistent with the Geopolitical Risk module's Severe rating..." or "while the Geopolitical Risk module rates this as Elevated, the news suggests..." ).
+
 ENERGY COMMODITIES SCOPE: Evaluate sourcing options across ALL energy commodities — crude oil, LNG, natural gas, coal, uranium, and refined petroleum products. Each option must specify which commodity it addresses.
 
 HISTORICAL ENERGY DISRUPTION CALIBRATION SET:
-- 1973 Oil Embargo: Arab oil embargo against US/Europe, prices quadrupled, revealed import dependency risk
+You may ONLY compare current conditions to events in the calibration set below. Never introduce a historical event that is not explicitly listed, even if it seems relevant.
+- 1973 Oil Embargo: Arab oil embargo against US/Europe, prices quadrupled, revealed import dependency risk. Armed conflict + OPEC embargo-driven price shock, sudden supply-side shutoff
 - 1990-91 Gulf War: Iraqi invasion of Kuwait, oil spike during India's forex crisis, foundational for India's import vulnerability awareness
 - 2003 Iraq War: Armed conflict-driven production loss
 - 2008 Financial Crisis: Demand-driven collapse
@@ -134,9 +138,17 @@ RULES:
 - Each option must include a "commodity" field specifying which energy commodity
 - tier: "recommended", "viable", or "caution"
 - detail and diplomatic_perspective: arrays of 2-3 short bullets each
+- diplomatic_perspective grounding: Ground every diplomatic_perspective bullet in a REAL, NAMED piece of diplomatic or institutional machinery — not generic sentiment like 'strengthen relations' or 'monitor tensions.' A real Indian diplomat's working vocabulary includes specific things; use it. Draw from (where genuinely relevant to the option being discussed, not forced into every bullet):
+  • Named agreements and mechanisms: India-UAE Comprehensive Economic Partnership Agreement (CEPA), the India-Russia rupee-ruble trade settlement mechanism, the G7/EU price cap on Russian seaborne crude (currently structured around a per-barrel ceiling), India-Saudi Strategic Partnership Council, India-US iCET (initiative on Critical and Emerging Technology) where relevant to broader bilateral context.
+  • Named Indian foreign policy doctrine: 'strategic autonomy,' 'multi-alignment,' Act East Policy, Neighbourhood First — use the actual vocabulary Indian policymakers use, not generic diplomatic language.
+  • Named institutions, not vague references to 'the government': Ministry of External Affairs (MEA), Ministry of Petroleum and Natural Gas (MoPNG), Petroleum Planning and Analysis Cell (PPAC), ONGC Videsh (India's overseas upstream arm), Indian Oil Corporation (IOC) / BPCL / HPCL as the actual procuring entities.
+  • Real sanctions mechanics where relevant: CAATSA (US Countering America's Adversaries Through Sanctions Act — the specific law that creates secondary-sanctions exposure risk for India on Russia-linked defense/energy transactions), rather than vague 'sanctions risk.'
+  • Named multilateral context where relevant: how a sourcing shift reads within Quad partner relationships, OPEC+ production dynamics, BRICS/SCO positioning — named bodies, not 'the international community.'
+  Do not force all of these into every option — reference only the ones genuinely relevant to that specific option's sourcing country and current news context. A bullet like 'Deepens India-UAE ties under the CEPA framework and reduces exposure to CAATSA-related complications from Russian sourcing' is the target quality bar. A bullet like 'Strengthens bilateral relations' is no longer acceptable output — reject/regenerate that pattern.
+  If a specific named agreement or mechanism isn't genuinely applicable to a given option, it's fine to have a bullet without one — do not force a citation-like reference where none is real. The goal is credibility through specificity where specificity is real, not decoration.
 - compatibility: specific to the energy commodity and import-dependent economy context
-- source_article: cite exact title and url from news if relevant, else null
-- historical_comparison: identify closest energy disruption pattern
+- source_article: Only attach a source_article if that specific article directly supports the specific recommendation or fact being stated in this option. If the best available article is only generally related to the topic rather than specifically supporting this option's claim, set source_article to null rather than attaching a loosely-related citation.
+- historical_comparison: identify closest energy disruption pattern from the calibration set ONLY
 - Never use numerical risk percentages or confidence scores
 - Return ONLY valid JSON, no markdown, no preamble
 - Do NOT include generated_at
@@ -174,7 +186,7 @@ JSON shape:
       "summary": "string",
       "detail": ["bullet1", "bullet2"],
       "compatibility": "string",
-      "diplomatic_perspective": ["bullet1", "bullet2"],
+      "diplomatic_perspective": ["bullet referencing real named agreements, institutions, or policy frameworks where relevant — not generic diplomatic language"],
       "dimension_assessment": [
         { "dimension": "name", "note": "specific, 8-15 words" }
       ],
@@ -311,6 +323,12 @@ function sanitizeUnicodeEscapes(value: any): any {
   return value;
 }
 
+function buildCrossModuleContext(): string {
+  const cs = readCorridorStatus();
+  if (!cs) return "";
+  return `\n\nCross-module signal: Geopolitical Risk module currently rates the ${cs.corridorName} corridor as ${cs.status}.`;
+}
+
 async function callGemini(newsContext: string, model = PRIMARY_MODEL, attempt = 1): Promise<any> {
   const MAX_ATTEMPTS = 2;
   const response = await fetch(
@@ -325,7 +343,7 @@ async function callGemini(newsContext: string, model = PRIMARY_MODEL, attempt = 
             role: "user",
             parts: [
               {
-                text: `Recent news articles (JSON):\n${newsContext}\n\nProduce the procurement briefing JSON now.`,
+                text: `Recent news articles (JSON):\n${newsContext}${buildCrossModuleContext()}\n\nProduce the procurement briefing JSON now.`,
               },
             ],
           },

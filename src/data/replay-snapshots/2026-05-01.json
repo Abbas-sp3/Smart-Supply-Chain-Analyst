@@ -1,0 +1,16 @@
+{
+  "date": "2026-05-01",
+  "news_context_note": "Curated from public reporting available as of this date — reconstructed from news archive, not live-fetched",
+  "system_recommendation": {
+    "executive_summary": "Hormuz remains contested at week 9. Brent crude oscillating $83-87 range. India's sourcing strategy should lock in medium-term non-Gulf term contracts; the window for favourable pricing may close if diplomatic resolution gains momentum. Maintain 40-day strategic storage buffer.",
+    "top_option": "Russia (ESPO Crude / Coal)",
+    "tier": "caution"
+  },
+  "actual_outcome": {
+    "real_price_brent": 84.60,
+    "real_price_wti": 80.30,
+    "documented_response": "India signed term agreement for increased ESPO crude volumes via Eastern Route. Ministry of Finance approved additional LCs for alternate crude purchase. No change to SPR policy. Diplomatic track reported as 'constructive but slow'.",
+    "source_url": null
+  },
+  "lead_time_days": null
+}

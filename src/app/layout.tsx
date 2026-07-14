@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, JetBrains_Mono } from "next/font/google";
 
 import { AppShell } from "@/components/app-shell";
 import { APP_NAME, APP_DESCRIPTION } from "@/lib/constants/app";
@@ -16,6 +16,12 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-jetbrains-mono",
+  subsets: ["latin"],
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: APP_NAME,
   description: APP_DESCRIPTION,
@@ -29,7 +35,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} dark h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${jetbrainsMono.variable} dark h-full antialiased`}
     >
       <body className="min-h-full">
         <AppShell>{children}</AppShell>

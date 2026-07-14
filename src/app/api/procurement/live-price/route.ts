@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 const API_NINJAS_KEY = process.env.API_NINJAS_KEY;
 
@@ -16,7 +16,17 @@ type CommodityItem = {
 let cached: { data: CommodityItem[]; fetchedAt: number } | null = null;
 const CACHE_TTL = 15000;
 
-export async function GET() {
+const tryList = [
+  "crude_oil", "brent_crude_oil", "natural_gas",
+  "heating_oil", "gasoline_rbob", "lng",
+  "coal", "propane", "ethanol",
+  "diesel", "jet_fuel", "uranium",
+];
+
+export async function GET(request: NextRequest) {
+  const force = request.nextUrl.searchParams.get("force") === "true";
+  if (force) cached = null;
+
   if (cached && Date.now() - cached.fetchedAt < CACHE_TTL) {
     return NextResponse.json(
       { commodities: cached.data, fetched_at: new Date().toISOString(), cached: true },
@@ -24,6 +34,7 @@ export async function GET() {
     );
   }
 
+  let snapshotCommodities: CommodityItem[] = [];
   try {
     const res = await fetch("https://api.api-ninjas.com/v1/commoditysnapshot", {
       headers: { "X-Api-Key": API_NINJAS_KEY as string },
@@ -33,25 +44,17 @@ export async function GET() {
     if (res.ok) {
       const data = await res.json();
       const allCommodities = (Array.isArray(data) ? data : []).map(normalizeItem);
-      const commodities = allCommodities.filter((c) => c.category === "energy");
-      if (commodities.length > 0) {
-        cached = { data: commodities, fetchedAt: Date.now() };
-        return NextResponse.json({ commodities, fetched_at: new Date().toISOString(), filtered: "energy_only" }, { status: 200 });
-      }
+      snapshotCommodities = allCommodities.filter((c) => c.category === "energy");
     }
   } catch {
     // fall through
   }
 
-  const tryList = [
-    "crude_oil", "brent_crude_oil", "natural_gas",
-    "heating_oil", "gasoline_rbob", "lng",
-    "coal", "propane", "ethanol",
-    "diesel", "jet_fuel", "uranium",
-  ];
+  const snapshotValues = new Set(snapshotCommodities.map((c) => c.value));
+  const missing = tryList.filter((name) => !snapshotValues.has(name));
 
-  const results = await Promise.allSettled(
-    tryList.map(async (name) => {
+  const missingResults = await Promise.allSettled(
+    missing.map(async (name) => {
       const res = await fetch(
         `https://api.api-ninjas.com/v1/commodityprice?name=${name}`,
         { headers: { "X-Api-Key": API_NINJAS_KEY as string }, next: { revalidate: 0 } },
@@ -71,14 +74,16 @@ export async function GET() {
     }),
   );
 
-  const commodities = results
+  const missingCommodities = missingResults
     .filter((r): r is PromiseFulfilledResult<CommodityItem> => r.status === "fulfilled" && r.value !== null)
     .map((r) => r.value);
+
+  const commodities = [...snapshotCommodities, ...missingCommodities];
 
   cached = { data: commodities, fetchedAt: Date.now() };
 
   return NextResponse.json(
-    { commodities, fetched_at: new Date().toISOString(), fallback: true, filtered: "energy_only" },
+    { commodities, fetched_at: new Date().toISOString(), filtered: "energy_only" },
     { status: 200 },
   );
 }

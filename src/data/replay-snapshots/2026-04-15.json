@@ -1,0 +1,16 @@
+{
+  "date": "2026-04-15",
+  "news_context_note": "Curated from public reporting available as of this date — reconstructed from news archive, not live-fetched",
+  "system_recommendation": {
+    "executive_summary": "Prolonged Hormuz closure is now structurally reshaping global crude flows. Brent holding above $85. Import-dependent economies face sustained elevated costs; immediate actions include LNG diversification, coal stock build, and diplomatic de-escalation push via Oman and Iraq channels.",
+    "top_option": "Qatar / Australia (LNG)",
+    "tier": "viable"
+  },
+  "actual_outcome": {
+    "real_price_brent": 86.15,
+    "real_price_wti": 81.90,
+    "documented_response": "India secured additional LNG cargoes from Qatar under existing term contracts. Coal India directed to maximise domestic output. MEA confirmed back-channel talks via Oman. PPAC reported 35-day crude stocks, above minimum threshold.",
+    "source_url": null
+  },
+  "lead_time_days": null
+}

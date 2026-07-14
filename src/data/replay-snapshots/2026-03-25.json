@@ -1,0 +1,16 @@
+{
+  "date": "2026-03-25",
+  "news_context_note": "Curated from public reporting available as of this date — reconstructed from news archive, not live-fetched",
+  "system_recommendation": {
+    "executive_summary": "Hormuz closure entering second week — this is now the most severe chokepoint disruption since 1990-91. Brent above $80. Import-dependent economies must activate emergency sourcing: maximum Gulf term nominations, accelerated LNG diversion, and diplomatic outreach to Saudi Arabia and UAE for priority loading.",
+    "top_option": "UAE / Saudi Arabia (Gulf Light Crude)",
+    "tier": "recommended"
+  },
+  "actual_outcome": {
+    "real_price_brent": 82.40,
+    "real_price_wti": 78.10,
+    "documented_response": "India announced diplomatic engagement with Saudi Arabia and UAE for priority crude access. IOC and BPCL issued tenders for alternate crude grades. Indian Navy established escort protocol for Indian-flagged tankers.",
+    "source_url": null
+  },
+  "lead_time_days": null
+}

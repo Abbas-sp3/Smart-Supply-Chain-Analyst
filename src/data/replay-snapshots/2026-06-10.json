@@ -1,0 +1,16 @@
+{
+  "date": "2026-06-10",
+  "news_context_note": "Curated from public reporting available as of this date — reconstructed from news archive, not live-fetched",
+  "system_recommendation": {
+    "executive_summary": "Hormuz crisis entering fourth month with gradual de-escalation signals. Brent declining to low $70s as diplomatic resolution progresses. Import-dependent economies should begin normalising Gulf crude nominations while maintaining diversified term contracts as a structural hedge against future corridor risks.",
+    "top_option": "UAE / Saudi Arabia (Gulf Light Crude)",
+    "tier": "recommended"
+  },
+  "actual_outcome": {
+    "real_price_brent": 73.50,
+    "real_price_wti": 69.20,
+    "documented_response": "India resumed normal Gulf crude nominations as Hormuz corridor reopened under international naval escort protocol. MEA confirmed restored shipping schedules. PPAC reported crisis management cost of approximately $2.1B in additional freight and insurance premiums over the closure period.",
+    "source_url": null
+  },
+  "lead_time_days": null
+}

@@ -1,0 +1,16 @@
+{
+  "date": "2026-02-28",
+  "news_context_note": "Curated from public reporting available as of this date — reconstructed from news archive, not live-fetched",
+  "system_recommendation": {
+    "executive_summary": "Iran has seized two commercial vessels near the Strait of Hormuz, escalating Gulf tensions. Import-dependent economies face immediate freight and insurance cost spikes. Diversification across Gulf and non-Gulf crude sources is advised while diplomatic channels remain open.",
+    "top_option": "UAE / Saudi Arabia (Gulf Light Crude)",
+    "tier": "recommended"
+  },
+  "actual_outcome": {
+    "real_price_brent": 74.20,
+    "real_price_wti": 70.15,
+    "documented_response": "India's MEA issued a statement monitoring the situation; no immediate supply disruption reported. Indian Navy increased patrols in the western Arabian Sea. Refiners began reviewing alternate crude slates.",
+    "source_url": null
+  },
+  "lead_time_days": null
+}

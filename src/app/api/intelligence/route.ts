@@ -11,6 +11,7 @@
 
 import { generateIntelligenceReport } from "@/features/geopolitical-intelligence/services/intelligenceService";
 import type { IntelligenceApiResponse } from "@/features/geopolitical-intelligence";
+import { writeCorridorStatus } from "@/lib/signal-bus";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -21,6 +22,21 @@ export const maxDuration = 60;
 export async function GET(): Promise<Response> {
   try {
     const report = await generateIntelligenceReport();
+
+    // Publish corridor status to cross-module signal bus
+    const threat = report.current_operational_assessment?.threat_level;
+    if (threat) {
+      const statusMap: Record<string, "CRITICAL" | "ELEVATED" | "NORMAL" | "INSUFFICIENT_DATA"> = {
+        Critical: "CRITICAL",
+        High: "ELEVATED",
+        Medium: "NORMAL",
+        Low: "NORMAL",
+      };
+      writeCorridorStatus({
+        corridorName: "Strait of Hormuz",
+        status: statusMap[threat] ?? "INSUFFICIENT_DATA",
+      });
+    }
 
     const body: IntelligenceApiResponse = {
       report,
