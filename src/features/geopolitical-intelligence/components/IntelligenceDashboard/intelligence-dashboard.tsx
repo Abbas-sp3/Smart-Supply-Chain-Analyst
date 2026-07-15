@@ -30,9 +30,9 @@ import { AlternativeSupply } from "../AlternativeSupply/alternative-supply";
 import { ScenarioAnalysis } from "../ScenarioAnalysis/scenario-analysis";
 import { Recommendations } from "../Recommendations/recommendations";
 import { HistoricalContext } from "../HistoricalContext/historical-context";
-import { MonitoringPriorities } from "../MonitoringPriorities/monitoring-priorities";
 import { WhyIndiaShouldCare } from "../WhyIndiaShouldCare/why-india-should-care";
 import { SupportingEvidence } from "../SupportingEvidence/supporting-evidence";
+import { MonitoringPriorities } from "../MonitoringPriorities/monitoring-priorities";
 
 // ---------------------------------------------------------------------------
 // Error state

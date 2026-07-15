@@ -5,6 +5,7 @@ import { MapProvider } from "@/components/map/map-provider";
 import { MapOverlayRoot } from "@/components/map/overlays";
 import { MapBackground } from "@/components/map/background";
 import { ShipLayer } from "@/components/map/ships";
+import { MapVisualLayers } from "./map-visual-layers";
 
 import { WorldMap } from "./world-map";
 
@@ -15,6 +16,7 @@ export function MapWorkspaceLayer() {
         <WorldMap />
         <MapBackground />
         <ShipLayer />
+        <MapVisualLayers />
       </div>
       <MapOverlayRoot />
       <MapControls />
