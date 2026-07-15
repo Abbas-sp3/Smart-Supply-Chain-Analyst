@@ -71,29 +71,29 @@ function CorridorPath({
 
   const styleMap = {
     normal: {
-      stroke: "rgba(255,255,255,0.07)",
-      strokeWidth: 1.2,
+      stroke: "rgba(255,255,255,0.08)",
+      strokeWidth: 1.5,
       dashArray: "none",
       animDur: "2s",
       animate: false,
     },
     active: {
-      stroke: "rgba(249,115,22,0.6)",
-      strokeWidth: 2.5,
+      stroke: "rgba(249,115,22,0.65)",
+      strokeWidth: 3.5,
       dashArray: "6 14",
       animDur: "5s",
       animate: true,
     },
     disrupted: {
-      stroke: "rgba(239,68,68,0.75)",
-      strokeWidth: 3,
+      stroke: "rgba(239,68,68,0.8)",
+      strokeWidth: 4.5,
       dashArray: "6 14",
       animDur: "9s",
       animate: true,
     },
     alternate: {
-      stroke: "rgba(255,255,255,0.35)",
-      strokeWidth: 2,
+      stroke: "rgba(255,255,255,0.45)",
+      strokeWidth: 3,
       dashArray: "7 8",
       animDur: "2s",
       animate: true,
@@ -226,9 +226,9 @@ export function ScenarioMap({ preset, levers, hasRun }: ScenarioMapProps) {
                 x={lx}
                 y={ly}
                 textAnchor="middle"
-                fontSize="8.5"
+                fontSize="18"
                 fontFamily="system-ui, sans-serif"
-                fontWeight="600"
+                fontWeight="700"
                 letterSpacing="1.5"
                 fill="rgba(255,255,255,0.22)"
               >
@@ -248,9 +248,9 @@ export function ScenarioMap({ preset, levers, hasRun }: ScenarioMapProps) {
                 x={rx}
                 y={ry}
                 textAnchor="middle"
-                fontSize="7.5"
+                fontSize="15"
                 fontFamily="system-ui, sans-serif"
-                fontWeight="500"
+                fontWeight="600"
                 letterSpacing="1.8"
                 fill="rgba(255,255,255,0.11)"
               >
@@ -291,26 +291,24 @@ export function ScenarioMap({ preset, levers, hasRun }: ScenarioMapProps) {
         <g id="ports">
           {INDIA_PORTS.map((port) => {
             const [px, py] = project(port.coords);
-            const isAffected = preset.affectedNodeIds.includes(port.id);
+            const isAffected = hasRun && preset.affectedNodeIds.includes(port.id);
             return (
               <g key={port.id}>
                 <circle
                   cx={px}
                   cy={py}
-                  r={isAffected && hasRun ? 4 : 2.5}
-                  fill={isAffected && hasRun ? "rgba(249,115,22,0.7)" : "rgba(96,165,250,0.5)"}
-                  stroke={isAffected && hasRun ? "rgba(249,115,22,0.3)" : "rgba(96,165,250,0.15)"}
-                  strokeWidth={isAffected && hasRun ? 5 : 3}
+                  r="3.5"
+                  fill={isAffected ? "rgba(249,115,22,0.8)" : "rgba(96,165,250,0.6)"}
                 />
                 {/* Port label — only for affected ports or always-on key ports */}
                 {(isAffected || ["port_mundra", "port_chennai"].includes(port.id)) && (
                   <text
-                    x={px + 5}
+                    x={px + 6}
                     y={py + 3}
-                    fontSize="6"
+                    fontSize="10"
                     fontFamily="system-ui, sans-serif"
-                    fill={isAffected && hasRun ? "rgba(249,115,22,0.7)" : "rgba(255,255,255,0.25)"}
-                    fontWeight="500"
+                    fill={isAffected ? "rgba(249,115,22,0.9)" : "rgba(255,255,255,0.4)"}
+                    fontWeight="600"
                     letterSpacing="0.5"
                   >
                     {port.label}
@@ -330,18 +328,18 @@ export function ScenarioMap({ preset, levers, hasRun }: ScenarioMapProps) {
 
         {/* ── Legend ── */}
         <g id="legend" transform="translate(14, 474)">
-          <line x1="0" y1="0" x2="22" y2="0" stroke="rgba(239,68,68,0.75)" strokeWidth="2.5" strokeDasharray="5 5" />
-          <text x="27" y="4.5" fontSize="11" fill="rgba(255,255,255,0.45)" fontFamily="system-ui, sans-serif" letterSpacing="0.3">Disrupted</text>
+          <line x1="0" y1="0" x2="30" y2="0" stroke="rgba(239,68,68,0.75)" strokeWidth="4" strokeDasharray="5 5" />
+          <text x="38" y="5" fontSize="16" fill="rgba(255,255,255,0.5)" fontFamily="system-ui, sans-serif" letterSpacing="0.5">Disrupted</text>
           {hasLever && (
             <>
-              <line x1="105" y1="0" x2="127" y2="0" stroke="rgba(255,255,255,0.4)" strokeWidth="2" strokeDasharray="7 5" />
-              <text x="132" y="4.5" fontSize="11" fill="rgba(255,255,255,0.45)" fontFamily="system-ui, sans-serif" letterSpacing="0.3">Alternate</text>
+              <line x1="140" y1="0" x2="170" y2="0" stroke="rgba(255,255,255,0.4)" strokeWidth="3" strokeDasharray="7 5" />
+              <text x="178" y="5" fontSize="16" fill="rgba(255,255,255,0.5)" fontFamily="system-ui, sans-serif" letterSpacing="0.5">Alternate</text>
             </>
           )}
-          <line x1="215" y1="0" x2="237" y2="0" stroke="rgba(255,255,255,0.2)" strokeWidth="1.2" />
-          <text x="242" y="4.5" fontSize="11" fill="rgba(255,255,255,0.45)" fontFamily="system-ui, sans-serif" letterSpacing="0.3">Normal</text>
-          <circle cx="315" cy="0" r="3.5" fill="rgba(96,165,250,0.6)" />
-          <text x="323" y="4.5" fontSize="11" fill="rgba(255,255,255,0.45)" fontFamily="system-ui, sans-serif" letterSpacing="0.3">India Port</text>
+          <line x1="280" y1="0" x2="310" y2="0" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5" />
+          <text x="318" y="5" fontSize="16" fill="rgba(255,255,255,0.5)" fontFamily="system-ui, sans-serif" letterSpacing="0.5">Normal</text>
+          <circle cx="410" cy="0" r="5" fill="rgba(96,165,250,0.6)" />
+          <text x="420" y="5" fontSize="16" fill="rgba(255,255,255,0.5)" fontFamily="system-ui, sans-serif" letterSpacing="0.5">India Port</text>
         </g>
       </svg>
     </div>
