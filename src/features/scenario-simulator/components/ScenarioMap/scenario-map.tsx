@@ -14,6 +14,7 @@ import {
   LAND_MASSES,
   REGION_LABELS,
 } from "@/features/scenario-simulator/constants/route-geometry";
+import { COASTLINE_POLYGONS } from "@/features/scenario-simulator/constants/coastline-polygons";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -193,17 +194,23 @@ export function ScenarioMap({ preset, levers, hasRun }: ScenarioMapProps) {
         aria-label={`Trade route map for ${preset.label}`}
         role="img"
       >
-        {/* ── Land masses ── */}
+        {/* ── Land masses (Accurate Coastlines) ── */}
         <g id="land">
-          {LAND_MASSES.map((lm) => {
-            const pts = lm.points.map((p) => project(p).join(",")).join(" ");
+          {COASTLINE_POLYGONS.map((polygon, i) => {
+            const d = polygon
+              .map((ring) => {
+                const pts = ring.map(project);
+                return `M${pts.map((p) => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(" L")} Z`;
+              })
+              .join(" ");
             return (
-              <polygon
-                key={lm.id}
-                points={pts}
+              <path
+                key={`coast-${i}`}
+                d={d}
                 fill="hsl(220,30%,10%)"
                 stroke="rgba(255,255,255,0.05)"
                 strokeWidth={0.5}
+                fillRule="evenodd"
               />
             );
           })}
