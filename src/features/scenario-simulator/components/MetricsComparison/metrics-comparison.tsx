@@ -172,19 +172,43 @@ export function MetricsComparison({ baseline, withLevers }: MetricsComparisonPro
         lowerIsBetter={true}
       />
 
-      {/* Reserve trajectory if SPR lever was used */}
-      {withLevers.metrics.reserveDepletionDaysToFloor !== null && (
-        <div className="mt-3 rounded-lg border border-white/8 bg-white/[0.02] px-3 py-2.5">
-          <div className="text-xs text-muted-foreground">
-            SPR floor reached at{" "}
-            <strong className="text-foreground">
-              day {withLevers.metrics.reserveDepletionDaysToFloor?.toFixed(1) ?? "—"}
-            </strong>
-            {" "}·{" "}
-            {baseline.metrics.reserveDepletionDaysToFloor !== null
-              ? `was day ${baseline.metrics.reserveDepletionDaysToFloor?.toFixed(1)} at baseline`
-              : "not triggered in baseline"}
-          </div>
+      {/* Reserve release detail — only when SPR lever was used */}
+      {withLevers.metrics.reserveClipInfo && (
+        <div
+          className={cn(
+            "mt-3 rounded-lg border px-3 py-2.5 text-xs",
+            withLevers.metrics.reserveClipInfo.clippedByFloor ||
+            withLevers.metrics.reserveClipInfo.clippedByRateLimit
+              ? "border-amber-500/20 bg-amber-500/5 text-amber-300/80"
+              : "border-white/8 bg-white/[0.02] text-muted-foreground",
+          )}
+        >
+          {withLevers.metrics.reserveClipInfo.clippedByFloor ? (
+            <>
+              <span className="font-medium text-amber-300">SPR duration clipped by policy floor</span>
+              {" — requested "}
+              <strong className="text-foreground">{withLevers.metrics.reserveClipInfo.requestedDays}d</strong>
+              {", sustained "}
+              <strong className="text-foreground">{withLevers.metrics.reserveClipInfo.sustainedDays}d</strong>
+              {" before the "}
+              {withLevers.metrics.reserveDepletionDaysToFloor !== null && (
+                <>{withLevers.metrics.reserveDepletionDaysToFloor.toFixed(1)}d {" "}</>
+              )}
+              {"20-day cover floor was reached"}
+            </>
+          ) : withLevers.metrics.reserveClipInfo.clippedByRateLimit ? (
+            <>
+              <span className="font-medium text-amber-300">SPR rate capped at injection ceiling</span>
+              {" — requested duration of "}
+              <strong className="text-foreground">{withLevers.metrics.reserveClipInfo.requestedDays}d</strong>
+              {" at max SPR rate. Reserve floor not reached."}
+            </>
+          ) : (
+            <>
+              SPR release: <strong className="text-foreground">{withLevers.metrics.reserveClipInfo.requestedDays}d</strong>
+              {" at requested rate — no clipping applied"}
+            </>
+          )}
         </div>
       )}
     </motion.div>

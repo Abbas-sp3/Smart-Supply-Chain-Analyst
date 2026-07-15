@@ -256,6 +256,19 @@ export type MetricsSurface = {
    */
   reserveDepletionDaysToFloor: number | null;
 
+  /**
+   * When the SPR lever duration was clipped by the policy floor, this carries
+   * the explicit before/after so the UI can display "requested Xd, sustained Yd
+   * before floor" rather than silently truncating.
+   * Null if no clipping occurred or no reserve lever was applied.
+   */
+  reserveClipInfo: {
+    requestedDays: number;
+    sustainedDays: number;
+    clippedByFloor: boolean;
+    clippedByRateLimit: boolean;
+  } | null;
+
   /** Normalised freight rate index (100 = pre-disruption baseline). */
   freightRateIndex: RangeEstimate;
 
