@@ -22,6 +22,7 @@ import type {
   MetricsSurface,
   RangeEstimate,
   SsiWeights,
+  StrategicReserveReleaseLever,
 } from "../types";
 import type { DisruptionPreset } from "../types";
 import {
@@ -167,11 +168,34 @@ export function computeMetrics({
     0, 100,
   );
 
+  // ── Reserve clip info ─────────────────────────────────────────────────
+  // Surface explicit "requested Xd, sustained Yd" when the floor clips the lever.
+  let reserveClipInfo: MetricsSurface["reserveClipInfo"] = null;
+  if (reserve.isActive) {
+    const sprlever = levers.find(
+      (l): l is StrategicReserveReleaseLever =>
+        l.type === "strategic_reserve_release",
+    );
+    if (sprlever) {
+      const sustainedDays =
+        reserve.cappedByFloor && reserve.daysToFloor !== null
+          ? Math.min(reserve.daysToFloor, sprlever.durationDays)
+          : sprlever.durationDays;
+      reserveClipInfo = {
+        requestedDays: sprlever.durationDays,
+        sustainedDays: Math.round(sustainedDays * 10) / 10,
+        clippedByFloor: reserve.cappedByFloor,
+        clippedByRateLimit: reserve.cappedByRateLimit,
+      };
+    }
+  }
+
   return {
     landedCostDeltaPerUnit,
     etaShiftDays,
     supplyGapMtpa,
     reserveDepletionDaysToFloor,
+    reserveClipInfo,
     freightRateIndex,
     insurancePremiumBps,
     industryOutputRiskPct,

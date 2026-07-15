@@ -1,0 +1,199 @@
+/**
+ * Route Geometry — shipping lane waypoints for the Scenario Simulator SVG map.
+ *
+ * Projection used by ScenarioMap:
+ *   SVG viewBox: 0 0 1000 500
+ *   Longitude span: -20 → 145  (165° → 1000px)
+ *   Latitude span:  50 → -45   (95° → 500px, north=top)
+ *
+ * All coordinates are [longitude, latitude] in decimal degrees.
+ * Waypoints trace the primary India-bound shipping lane for each corridor.
+ */
+
+export type LonLat = [number, number];
+
+// ─── Projection ───────────────────────────────────────────────────────────────
+
+export const MAP_BOUNDS = {
+  // Tighter bounds: cuts dead southern ocean, keeps Black Sea top + Indian Ocean action zone
+  lonMin: 8,
+  lonMax: 125,
+  latMax: 46,
+  latMin: -32,
+  svgW: 1000,
+  svgH: 500,
+} as const;
+
+export function project([lon, lat]: LonLat): [number, number] {
+  const { lonMin, lonMax, latMax, latMin, svgW, svgH } = MAP_BOUNDS;
+  const x = ((lon - lonMin) / (lonMax - lonMin)) * svgW;
+  const y = ((latMax - lat) / (latMax - latMin)) * svgH;
+  return [x, y];
+}
+
+/** Straight-line SVG path (kept for reference, not used in map). */
+export function toSvgD(waypoints: LonLat[]): string {
+  return waypoints
+    .map((pt, i) => {
+      const [x, y] = project(pt);
+      return `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`;
+    })
+    .join(" ");
+}
+
+/**
+ * Smooth cubic-bezier path through waypoints using Catmull-Rom → bezier conversion.
+ * For each segment P1→P2, control points are derived from neighbours P0 and P3:
+ *   CP1 = P1 + (P2 - P0) / 6
+ *   CP2 = P2 - (P3 - P1) / 6
+ * Boundary segments clamp the phantom neighbour to the endpoint (no extrapolation).
+ */
+export function toSvgDSmooth(waypoints: LonLat[]): string {
+  if (waypoints.length === 0) return "";
+  const pts = waypoints.map(project);
+  if (pts.length === 1) return `M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`;
+  if (pts.length === 2) {
+    return `M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)} L${pts[1][0].toFixed(1)},${pts[1][1].toFixed(1)}`;
+  }
+
+  let d = `M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`;
+
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[Math.max(0, i - 1)];
+    const p1 = pts[i];
+    const p2 = pts[i + 1];
+    const p3 = pts[Math.min(pts.length - 1, i + 2)];
+
+    const cp1x = p1[0] + (p2[0] - p0[0]) / 6;
+    const cp1y = p1[1] + (p2[1] - p0[1]) / 6;
+    const cp2x = p2[0] - (p3[0] - p1[0]) / 6;
+    const cp2y = p2[1] - (p3[1] - p1[1]) / 6;
+
+    d += ` C${cp1x.toFixed(1)},${cp1y.toFixed(1)} ${cp2x.toFixed(1)},${cp2y.toFixed(1)} ${p2[0].toFixed(1)},${p2[1].toFixed(1)}`;
+  }
+
+  return d;
+}
+
+// ─── Corridor route waypoints ─────────────────────────────────────────────────
+// Each route traces the shipping lane from its origin toward Indian ports.
+
+export const CORRIDOR_ROUTES: Record<string, LonLat[]> = {
+  // Persian Gulf → Strait of Hormuz → Arabian Sea → West India
+  corridor_hormuz: [
+    [50, 27], [52, 26], [54.5, 25.5], [56.3, 26.6], [57.5, 24.5], [59, 22.5], [64, 18],
+    [67, 18], [70, 18], [72, 19],
+  ],
+
+  // Red Sea → Bab-el-Mandeb → Arabian Sea → West India
+  corridor_bab_el_mandeb: [
+    [37.5, 20.5], [39.5, 17.5], [41.5, 15], [43.4, 12.6], [45, 12], [48, 12.5],
+    [54, 13.5], [64, 14], [68, 18], [72, 19],
+  ],
+
+  // Mediterranean → Suez Canal → Red Sea → Bab-el-Mandeb → West India
+  corridor_suez: [
+    [25, 35], [30, 32.5], [32.3, 31.3], [32.3, 29.8], [33.5, 28], [35, 25.5], [37.5, 20.5],
+    [39.5, 17.5], [41.5, 15], [43.4, 12.6], [45, 12], [48, 12.5], [54, 13.5], [64, 14], [68, 18], [72, 19],
+  ],
+
+  // Singapore / Malacca Strait → Bay of Bengal → East India
+  corridor_malacca: [
+    [103, 1.5], [101.5, 2.3], [100.9, 2.8], [98.5, 4.5], [97, 5.5], [92, 8],
+    [87, 12], [83, 13], [80.3, 13.1],
+  ],
+
+  // South China Sea → Malacca → Bay of Bengal → East India
+  corridor_south_china_sea: [
+    [115, 15], [112.5, 12], [109, 8], [107, 5], [104.5, 2], [103, 1.5],
+    [101.5, 2.3], [100.9, 2.8], [98.5, 4.5], [97, 5.5], [90, 10], [83, 13], [80.3, 13.1],
+  ],
+
+  // Cape of Good Hope → Indian Ocean → West India
+  corridor_cape_good_hope: [
+    [15, -35], [18.5, -34.4], [22, -35], [26, -35.5], [30, -35], [40, -31], [45, -28],
+    [52, -24], [58, -20], [62, -15], [65, -10], [67, 3], [68, 12], [68, 18], [72, 19],
+  ],
+
+  // Black Sea → Bosphorus → Mediterranean → Suez → Red Sea → India
+  corridor_black_sea: [
+    [34, 43], [32, 42], [29, 40], [26, 38], [25, 35],
+    [30, 32.5], [32.3, 31.3], [32.3, 29.8], [33.5, 28], [35, 25.5], [37.5, 20.5], [39.5, 17.5], [41.5, 15], [43.4, 12.6],
+    [45, 12], [48, 12.5], [54, 13.5], [64, 14], [68, 18], [72, 19],
+  ],
+};
+
+// ─── Alternate routes (for supplier-switch / spot-charter lever overlays) ─────
+
+/** Supplier country → which corridor their shipments travel to reach India */
+export const SUPPLIER_CORRIDOR: Record<string, string> = {
+  saudi_arabia: "corridor_hormuz",
+  iraq:         "corridor_hormuz",
+  uae:          "corridor_hormuz",
+  russia:       "corridor_cape_good_hope",
+  usa:          "corridor_cape_good_hope",
+  brazil:       "corridor_cape_good_hope",
+  nigeria:      "corridor_cape_good_hope",
+};
+
+// ─── Indian port coordinates ───────────────────────────────────────────────────
+
+export const INDIA_PORTS: { id: string; label: string; coords: LonLat }[] = [
+  { id: "port_mundra",     label: "Mundra",   coords: [69.7, 22.8] },
+  { id: "port_jnpt",       label: "JNPT",     coords: [72.9, 18.9] },
+  { id: "port_kandla",     label: "Kandla",   coords: [70.2, 23.0] },
+  { id: "port_kochi",      label: "Kochi",    coords: [76.3, 10.0] },
+  { id: "port_chennai",    label: "Chennai",  coords: [80.3, 13.1] },
+  { id: "port_vizag",      label: "Vizag",    coords: [83.3, 17.7] },
+  { id: "port_mangalore",  label: "Mangalore",coords: [74.9, 12.9] },
+];
+
+// ─── Simplified land-mass polygons ─────────────────────────────────────────────
+// Rough outlines for stylized map — not geodetically accurate.
+
+export const LAND_MASSES: {
+  id: string;
+  label?: string;
+  labelAt?: LonLat;
+}[] = [
+  {
+    id: "arabian_peninsula",
+    label: "MIDDLE EAST",
+    labelAt: [46, 25],
+  },
+  {
+    id: "india",
+    label: "INDIA",
+    labelAt: [79, 22],
+  },
+  {
+    id: "east_africa",
+    label: "EAST AFRICA",
+    labelAt: [37, 3],
+  },
+  {
+    id: "southeast_asia",
+    label: "SE ASIA",
+    labelAt: [102, 15],
+  },
+  {
+    id: "southern_africa",
+    label: "",
+    labelAt: [26, -28],
+  },
+  {
+    id: "egypt_levant",
+    label: "",
+    labelAt: [32, 29],
+  },
+];
+
+// ─── Region text labels ───────────────────────────────────────────────────────
+
+export const REGION_LABELS: { label: string; at: LonLat }[] = [
+  { label: "ARABIAN SEA",   at: [63, 17]  },
+  { label: "BAY OF BENGAL", at: [87, 14]  },
+  { label: "INDIAN OCEAN",  at: [72, -8]  },
+  { label: "RED SEA",       at: [37, 20]  },
+  { label: "PERSIAN GULF",  at: [52, 27]  },
+];
