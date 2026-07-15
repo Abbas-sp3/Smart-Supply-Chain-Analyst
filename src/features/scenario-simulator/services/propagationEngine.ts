@@ -153,10 +153,10 @@ export function runPropagation(
   );
 
   const assumptions: string[] = [
-    "Spare capacity on alternative routes is not contested by global demand (v1 simplification — demand contention not modelled).",
-    "India-specific corridor flow fractions are analyst estimates: Hormuz 22%, Suez 5%, Malacca 6%, Red Sea 8%, Black Sea 15%, SCS 4%, Cape 4%.",
-    "Route-family deduplication: sequential corridor nodes on the same route (e.g., Suez + Bab-el-Mandeb) contribute to ETA/cost but supply gap is counted once per route family.",
-    "Spot charter vessels are assumed immediately available; no lead-time modelled for vessel procurement (v1 simplification).",
+    "Alternative-route capacity assumes no competing demand from other global buyers.",
+    "Corridor flow fractions are analyst estimates: Hormuz 22%, Suez 5%, Malacca 6%, Red Sea 8%, Black Sea 15%, South China Sea 4%, Cape of Good Hope 4%.",
+    "Sequential corridors on one physical route (e.g. Suez and Bab-el-Mandeb) are deduplicated for supply-gap counting; each still contributes independently to ETA and cost.",
+    "Spot-charter vessels are assumed available on demand; vessel-procurement lead time is not included.",
   ];
 
   const countedRouteFamilies = new Set<string>();
@@ -179,7 +179,7 @@ export function runPropagation(
 
     if (!node) {
       assumptions.push(
-        `Node "${nodeId}" not found in graph — skipped; contribution treated as zero.`,
+        `Node "${nodeId}" is not present in the trade graph and has been skipped; its contribution is treated as zero.`,
       );
       continue;
     }
@@ -219,9 +219,7 @@ export function runPropagation(
         `Buffer: ${bufferDays} days before downstream shortage manifests.`;
 
       assumptions.push(
-        `"${node.label}" is a production node (capacityType=production_output): ` +
-        `capacityMtpa (${node.capacityMtpa} Mtpa) is output capacity, not transit throughput. ` +
-        `Supply gap = output loss directly; spare-capacity formula NOT applied.`,
+        `"${node.label}" is a production node: capacityMtpa (${node.capacityMtpa} Mtpa) represents output capacity, not transit throughput. Supply gap equals output loss; spare-capacity rerouting does not apply.`,
       );
 
       // ETA contribution: production shortfall arrives after bufferDays
@@ -251,8 +249,7 @@ export function runPropagation(
 
         if (!activeCorridor) {
           assumptions.push(
-            `Port "${node.label}": no port-corridor fraction found for active corridors; ` +
-            `defaulted to 20% of port traffic. ANALYST_ESTIMATE.`,
+            `Port "${node.label}": no port-corridor fraction on file for active corridors; corridor-specific traffic share defaulted to 20% of total port throughput.`,
           );
         }
       } else if (node.type === "corridor") {
@@ -305,8 +302,7 @@ export function runPropagation(
         } else {
           spareCapacityMtpa = null;
           assumptions.push(
-            `"${node.label}" has no capacityMtpa — spare capacity check skipped; ` +
-            `rerouted volume treated as unconstrained (optimistic assumption).`,
+            `"${node.label}" has no capacity annotation; spare-capacity check skipped and rerouted volume is treated as unconstrained.`,
           );
         }
 
@@ -379,8 +375,7 @@ export function runPropagation(
       totalLockedMtpa = Math.max(0, totalLockedMtpa - reduction);
       assumptions.push(
         `Supplier switch (${switchLever.fromCountryId} → ${switchLever.toCountryId}, ` +
-        `${switchLever.volumeMtpa.toFixed(1)} Mtpa): new supplier assumed to have available ` +
-        `uncommitted volume. Lead-time for new contracts not modelled (v1 simplification).`,
+        `${switchLever.volumeMtpa.toFixed(1)} Mtpa): alternate supplier assumed to hold sufficient uncommitted volume. Contract lead time is not included in the ETA calculation.`,
       );
     }
   }
@@ -403,14 +398,12 @@ export function runPropagation(
   if (reserve.isActive) {
     if (reserve.cappedByRateLimit) {
       assumptions.push(
-        `Strategic reserve release capped from ${reserve.requestedDailyRateMtpa.toFixed(4)} to ` +
-        `${reserve.effectiveDailyRateMtpa.toFixed(4)} Mtpa/day (SPR injection rate ceiling).`,
+        `Strategic reserve release: requested rate (${reserve.requestedDailyRateMtpa.toFixed(4)} Mtpa/day) exceeds SPR injection capacity; capped to ${reserve.effectiveDailyRateMtpa.toFixed(4)} Mtpa/day.`,
       );
     }
     if (reserve.cappedByFloor) {
       assumptions.push(
-        `Reserve would hit policy floor (${reserveConfig.minReserveFloorDays} days) at day ${reserve.daysToFloor?.toFixed(1)}; ` +
-        `drawdown halts at that point — reserves NOT simulated to zero.`,
+        `Reserve drawdown halts at day ${reserve.daysToFloor?.toFixed(1)}, when the policy floor of ${reserveConfig.minReserveFloorDays} days cover is reached. Reserves are not simulated below that level.`,
       );
     }
   }
