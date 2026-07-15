@@ -31,6 +31,7 @@ import {
   type LeverState,
 } from "@/features/scenario-simulator/components/DecisionLevers/decision-levers";
 import { MetricsComparison } from "@/features/scenario-simulator/components/MetricsComparison/metrics-comparison";
+import { ScenarioMap } from "@/features/scenario-simulator/components/ScenarioMap/scenario-map";
 import type {
   PropagationResult,
   RangeEstimate,
@@ -707,6 +708,21 @@ export function ScenarioSimulator() {
             />
           </div>
         </div>
+
+        {/* ── Route Impact Map ── full width, visible as soon as preset is selected ── */}
+        <motion.div
+          key={selectedPreset.id}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.25 }}
+          className="mt-6"
+        >
+          <ScenarioMap
+            preset={selectedPreset}
+            levers={leverState}
+            hasRun={baseline !== null}
+          />
+        </motion.div>
 
         {/* ── Results ── */}
         <AnimatePresence>
