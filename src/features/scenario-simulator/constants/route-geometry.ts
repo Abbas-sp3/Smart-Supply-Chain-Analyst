@@ -15,10 +15,10 @@ export type LonLat = [number, number];
 // ─── Projection ───────────────────────────────────────────────────────────────
 
 export const MAP_BOUNDS = {
-  lonMin: -20,
-  lonMax: 145,
-  latMax: 50,
-  latMin: -45,
+  lonMin: 5,
+  lonMax: 130,
+  latMax: 48,
+  latMin: -40,
   svgW: 1000,
   svgH: 500,
 } as const;
@@ -184,9 +184,9 @@ export const LAND_MASSES: {
 // ─── Region text labels ───────────────────────────────────────────────────────
 
 export const REGION_LABELS: { label: string; at: LonLat }[] = [
-  { label: "ARABIAN SEA",     at: [63, 16] },
-  { label: "BAY OF BENGAL",   at: [87, 15] },
-  { label: "INDIAN OCEAN",    at: [75, 0]  },
-  { label: "RED SEA",         at: [38, 18] },
-  { label: "PERSIAN GULF",    at: [52, 26] },
+  { label: "ARABIAN SEA",     at: [63, 17] },
+  { label: "BAY OF BENGAL",   at: [87, 14] },
+  { label: "INDIAN OCEAN",    at: [74, -2]  },
+  { label: "RED SEA",         at: [38, 19] },
+  { label: "PERSIAN GULF",    at: [52, 27] },
 ];
