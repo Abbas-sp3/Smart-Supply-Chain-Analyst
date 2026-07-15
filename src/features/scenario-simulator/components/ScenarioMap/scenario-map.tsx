@@ -7,7 +7,7 @@ import type { DisruptionPreset } from "@/features/scenario-simulator/types";
 import type { LeverState } from "@/features/scenario-simulator/components/DecisionLevers/decision-levers";
 import {
   project,
-  toSvgD,
+  toSvgDSmooth,
   CORRIDOR_ROUTES,
   SUPPLIER_CORRIDOR,
   INDIA_PORTS,
@@ -66,7 +66,7 @@ function CorridorPath({
   state: "normal" | "active" | "disrupted" | "alternate";
   id: string;
 }) {
-  const d = toSvgD(waypoints);
+  const d = toSvgDSmooth(waypoints);
 
   const styleMap = {
     normal: {
@@ -322,19 +322,19 @@ export function ScenarioMap({ preset, levers, hasRun }: ScenarioMapProps) {
         </AnimatePresence>
 
         {/* ── Legend ── */}
-        <g id="legend" transform="translate(14, 470)">
-          <line x1="0" y1="0" x2="20" y2="0" stroke="rgba(239,68,68,0.75)" strokeWidth="2.5" strokeDasharray="5 5" />
-          <text x="25" y="4" fontSize="7.5" fill="rgba(255,255,255,0.4)" fontFamily="system-ui, sans-serif">Disrupted</text>
+        <g id="legend" transform="translate(14, 474)">
+          <line x1="0" y1="0" x2="22" y2="0" stroke="rgba(239,68,68,0.75)" strokeWidth="2.5" strokeDasharray="5 5" />
+          <text x="27" y="4.5" fontSize="11" fill="rgba(255,255,255,0.45)" fontFamily="system-ui, sans-serif" letterSpacing="0.3">Disrupted</text>
           {hasLever && (
             <>
-              <line x1="85" y1="0" x2="105" y2="0" stroke="rgba(255,255,255,0.4)" strokeWidth="2" strokeDasharray="7 5" />
-              <text x="110" y="4" fontSize="7.5" fill="rgba(255,255,255,0.4)" fontFamily="system-ui, sans-serif">Alternate</text>
+              <line x1="105" y1="0" x2="127" y2="0" stroke="rgba(255,255,255,0.4)" strokeWidth="2" strokeDasharray="7 5" />
+              <text x="132" y="4.5" fontSize="11" fill="rgba(255,255,255,0.45)" fontFamily="system-ui, sans-serif" letterSpacing="0.3">Alternate</text>
             </>
           )}
-          <line x1="180" y1="0" x2="200" y2="0" stroke="rgba(255,255,255,0.2)" strokeWidth="1.2" />
-          <text x="205" y="4" fontSize="7.5" fill="rgba(255,255,255,0.4)" fontFamily="system-ui, sans-serif">Normal</text>
-          <circle cx="260" cy="0" r="3" fill="rgba(96,165,250,0.55)" />
-          <text x="266" y="4" fontSize="7.5" fill="rgba(255,255,255,0.4)" fontFamily="system-ui, sans-serif">India Port</text>
+          <line x1="215" y1="0" x2="237" y2="0" stroke="rgba(255,255,255,0.2)" strokeWidth="1.2" />
+          <text x="242" y="4.5" fontSize="11" fill="rgba(255,255,255,0.45)" fontFamily="system-ui, sans-serif" letterSpacing="0.3">Normal</text>
+          <circle cx="315" cy="0" r="3.5" fill="rgba(96,165,250,0.6)" />
+          <text x="323" y="4.5" fontSize="11" fill="rgba(255,255,255,0.45)" fontFamily="system-ui, sans-serif" letterSpacing="0.3">India Port</text>
         </g>
       </svg>
     </div>

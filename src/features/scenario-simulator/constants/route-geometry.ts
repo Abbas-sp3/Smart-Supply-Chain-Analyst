@@ -15,10 +15,11 @@ export type LonLat = [number, number];
 // ─── Projection ───────────────────────────────────────────────────────────────
 
 export const MAP_BOUNDS = {
-  lonMin: 5,
-  lonMax: 130,
-  latMax: 48,
-  latMin: -40,
+  // Tighter bounds: cuts dead southern ocean, keeps Black Sea top + Indian Ocean action zone
+  lonMin: 8,
+  lonMax: 125,
+  latMax: 46,
+  latMin: -32,
   svgW: 1000,
   svgH: 500,
 } as const;
@@ -30,6 +31,7 @@ export function project([lon, lat]: LonLat): [number, number] {
   return [x, y];
 }
 
+/** Straight-line SVG path (kept for reference, not used in map). */
 export function toSvgD(waypoints: LonLat[]): string {
   return waypoints
     .map((pt, i) => {
@@ -37,6 +39,40 @@ export function toSvgD(waypoints: LonLat[]): string {
       return `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`;
     })
     .join(" ");
+}
+
+/**
+ * Smooth cubic-bezier path through waypoints using Catmull-Rom → bezier conversion.
+ * For each segment P1→P2, control points are derived from neighbours P0 and P3:
+ *   CP1 = P1 + (P2 - P0) / 6
+ *   CP2 = P2 - (P3 - P1) / 6
+ * Boundary segments clamp the phantom neighbour to the endpoint (no extrapolation).
+ */
+export function toSvgDSmooth(waypoints: LonLat[]): string {
+  if (waypoints.length === 0) return "";
+  const pts = waypoints.map(project);
+  if (pts.length === 1) return `M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`;
+  if (pts.length === 2) {
+    return `M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)} L${pts[1][0].toFixed(1)},${pts[1][1].toFixed(1)}`;
+  }
+
+  let d = `M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`;
+
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[Math.max(0, i - 1)];
+    const p1 = pts[i];
+    const p2 = pts[i + 1];
+    const p3 = pts[Math.min(pts.length - 1, i + 2)];
+
+    const cp1x = p1[0] + (p2[0] - p0[0]) / 6;
+    const cp1y = p1[1] + (p2[1] - p0[1]) / 6;
+    const cp2x = p2[0] - (p3[0] - p1[0]) / 6;
+    const cp2y = p2[1] - (p3[1] - p1[1]) / 6;
+
+    d += ` C${cp1x.toFixed(1)},${cp1y.toFixed(1)} ${cp2x.toFixed(1)},${cp2y.toFixed(1)} ${p2[0].toFixed(1)},${p2[1].toFixed(1)}`;
+  }
+
+  return d;
 }
 
 // ─── Corridor route waypoints ─────────────────────────────────────────────────
@@ -184,9 +220,9 @@ export const LAND_MASSES: {
 // ─── Region text labels ───────────────────────────────────────────────────────
 
 export const REGION_LABELS: { label: string; at: LonLat }[] = [
-  { label: "ARABIAN SEA",     at: [63, 17] },
-  { label: "BAY OF BENGAL",   at: [87, 14] },
-  { label: "INDIAN OCEAN",    at: [74, -2]  },
-  { label: "RED SEA",         at: [38, 19] },
-  { label: "PERSIAN GULF",    at: [52, 27] },
+  { label: "ARABIAN SEA",   at: [63, 17]  },
+  { label: "BAY OF BENGAL", at: [87, 14]  },
+  { label: "INDIAN OCEAN",  at: [72, -8]  },
+  { label: "RED SEA",       at: [37, 20]  },
+  { label: "PERSIAN GULF",  at: [52, 27]  },
 ];
