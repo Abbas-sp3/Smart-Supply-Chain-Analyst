@@ -50,7 +50,7 @@ function clamp(n: number, lo: number, hi: number): number {
 // ─── Normalisation ceilings (values above these = worst-case SSI input) ─────
 // These are calibration constants, not hard physical limits.
 const SSI_NORM = {
-  supplyGapMtpa: 200,          // 200 Mtpa gap = catastrophic (India total crude imports ~260 Mtpa)
+  supplyGapMtpa: 350,          // Raised from 200 to 350 to ensure worst-case gaps (e.g. 250+ Mtpa) don't hard clamp, keeping SSI responsive to levers.
   etaShiftDays: 60,            // 60-day delay = near-total route closure
   reserveFloorDays: 20,        // floor threshold (matches minReserveFloorDays)
   freightIndexRise: 300,       // freight rising 300 pts above 100 baseline = extreme
@@ -120,7 +120,19 @@ export function computeMetrics({
   const insurancePremiumBps = tri(insMin, insLikely, insMax, "bps");
 
   // ── Reserve depletion ─────────────────────────────────────────────────
-  const reserveDepletionDaysToFloor = reserve.daysToFloor;
+  // Calculate how fast the supply gap is burning through national deployable reserves.
+  // This is NOT constrained by the SPR maxDailyDrawdownMtpa, because commercial reserves
+  // (which form the bulk of the cover) are co-located at refineries and drawn directly.
+  let reserveDepletionDaysToFloor: number | null = null;
+  if (gapLikely > 0) {
+    const dailyConsumptionMtpa = reserveConfig.normalConsumptionMtpa / 365;
+    const currentVolumeMtpa = reserveConfig.totalReserveDays * dailyConsumptionMtpa;
+    const floorVolumeMtpa = reserveConfig.minReserveFloorDays * dailyConsumptionMtpa;
+    const deployableVolumeMtpa = Math.max(0, currentVolumeMtpa - floorVolumeMtpa);
+    
+    const dailyGapMtpa = gapLikely / 365;
+    reserveDepletionDaysToFloor = deployableVolumeMtpa / dailyGapMtpa;
+  }
 
   // ── Industry output risk ──────────────────────────────────────────────
   // Downstream industry nodes in nodeImpacts get an output risk proportional
