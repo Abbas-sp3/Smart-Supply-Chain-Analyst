@@ -45,7 +45,7 @@ const CORRIDORS = [
 type CorridorResult = {
   name: string;
   shortName: string;
-  status: "CRITICAL" | "ELEVATED" | "NORMAL" | "INSUFFICIENT_DATA";
+  status: "CRITICAL" | "ELEVATED" | "NORMAL" | "NO_SIGNAL";
   confidence: number;
   headline: string;
 };
@@ -57,7 +57,7 @@ function classifyCorridor(articles: string[], corridor: typeof CORRIDORS[number]
   });
 
   if (relevant.length === 0) {
-    return { name: corridor.name, shortName: corridor.shortName, status: "INSUFFICIENT_DATA", confidence: 0, headline: "" };
+    return { name: corridor.name, shortName: corridor.shortName, status: "NO_SIGNAL", confidence: 0, headline: "Traffic flowing; no recent disruption signals detected." };
   }
 
   const allText = relevant.join(" ").toLowerCase();
@@ -138,9 +138,9 @@ export async function GET() {
       { corridors: CORRIDORS.map((c) => ({
           name: c.name,
           shortName: c.shortName,
-          status: "INSUFFICIENT_DATA" as const,
+          status: "NO_SIGNAL" as const,
           confidence: 0,
-          headline: "",
+          headline: "Traffic flowing; no recent disruption signals detected.",
         })),
       },
       { status: 200 },

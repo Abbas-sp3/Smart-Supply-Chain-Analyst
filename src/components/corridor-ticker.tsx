@@ -22,6 +22,7 @@ function statusCssClass(status: string): string {
     case "CRITICAL": return "severe";
     case "ELEVATED": return "elevated";
     case "NORMAL": return "normal";
+    case "NO_SIGNAL": return "no-signal";
     default: return "insufficient";
   }
 }
@@ -90,7 +91,7 @@ export function CorridorTicker() {
         <span key={e.label} className="corridor-ticker-item">
           <span className="text-muted-foreground/60">{e.label}</span>
           <span className={`corridor-ticker-status ${e.cssClass}`}>
-            {e.status}
+            {e.status === "NO_SIGNAL" ? "NO SIGNAL" : e.status}
           </span>
         </span>
       ))}

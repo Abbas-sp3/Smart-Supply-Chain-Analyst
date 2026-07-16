@@ -1,6 +1,6 @@
 export type CorridorStatus = {
   corridorName: string;
-  status: "CRITICAL" | "ELEVATED" | "NORMAL" | "INSUFFICIENT_DATA";
+  status: "CRITICAL" | "ELEVATED" | "NORMAL" | "NO_SIGNAL";
   updatedAt: number;
 };
 

@@ -199,6 +199,10 @@
   .corridor-ticker-status.normal {
     color: var(--color-success);
   }
+  .corridor-ticker-status.no-signal {
+    color: var(--muted-foreground);
+    opacity: 0.7;
+  }
   .corridor-ticker-status.insufficient {
     color: var(--muted-foreground);
   }

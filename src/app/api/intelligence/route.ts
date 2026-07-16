@@ -26,7 +26,7 @@ export async function GET(): Promise<Response> {
     // Publish corridor status to cross-module signal bus
     const threat = report.current_operational_assessment?.threat_level;
     if (threat) {
-      const statusMap: Record<string, "CRITICAL" | "ELEVATED" | "NORMAL" | "INSUFFICIENT_DATA"> = {
+      const statusMap: Record<string, "CRITICAL" | "ELEVATED" | "NORMAL" | "NO_SIGNAL"> = {
         Critical: "CRITICAL",
         High: "ELEVATED",
         Medium: "NORMAL",
@@ -34,7 +34,7 @@ export async function GET(): Promise<Response> {
       };
       writeCorridorStatus({
         corridorName: "Strait of Hormuz",
-        status: statusMap[threat] ?? "INSUFFICIENT_DATA",
+        status: statusMap[threat] ?? "NO_SIGNAL",
       });
     }
 
