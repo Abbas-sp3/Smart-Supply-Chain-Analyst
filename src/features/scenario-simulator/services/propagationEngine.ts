@@ -59,7 +59,7 @@ import { computeMetrics } from "./metricsService";
 // ANALYST_ESTIMATE — not independently audited per cargo type.
 // Stored in assumptions when any corridor node is processed.
 //
-const INDIA_CORRIDOR_FRACTION: Record<string, number> = {
+export const INDIA_CORRIDOR_FRACTION: Record<string, number> = {
   corridor_hormuz:          0.22,
   corridor_bab_el_mandeb:   0.08,
   corridor_suez:            0.05,
@@ -119,7 +119,7 @@ const PORT_UPSTREAM_CORRIDOR: Record<string, string> = {
  * Keys: "portId:corridorId" → fraction [0.0–1.0]
  * ANALYST_ESTIMATE: derived from connection strategicWeight and commodity mix.
  */
-const PORT_CORRIDOR_FRACTION: Record<string, number> = {
+export const PORT_CORRIDOR_FRACTION: Record<string, number> = {
   // Suez corridor → port fractions
   "port_jnpt:corridor_suez":      0.35,  // JNPT: ~35% traffic is Europe/Med via Suez (containers)
   "port_mundra:corridor_suez":    0.17,  // Mundra: ~17% via Suez (containers + chemicals from Europe;
