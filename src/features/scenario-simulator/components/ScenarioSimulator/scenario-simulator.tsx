@@ -31,6 +31,8 @@ import {
   type LeverState,
 } from "@/features/scenario-simulator/components/DecisionLevers/decision-levers";
 import { MetricsComparison } from "@/features/scenario-simulator/components/MetricsComparison/metrics-comparison";
+import { NodeTrajectoryCard } from "@/features/scenario-simulator/components/NodeTrajectoryCard";
+
 import { ScenarioMap } from "@/features/scenario-simulator/components/ScenarioMap/scenario-map";
 import type {
   PropagationResult,
@@ -388,7 +390,7 @@ function ResultsSection({ result }: { result: PropagationResult }) {
               unit: "days",
             },
             {
-              label: "Reserve Trajectory",
+              label: "National Reserve Runway",
               weight: result.metrics.ssiWeightsUsed.reserveTrajectory,
               val: result.metrics.reserveDepletionDaysToFloor ?? 0,
               unit: "d to floor",
@@ -776,6 +778,15 @@ export function ScenarioSimulator() {
                 <MetricsComparison
                   baseline={baseline.result}
                   withLevers={withLevers.result}
+                />
+              )}
+
+              {/* Node Trajectory card — below Metrics Comparison */}
+              {baseline && (
+                <NodeTrajectoryCard
+                  baseline={baseline.result}
+                  withLevers={withLevers?.result ?? null}
+                  preset={selectedPreset}
                 />
               )}
 
