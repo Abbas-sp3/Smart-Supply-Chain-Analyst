@@ -3,7 +3,10 @@
 import { TrendingDown, TrendingUp, Minus } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import type { PropagationResult } from "@/features/scenario-simulator/types";
+import type { PropagationResult, StrategicReserveReleaseLever } from "@/features/scenario-simulator/types";
+import { INDIA_RESERVE_CONFIG } from "@/features/scenario-simulator/constants/reserve-config";
+import { MetricRangeChart } from "./metrics-range-chart";
+import { ReserveDepletionChart } from "./reserve-depletion-chart";
 
 type MetricDeltaRowProps = {
   label: string;
@@ -11,6 +14,8 @@ type MetricDeltaRowProps = {
   leverVal: number;
   unit: string;
   lowerIsBetter: boolean;
+  children?: React.ReactNode;
+  unchangedReason?: string;
 };
 
 function MetricDeltaRow({
@@ -19,6 +24,8 @@ function MetricDeltaRow({
   leverVal,
   unit,
   lowerIsBetter,
+  children,
+  unchangedReason,
 }: MetricDeltaRowProps) {
   const delta = leverVal - baselineVal;
   const pctChange = baselineVal !== 0 ? (delta / Math.abs(baselineVal)) * 100 : 0;
@@ -36,27 +43,35 @@ function MetricDeltaRow({
         {leverVal.toFixed(1)}
         <span className="ml-1 text-xs font-normal text-muted-foreground/50">{unit}</span>
       </span>
-      <span
-        className={cn(
-          "flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs font-semibold tabular-nums",
-          unchanged
-            ? "bg-white/5 text-muted-foreground"
-            : improved
-              ? "bg-emerald-500/10 text-emerald-400"
-              : "bg-red-500/10 text-red-400",
+      <div className="flex flex-col items-end">
+        <span
+          className={cn(
+            "flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs font-semibold tabular-nums",
+            unchanged
+              ? "bg-white/5 text-muted-foreground"
+              : improved
+                ? "bg-emerald-500/10 text-emerald-400"
+                : "bg-red-500/10 text-red-400",
+          )}
+        >
+          {unchanged ? (
+            <Minus className="size-3" />
+          ) : improved ? (
+            <TrendingDown className="size-3" />
+          ) : (
+            <TrendingUp className="size-3" />
+          )}
+          {unchanged
+            ? "—"
+            : `${delta > 0 ? "+" : ""}${pctChange.toFixed(0)}%`}
+        </span>
+        {unchanged && unchangedReason && (
+          <span className="text-[10px] text-muted-foreground/40 mt-1 max-w-[120px] text-right leading-tight">
+            {unchangedReason}
+          </span>
         )}
-      >
-        {unchanged ? (
-          <Minus className="size-3" />
-        ) : improved ? (
-          <TrendingDown className="size-3" />
-        ) : (
-          <TrendingUp className="size-3" />
-        )}
-        {unchanged
-          ? "—"
-          : `${delta > 0 ? "+" : ""}${pctChange.toFixed(0)}%`}
-      </span>
+      </div>
+      {children && <div className="col-span-4 mt-2">{children}</div>}
     </div>
   );
 }
@@ -69,6 +84,10 @@ type MetricsComparisonProps = {
 export function MetricsComparison({ baseline, withLevers }: MetricsComparisonProps) {
   const ssiDelta = withLevers.metrics.supplySecurityIndex - baseline.metrics.supplySecurityIndex;
   const ssiImproved = ssiDelta > 0;
+
+  const sprLever = withLevers.appliedLevers.find(
+    (l): l is StrategicReserveReleaseLever => l.type === "strategic_reserve_release",
+  );
 
   return (
     <motion.div
@@ -142,20 +161,35 @@ export function MetricsComparison({ baseline, withLevers }: MetricsComparisonPro
         leverVal={withLevers.metrics.supplyGapMtpa.likely}
         unit="Mtpa"
         lowerIsBetter={true}
-      />
+      >
+        <MetricRangeChart
+          baseline={baseline.metrics.supplyGapMtpa}
+          lever={withLevers.metrics.supplyGapMtpa}
+          unit="Mtpa"
+          lowerIsBetter={true}
+        />
+      </MetricDeltaRow>
       <MetricDeltaRow
         label="ETA Shift"
         baselineVal={baseline.metrics.etaShiftDays.likely}
         leverVal={withLevers.metrics.etaShiftDays.likely}
         unit="days"
         lowerIsBetter={true}
-      />
+      >
+        <MetricRangeChart
+          baseline={baseline.metrics.etaShiftDays}
+          lever={withLevers.metrics.etaShiftDays}
+          unit="days"
+          lowerIsBetter={true}
+        />
+      </MetricDeltaRow>
       <MetricDeltaRow
         label="Freight Index"
         baselineVal={baseline.metrics.freightRateIndex.likely}
         leverVal={withLevers.metrics.freightRateIndex.likely}
         unit="idx"
         lowerIsBetter={true}
+        unchangedReason="Unaffected by applied levers"
       />
       <MetricDeltaRow
         label="Insurance"
@@ -163,6 +197,7 @@ export function MetricsComparison({ baseline, withLevers }: MetricsComparisonPro
         leverVal={withLevers.metrics.insurancePremiumBps.likely}
         unit="bps"
         lowerIsBetter={true}
+        unchangedReason="Unaffected by applied levers"
       />
       <MetricDeltaRow
         label="Landed Cost Δ"
@@ -170,6 +205,7 @@ export function MetricsComparison({ baseline, withLevers }: MetricsComparisonPro
         leverVal={withLevers.metrics.landedCostDeltaPerUnit.likely}
         unit="%"
         lowerIsBetter={true}
+        unchangedReason="Unaffected by applied levers"
       />
 
       {/* Reserve release detail — only when SPR lever was used */}
@@ -208,6 +244,16 @@ export function MetricsComparison({ baseline, withLevers }: MetricsComparisonPro
               SPR release: <strong className="text-foreground">{withLevers.metrics.reserveClipInfo.requestedDays}d</strong>
               {" at requested rate — no clipping applied"}
             </>
+          )}
+
+          {sprLever && (
+            <ReserveDepletionChart
+              startingDays={INDIA_RESERVE_CONFIG.totalReserveDays}
+              dailyDrawdownMtpa={Math.min(sprLever.dailyRateMtpa, INDIA_RESERVE_CONFIG.maxDailyDrawdownMtpa)}
+              durationDays={withLevers.metrics.reserveClipInfo.requestedDays}
+              clippedByFloor={withLevers.metrics.reserveClipInfo.clippedByFloor}
+              sustainedDays={withLevers.metrics.reserveClipInfo.sustainedDays}
+            />
           )}
         </div>
       )}
