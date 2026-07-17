@@ -153,6 +153,12 @@
     @apply bg-white/[0.02] backdrop-blur-xl;
   }
 
+  /* Solid-background card — for any page that renders over a map/texture background
+     where glass-surface would let the map show through text */
+  .solid-card {
+    @apply bg-[#10151d];
+  }
+
   .glass-card {
     @apply rounded-lg border border-white/[0.06] bg-white/[0.02] backdrop-blur-xl;
   }

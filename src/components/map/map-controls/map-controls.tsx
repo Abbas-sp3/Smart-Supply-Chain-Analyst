@@ -1,6 +1,7 @@
 "use client";
 
 import { Minus, Plus } from "lucide-react";
+import { usePathname } from "next/navigation";
 
 import { useMap } from "@/components/map/map-provider";
 
@@ -8,8 +9,10 @@ const ZOOM_DURATION_MS = 300;
 
 export function MapControls() {
   const { map, isReady } = useMap();
+  const pathname = usePathname();
 
-  if (!isReady || !map) {
+  // Hide zoom controls on the Command Center page where the map is just a static backdrop
+  if (!isReady || !map || pathname === "/") {
     return null;
   }
 

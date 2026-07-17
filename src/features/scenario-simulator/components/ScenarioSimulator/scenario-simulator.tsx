@@ -18,11 +18,15 @@ import {
   Zap,
   BarChart3,
   Activity,
+  Leaf,
+  Factory,
+  Hexagon,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { cn } from "@/lib/utils";
 import { DISRUPTION_PRESETS } from "@/features/scenario-simulator/constants/disruption-presets";
+import { CATEGORY_META, SEVERITY_COLOR } from "@/features/scenario-simulator/constants/ui-constants";
 import { useSimulation } from "@/features/scenario-simulator/hooks/useSimulation";
 import {
   DecisionLevers,
@@ -30,6 +34,7 @@ import {
   buildLeversArray,
   type LeverState,
 } from "@/features/scenario-simulator/components/DecisionLevers/decision-levers";
+import { DisruptionPresetSelector } from "@/features/scenario-simulator/components/DisruptionPresetSelector/disruption-preset-selector";
 import { MetricsComparison } from "@/features/scenario-simulator/components/MetricsComparison/metrics-comparison";
 import { NodeTrajectoryCard } from "@/features/scenario-simulator/components/NodeTrajectoryCard";
 
@@ -40,33 +45,7 @@ import type {
   CorridorImpactResult,
 } from "@/features/scenario-simulator/types";
 
-// ─── Category badges ──────────────────────────────────────────────────────────
 
-const CATEGORY_META: Record<string, { label: string; badge: string }> = {
-  energy: {
-    label: "Energy",
-    badge: "border-orange-500/30 bg-orange-500/10 text-orange-400",
-  },
-  food_agriculture: {
-    label: "Food & Agriculture",
-    badge: "border-emerald-500/30 bg-emerald-500/10 text-emerald-400",
-  },
-  manufacturing: {
-    label: "Manufacturing",
-    badge: "border-blue-500/30 bg-blue-500/10 text-blue-400",
-  },
-  multi_sector: {
-    label: "Multi-Sector",
-    badge: "border-violet-500/30 bg-violet-500/10 text-violet-400",
-  },
-};
-
-const SEVERITY_COLOR = (pct: number) => {
-  if (pct >= 80) return "text-red-400";
-  if (pct >= 50) return "text-orange-400";
-  if (pct >= 25) return "text-yellow-400";
-  return "text-emerald-400";
-};
 
 const SSI_COLOR = (score: number) => {
   if (score >= 70) return "text-emerald-400";
@@ -127,7 +106,7 @@ function MetricCard({
   note?: string;
 }) {
   return (
-    <div className="glass-surface rounded-xl border border-white/10 p-4">
+    <div className="solid-card rounded-xl border border-white/10 p-4">
       <div className="mb-3 flex items-center gap-2">
         <Icon className="size-4 text-muted-foreground" aria-hidden />
         <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
@@ -162,8 +141,8 @@ function NodeImpactRow({ impact }: { impact: CorridorImpactResult }) {
       className={cn(
         "rounded-lg border transition-colors",
         isDedup
-          ? "border-white/5 bg-white/[0.01] opacity-50"
-          : "border-white/10 bg-white/[0.03]",
+          ? "border-white/5 bg-[#0c1018] opacity-50"
+          : "border-white/10 bg-[#0e1319]",
       )}
     >
       <button
@@ -290,21 +269,21 @@ function ResultsSection({ result }: { result: PropagationResult }) {
           label="Supply Gap"
           range={result.metrics.supplyGapMtpa}
           maxVal={300}
-          colorClass="bg-red-400/70"
+          colorClass="bg-rose-500/80"
         />
         <MetricCard
           icon={Clock}
           label="ETA Shift"
           range={result.metrics.etaShiftDays}
           maxVal={90}
-          colorClass="bg-orange-400/70"
+          colorClass="bg-amber-500/80"
         />
         <MetricCard
           icon={Ship}
           label="Freight Index"
           range={result.metrics.freightRateIndex}
           maxVal={400}
-          colorClass="bg-yellow-400/70"
+          colorClass="bg-fuchsia-500/80"
           note="100 = baseline"
         />
         <MetricCard
@@ -312,7 +291,7 @@ function ResultsSection({ result }: { result: PropagationResult }) {
           label="Insurance"
           range={result.metrics.insurancePremiumBps}
           maxVal={500}
-          colorClass="bg-blue-400/70"
+          colorClass="bg-blue-500/80"
           note="bps"
         />
         <MetricCard
@@ -320,9 +299,9 @@ function ResultsSection({ result }: { result: PropagationResult }) {
           label="Landed Cost Δ"
           range={result.metrics.landedCostDeltaPerUnit}
           maxVal={30}
-          colorClass="bg-primary/70"
+          colorClass="bg-indigo-500/80"
         />
-        <div className="glass-surface rounded-xl border border-white/10 p-4">
+        <div className="solid-card rounded-xl border border-white/10 p-4">
           <div className="mb-3 flex items-center gap-2">
             <Gauge className="size-4 text-muted-foreground" aria-hidden />
             <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
@@ -371,7 +350,7 @@ function ResultsSection({ result }: { result: PropagationResult }) {
       <AssumptionsPill assumptions={result.metrics.assumptions} />
 
       {/* SSI weight decomposition */}
-      <div className="glass-surface rounded-xl border border-white/10 p-5">
+      <div className="solid-card rounded-xl border border-white/10 p-5">
         <h3 className="mb-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           SSI Weight Decomposition
         </h3>
@@ -404,7 +383,7 @@ function ResultsSection({ result }: { result: PropagationResult }) {
           ].map((item) => (
             <div
               key={item.label}
-              className="glass-surface rounded-lg border border-white/10 p-4"
+              className="solid-card rounded-lg border border-white/10 p-4"
             >
               <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                 {item.label}
@@ -465,7 +444,7 @@ export function ScenarioSimulator() {
   };
 
   return (
-    <div className="flex h-full flex-col overflow-y-auto bg-background">
+    <div className="flex h-full flex-col overflow-y-auto bg-transparent">
       {/* ── Header ── */}
       <div className="sticky top-0 z-10 border-b border-white/10 bg-background/80 backdrop-blur-md">
         <div className="mx-auto max-w-7xl px-6 py-4">
@@ -502,128 +481,20 @@ export function ScenarioSimulator() {
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_380px]">
 
           {/* ── Left: Preset selector ── */}
-          <div className="space-y-5">
-            <div>
-              <h2 className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Select Disruption Scenario
-              </h2>
-              <p className="text-xs text-muted-foreground/50">
-                No LLM in the computation path — engine runs deterministically
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-              {DISRUPTION_PRESETS.map((preset) => {
-                const meta = CATEGORY_META[preset.category] ?? CATEGORY_META.multi_sector;
-                const isSelected = preset.id === selectedPresetId;
-
-                return (
-                  <button
-                    key={preset.id}
-                    type="button"
-                    onClick={() => handlePresetChange(preset.id)}
-                    className={cn(
-                      "group relative overflow-hidden rounded-xl border p-4 text-left transition-all duration-200",
-                      isSelected
-                        ? "border-white/20 bg-white/[0.06]"
-                        : "border-white/8 bg-white/[0.02] hover:bg-white/[0.04]",
-                    )}
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex-1">
-                        <span
-                          className={cn(
-                            "mb-2 inline-flex items-center rounded border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
-                            meta.badge,
-                          )}
-                        >
-                          {meta.label}
-                        </span>
-                        <h3 className="mt-1 text-sm font-semibold leading-tight text-foreground">
-                          {preset.label}
-                        </h3>
-                        <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
-                          {preset.description}
-                        </p>
-                      </div>
-                      <div className="shrink-0 text-right">
-                        <div
-                          className={cn(
-                            "text-lg font-normal tabular-nums",
-                            SEVERITY_COLOR(preset.severityPct),
-                          )}
-                        >
-                          {preset.severityPct}%
-                        </div>
-                        <div className="text-xs text-muted-foreground">severity</div>
-                      </div>
-                    </div>
-                    <div className="mt-3 flex items-center gap-4 text-xs text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <Clock className="size-3" />
-                        ~{preset.expectedDurationDays}d
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Ship className="size-3" />
-                        {preset.affectedNodeIds.length} nodes
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <TrendingUp className="size-3" />
-                        +{preset.spotFreightPenaltyPct}% freight
-                      </span>
-                    </div>
-                    {isSelected && (
-                      <motion.div
-                        layoutId="selected-indicator"
-                        className="absolute bottom-0 left-0 right-0 h-0.5 bg-white/30"
-                      />
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Run baseline button */}
-            <motion.button
-              type="button"
-              onClick={handleRunBaseline}
-              disabled={loading}
-              whileHover={!loading ? { scale: 1.005 } : {}}
-              whileTap={!loading ? { scale: 0.995 } : {}}
-              className={cn(
-                "flex w-full items-center justify-center gap-3 rounded-xl border border-white/10 bg-white/[0.04] px-6 py-4 text-sm font-semibold uppercase tracking-wider text-foreground transition-all",
-                "hover:bg-white/[0.07] disabled:cursor-not-allowed disabled:opacity-50",
-              )}
-            >
-              {loading && !baseline ? (
-                <>
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                    className="size-4 rounded-full border-2 border-white/20 border-t-white/70"
-                  />
-                  Running propagation engine…
-                </>
-              ) : (
-                <>
-                  <Play className="size-4" aria-hidden />
-                  {baseline ? "Re-run baseline" : "Run baseline simulation"}
-                </>
-              )}
-            </motion.button>
-
-            {error && (
-              <div className="flex items-center gap-2 rounded-xl border border-red-500/20 bg-red-500/5 px-4 py-3 text-sm text-red-400">
-                <AlertTriangle className="size-4 shrink-0" />
-                {error}
-              </div>
-            )}
-          </div>
+          {/* ── Left: Preset selector ── */}
+          <DisruptionPresetSelector
+            selectedPresetId={selectedPresetId}
+            onPresetChange={handlePresetChange}
+            onRunBaseline={handleRunBaseline}
+            loading={loading}
+            hasBaseline={baseline !== null}
+            error={error}
+          />
 
           {/* ── Right: Preset detail + Decision Levers ── */}
-          <div className="space-y-4">
+          <div className="sticky top-[88px] max-h-[calc(100vh-120px)] overflow-y-auto space-y-4 pb-4">
             {/* Preset detail card */}
-            <div className="glass-surface rounded-xl border border-white/10 p-5">
+            <div className="solid-card rounded-xl border border-white/10 p-5">
               <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                 Selected Scenario
               </div>
@@ -659,7 +530,7 @@ export function ScenarioSimulator() {
                     color: "text-yellow-400",
                   },
                 ].map((item) => (
-                  <div key={item.label} className="rounded-lg bg-white/[0.04] border border-white/8 px-3 py-2.5">
+                  <div key={item.label} className="rounded-lg bg-[#0e1319] border border-white/8 px-3 py-2.5">
                     <div className="text-[10px] text-muted-foreground">{item.label}</div>
                     <div className={cn("text-xl font-bold", item.color)}>{item.val}</div>
                     <div className="text-[10px] text-muted-foreground/60">{item.sub}</div>
@@ -683,7 +554,7 @@ export function ScenarioSimulator() {
             </div>
 
             {/* Engine methodology note */}
-            <div className="rounded-xl border border-white/5 bg-white/[0.02] px-4 py-3">
+            <div className="solid-card rounded-xl border border-white/5 px-4 py-3">
               <div className="mb-1.5 flex items-center gap-1.5">
                 <Zap className="size-3.5 text-muted-foreground/60" aria-hidden />
                 <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60">
@@ -717,7 +588,7 @@ export function ScenarioSimulator() {
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.25 }}
-          className="mt-6"
+          className="mt-6 overflow-hidden rounded-xl border border-white/10 bg-[#06080a]/60 p-1 shadow-2xl backdrop-blur-md"
         >
           <ScenarioMap
             preset={selectedPreset}

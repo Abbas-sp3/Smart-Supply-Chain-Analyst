@@ -73,7 +73,9 @@ export function ReserveDepletionChart({ startingDays, dailyDrawdownMtpa, duratio
             strokeWidth={2} 
             dot={false} 
             activeDot={{ r: 4, fill: "#4fd1d9" }} 
-            isAnimationActive={false} 
+            isAnimationActive={true} 
+            animationDuration={1500} 
+            animationEasing="ease-out"
           />
         </LineChart>
       </ResponsiveContainer>

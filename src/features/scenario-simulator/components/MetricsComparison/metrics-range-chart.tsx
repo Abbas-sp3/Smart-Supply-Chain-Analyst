@@ -76,8 +76,8 @@ export function MetricRangeChart({ baseline, lever, unit, lowerIsBetter = true }
           <YAxis type="category" dataKey="name" width={60} axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "rgba(255,255,255,0.5)" }} />
           <Tooltip content={<CustomTooltip />} cursor={{ fill: "rgba(255,255,255,0.02)" }} />
           
-          <Bar dataKey="range" fill={accentColor} fillOpacity={0.15} barSize={12} radius={2} isAnimationActive={false} />
-          <Scatter dataKey="likely" fill={accentColor} shape={<CustomMarker />} isAnimationActive={false} />
+          <Bar dataKey="range" fill={accentColor} fillOpacity={0.15} barSize={12} radius={2} isAnimationActive={true} animationDuration={1500} animationEasing="ease-out" />
+          <Scatter dataKey="likely" fill={accentColor} shape={<CustomMarker />} isAnimationActive={true} animationDuration={1500} animationEasing="ease-out" />
         </ComposedChart>
       </ResponsiveContainer>
     </div>

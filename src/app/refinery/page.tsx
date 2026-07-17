@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   Factory, RefreshCw, BarChart3, AlertTriangle, Fuel,
   ShieldAlert, CheckCircle2, Wrench, ChevronDown, ChevronUp,
@@ -350,7 +350,8 @@ export default function RefineryPage() {
                 const age = getAge(r.commissioned);
                 const isExpanded = expandedRefinery === r.id;
                 return (
-                  <tr key={r.id} className={`border-b border-white/5 ${isExpanded ? "bg-white/[0.02]" : "hover:bg-white/[0.02]"}`}>
+                  <React.Fragment key={r.id}>
+                    <tr className={`border-b border-white/5 ${isExpanded ? "bg-white/[0.02]" : "hover:bg-white/[0.02]"}`}>
                     <td className="px-3 py-2 text-[11px] text-muted-foreground/40 numeric">{idx + 1}</td>
                     <td className="px-3 py-2">
                       <button type="button" onClick={() => setExpandedRefinery(isExpanded ? null : r.id)} className="flex items-center gap-1.5 text-left">
@@ -379,85 +380,75 @@ export default function RefineryPage() {
                       </span>
                     </td>
                   </tr>
-                );
-              })}
-            </tbody>
-            <tfoot>
-              <tr className="border-t border-white/10 bg-white/[0.02]">
-                <td className="px-3 py-2 text-[9px] text-muted-foreground/40 font-medium" colSpan={6}>TOTAL ({sorted.length} refineries)</td>
-                <td className="px-3 py-2 text-xs font-bold text-primary numeric">{sorted.reduce((s, r) => s + r.capacityMMTPA, 0).toFixed(1)}</td>
-                <td className="px-3 py-2 text-[11px] text-blue-400 numeric font-medium">
-                  {sorted.filter((r) => r.expandingToMMTPA).reduce((s, r) => s + (r.expandingToMMTPA ?? 0) - r.capacityMMTPA, 0).toFixed(1)} MMTPA expansion
-                </td>
-                <td className="px-3 py-2"></td>
-                <td className="px-3 py-2"></td>
-              </tr>
-            </tfoot>
-          </table>
-        </div>
+                  {isExpanded && (
+                    <tr className="border-b border-white/10 bg-white/[0.01]">
+                      <td colSpan={10} className="p-0">
+                        <div className="p-4 space-y-4">
+                          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                            <div className="rounded-lg border border-white/5 bg-white/[0.02] p-2.5">
+                              <p className="text-[9px] uppercase text-muted-foreground/40">Commissioned</p>
+                              <p className="text-xs font-medium text-foreground/80">{fmtDate(r.commissioned)}</p>
+                              <p className="text-[9px] text-muted-foreground/30">{getAge(r.commissioned)} years old</p>
+                            </div>
+                            <div className="rounded-lg border border-white/5 bg-white/[0.02] p-2.5">
+                              <p className="text-[9px] uppercase text-muted-foreground/40">Current Capacity</p>
+                              <p className="text-xs font-medium text-foreground/80 numeric">{r.capacityMMTPA} MMTPA</p>
+                            </div>
+                            {r.expandingToMMTPA && (
+                              <div className="rounded-lg border border-blue-500/20 bg-blue-500/5 p-2.5">
+                                <p className="text-[9px] uppercase text-muted-foreground/40">Expanding To</p>
+                                <p className="text-xs font-medium text-blue-400 numeric">{r.expandingToMMTPA} MMTPA</p>
+                                <p className="text-[9px] text-blue-400/50">+{(r.expandingToMMTPA - r.capacityMMTPA).toFixed(1)} MMTPA (+{Math.round(((r.expandingToMMTPA - r.capacityMMTPA) / r.capacityMMTPA) * 100)}%)</p>
+                              </div>
+                            )}
+                            <div className="rounded-lg border border-white/5 bg-white/[0.02] p-2.5">
+                              <p className="text-[9px] uppercase text-muted-foreground/40">Nelson Complexity</p>
+                              <p className="text-xs font-medium text-foreground/80 numeric">{r.nelsonComplexityIndex ?? "N/A"}</p>
+                              <p className="text-[9px] text-muted-foreground/30">{r.nelsonComplexityIndex ? (r.nelsonComplexityIndex >= 12 ? "High complexity" : r.nelsonComplexityIndex >= 9 ? "Medium complexity" : "Low complexity") : ""}</p>
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-[10px] uppercase text-muted-foreground/50 mb-1.5">Compatible Crude Grades</p>
+                            <div className="flex flex-wrap gap-1.5">
+                              {r.crudeGrades.map((g) => (
+                                <span key={g} className="rounded bg-white/5 px-2 py-0.5 text-[10px] text-foreground/60 border border-white/5">{g}</span>
+                              ))}
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-[10px] uppercase text-muted-foreground/50 mb-1.5">Typical Product Output</p>
+                            <div className="grid grid-cols-2 gap-1 md:grid-cols-3">
+                              {r.products.map((p) => (
+                                <div key={p.name} className="flex items-center gap-2">
+                                  <div className="h-1.5 rounded-full bg-primary/40" style={{ width: `${p.pctOfOutput}%`, minWidth: 4 }} />
+                                  <span className="text-[10px] text-foreground/70 flex-1">{p.name}</span>
+                                  <span className="text-[10px] text-muted-foreground/50 numeric">{p.pctOfOutput}%</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </tbody>
+          <tfoot>
+            <tr className="border-t border-white/10 bg-white/[0.02]">
+              <td className="px-3 py-2 text-[9px] text-muted-foreground/40 font-medium" colSpan={6}>TOTAL ({sorted.length} refineries)</td>
+              <td className="px-3 py-2 text-xs font-bold text-primary numeric">{sorted.reduce((s, r) => s + r.capacityMMTPA, 0).toFixed(1)}</td>
+              <td className="px-3 py-2 text-[11px] text-blue-400 numeric font-medium">
+                {sorted.filter((r) => r.expandingToMMTPA).reduce((s, r) => s + (r.expandingToMMTPA ?? 0) - r.capacityMMTPA, 0).toFixed(1)} MMTPA expansion
+              </td>
+              <td className="px-3 py-2"></td>
+              <td className="px-3 py-2"></td>
+            </tr>
+          </tfoot>
+        </table>
       </div>
-
-      {/* Expanded Refinery Detail */}
-      {expandedRefinery && (() => {
-        const r = sorted.find((ref) => ref.id === expandedRefinery);
-        if (!r) return null;
-        return (
-          <div className="glass-surface rounded-xl border border-white/10 p-4 space-y-4">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm font-bold text-foreground">{r.name}</p>
-                <p className="text-[11px] text-muted-foreground/60">{r.owner} &middot; {r.sector} &middot; {r.location}, {r.state}</p>
-              </div>
-              <button type="button" onClick={() => setExpandedRefinery(null)} className="text-muted-foreground/40 hover:text-foreground/60">
-                <ChevronUp className="size-4" />
-              </button>
-            </div>
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-              <div className="rounded-lg border border-white/5 bg-white/[0.02] p-2.5">
-                <p className="text-[9px] uppercase text-muted-foreground/40">Commissioned</p>
-                <p className="text-xs font-medium text-foreground/80">{fmtDate(r.commissioned)}</p>
-                <p className="text-[9px] text-muted-foreground/30">{getAge(r.commissioned)} years old</p>
-              </div>
-              <div className="rounded-lg border border-white/5 bg-white/[0.02] p-2.5">
-                <p className="text-[9px] uppercase text-muted-foreground/40">Current Capacity</p>
-                <p className="text-xs font-medium text-foreground/80 numeric">{r.capacityMMTPA} MMTPA</p>
-              </div>
-              {r.expandingToMMTPA && (
-                <div className="rounded-lg border border-blue-500/20 bg-blue-500/5 p-2.5">
-                  <p className="text-[9px] uppercase text-muted-foreground/40">Expanding To</p>
-                  <p className="text-xs font-medium text-blue-400 numeric">{r.expandingToMMTPA} MMTPA</p>
-                  <p className="text-[9px] text-blue-400/50">+{(r.expandingToMMTPA - r.capacityMMTPA).toFixed(1)} MMTPA (+{Math.round(((r.expandingToMMTPA - r.capacityMMTPA) / r.capacityMMTPA) * 100)}%)</p>
-                </div>
-              )}
-              <div className="rounded-lg border border-white/5 bg-white/[0.02] p-2.5">
-                <p className="text-[9px] uppercase text-muted-foreground/40">Nelson Complexity</p>
-                <p className="text-xs font-medium text-foreground/80 numeric">{r.nelsonComplexityIndex ?? "N/A"}</p>
-                <p className="text-[9px] text-muted-foreground/30">{r.nelsonComplexityIndex ? (r.nelsonComplexityIndex >= 12 ? "High complexity" : r.nelsonComplexityIndex >= 9 ? "Medium complexity" : "Low complexity") : ""}</p>
-              </div>
-            </div>
-            <div>
-              <p className="text-[10px] uppercase text-muted-foreground/50 mb-1.5">Compatible Crude Grades</p>
-              <div className="flex flex-wrap gap-1.5">
-                {r.crudeGrades.map((g) => (
-                  <span key={g} className="rounded bg-white/5 px-2 py-0.5 text-[10px] text-foreground/60 border border-white/5">{g}</span>
-                ))}
-              </div>
-            </div>
-            <div>
-              <p className="text-[10px] uppercase text-muted-foreground/50 mb-1.5">Typical Product Output</p>
-              <div className="grid grid-cols-2 gap-1 md:grid-cols-3">
-                {r.products.map((p) => (
-                  <div key={p.name} className="flex items-center gap-2">
-                    <div className="h-1.5 rounded-full bg-primary/40" style={{ width: `${p.pctOfOutput}%`, minWidth: 4 }} />
-                    <span className="text-[10px] text-foreground/70 flex-1">{p.name}</span>
-                    <span className="text-[10px] text-muted-foreground/50 numeric">{p.pctOfOutput}%</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        );
-      })()}
+    </div>
 
       {/* Crude Compatibility */}
       <div className="glass-surface rounded-xl border border-white/10 p-4">

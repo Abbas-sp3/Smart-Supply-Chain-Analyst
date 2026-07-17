@@ -250,7 +250,7 @@ export function NodeTrajectoryCard({ baseline, withLevers, preset }: NodeTraject
   if (tabNodes.length === 0) return null;
 
   return (
-    <div className="glass-surface rounded-xl border border-white/10 p-5">
+    <div className="solid-card rounded-xl border border-white/10 p-5">
       {/* Header */}
       <div className="mb-4 flex items-start justify-between gap-4">
         <div>
@@ -381,7 +381,9 @@ export function NodeTrajectoryCard({ baseline, withLevers, preset }: NodeTraject
                   strokeWidth={1.5}
                   strokeDasharray="5 4"
                   dot={false}
-                  isAnimationActive={false}
+                  isAnimationActive={true}
+                  animationDuration={1500}
+                  animationEasing="ease-out"
                 />
                 <Line
                   type="monotone"
@@ -390,7 +392,9 @@ export function NodeTrajectoryCard({ baseline, withLevers, preset }: NodeTraject
                   stroke="#e8935a"
                   strokeWidth={2}
                   dot={false}
-                  isAnimationActive={false}
+                  isAnimationActive={true}
+                  animationDuration={1500}
+                  animationEasing="ease-out"
                 />
                 {withLevers && (
                   <Line
@@ -400,7 +404,9 @@ export function NodeTrajectoryCard({ baseline, withLevers, preset }: NodeTraject
                     stroke="#4fd1d9"
                     strokeWidth={2}
                     dot={false}
-                    isAnimationActive={false}
+                    isAnimationActive={true}
+                    animationDuration={1500}
+                    animationEasing="ease-out"
                   />
                 )}
               </LineChart>
@@ -453,7 +459,9 @@ export function NodeTrajectoryCard({ baseline, withLevers, preset }: NodeTraject
                   strokeWidth={1.5}
                   fill="url(#lockedGrad)"
                   dot={false}
-                  isAnimationActive={false}
+                  isAnimationActive={true}
+                  animationDuration={1500}
+                  animationEasing="ease-out"
                 />
                 {withLevers && (
                   <Area
@@ -464,7 +472,9 @@ export function NodeTrajectoryCard({ baseline, withLevers, preset }: NodeTraject
                     strokeWidth={1.5}
                     fill="url(#leverGrad)"
                     dot={false}
-                    isAnimationActive={false}
+                    isAnimationActive={true}
+                  animationDuration={1500}
+                  animationEasing="ease-out"
                   />
                 )}
               </AreaChart>

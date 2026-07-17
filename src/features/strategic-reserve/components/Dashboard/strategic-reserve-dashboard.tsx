@@ -1,0 +1,73 @@
+"use client";
+
+import { useState } from "react";
+import { useSimulation } from "@/features/scenario-simulator/hooks/useSimulation";
+import { DisruptionPresetSelector } from "@/features/scenario-simulator/components/DisruptionPresetSelector/disruption-preset-selector";
+import { OptimizationResultsPanel } from "@/features/strategic-reserve/components/OptimizationEngine/optimization-results-panel";
+import { SprFacilityCards } from "./spr-facility-cards";
+import { MarketContext } from "./market-context";
+import { Globe2 } from "lucide-react";
+import { APP_NAME } from "@/lib/constants/app";
+
+export function StrategicReserveDashboard() {
+  const { baseline, loading, error, runBaseline } = useSimulation();
+  const [selectedPresetId, setSelectedPresetId] = useState<string>("hormuz_closure_30d");
+
+  return (
+    <div className="flex h-full flex-col overflow-y-auto bg-transparent">
+      {/* ── Header ── */}
+      <div className="sticky top-0 z-10 border-b border-white/10 bg-background/80 backdrop-blur-md">
+        <div className="mx-auto max-w-7xl px-6 py-4">
+          <div className="flex items-center gap-3">
+            <div className="flex size-9 items-center justify-center rounded-xl bg-white/[0.06] border border-white/10">
+              <Globe2 className="size-5 text-muted-foreground" aria-hidden />
+            </div>
+            <div>
+              <h1 className="text-sm font-semibold uppercase tracking-widest text-foreground">
+                Energy Reserves
+              </h1>
+              <p className="text-xs text-muted-foreground/60">
+                Strategic Reserve Optimization & Drawdown Planning
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="mx-auto w-full max-w-7xl flex-1 px-6 py-6 space-y-6">
+        <MarketContext />
+        <SprFacilityCards />
+
+        <div className="border-t border-white/10 pt-6">
+          {!baseline ? (
+            <div className="max-w-3xl">
+              <DisruptionPresetSelector
+                title="Select Disruption Scenario"
+                description="Run a scenario to analyze supply gaps and calculate strategic reserve optimization."
+                selectedPresetId={selectedPresetId}
+                onPresetChange={setSelectedPresetId}
+                onRunBaseline={() => runBaseline(selectedPresetId)}
+                loading={loading}
+                hasBaseline={baseline !== null}
+                error={error}
+              />
+            </div>
+          ) : (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <OptimizationResultsPanel result={baseline.result} />
+              
+              <div className="mt-8 flex justify-center">
+                <button
+                  onClick={() => window.location.reload()}
+                  className="px-6 py-2 border border-white/10 hover:bg-white/5 rounded-lg text-xs font-semibold text-muted-foreground transition-colors"
+                >
+                  Clear Results & Run New Scenario
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

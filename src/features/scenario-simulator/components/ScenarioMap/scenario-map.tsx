@@ -158,7 +158,7 @@ export function ScenarioMap({ preset, levers, hasRun }: ScenarioMapProps) {
   const [epicLon, epicLat] = preset.mapCoordinates as [number, number];
 
   return (
-    <div className="glass-surface overflow-hidden rounded-xl border border-white/10">
+    <div className="solid-card overflow-hidden rounded-xl border border-white/10">
       {/* Map header */}
       <div className="flex items-center justify-between border-b border-white/8 px-4 py-2.5">
         <div className="flex items-center gap-2">

@@ -175,8 +175,8 @@ function LeverToggleRow({
       className={cn(
         "rounded-xl border transition-all duration-200",
         enabled
-          ? "border-white/15 bg-white/[0.05]"
-          : "border-white/8 bg-white/[0.02]",
+          ? "border-white/15 bg-[#111720]"
+          : "border-white/8 bg-[#0c1018]",
       )}
     >
       <button
@@ -184,10 +184,10 @@ function LeverToggleRow({
         className="flex w-full items-center gap-3 px-4 py-3 text-left"
         onClick={onToggle}
       >
-        {/* Toggle pill */}
+        {/* Toggle pill — fixed centering: flex+items-center eliminates top offset math */}
         <div
           className={cn(
-            "relative h-5 w-9 flex-shrink-0 rounded-full border transition-colors duration-200",
+            "relative flex h-5 w-9 flex-shrink-0 items-center rounded-full border px-0.5 transition-colors duration-200",
             enabled
               ? "border-primary/40 bg-primary/20"
               : "border-white/15 bg-white/5",
@@ -195,10 +195,10 @@ function LeverToggleRow({
         >
           <span
             className={cn(
-              "absolute top-0.5 h-4 w-4 rounded-full transition-all duration-200",
+              "block h-3.5 w-3.5 rounded-full transition-all duration-200",
               enabled
-                ? "left-4 bg-primary"
-                : "left-0.5 bg-white/30",
+                ? "translate-x-4 bg-primary"
+                : "translate-x-0 bg-white/40",
             )}
           />
         </div>
@@ -283,7 +283,7 @@ export function DecisionLevers({
   const maxDailyBblk = Math.round(maxDailyMtpa * 1e6 / 0.136 / 1000); // ~50k bbl/day
 
   return (
-    <div className="glass-surface rounded-xl border border-white/10 p-5">
+    <div className="solid-card rounded-xl border border-white/10 p-5">
       <div className="mb-4 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <Sliders className="size-4 text-muted-foreground" aria-hidden />
