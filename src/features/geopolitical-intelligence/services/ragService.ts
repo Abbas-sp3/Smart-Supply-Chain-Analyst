@@ -23,9 +23,10 @@ export async function initRagService() {
   const chunks: RagChunk[] = [];
   
   // A. India Trade Graph Nodes
-  for (const node of INDIA_TRADE_GRAPH.nodes) {
-    const text = `Node: ${node.name} (${node.type}). Region: ${node.region}. Description: ${node.description || 'N/A'}. Capacity: ${node.capacityMtpa || 'Unknown'} Mtpa. ${node.dataSource ? 'Source: ' + node.dataSource : ''}`;
-    chunks.push({ id: `node_${node.id}`, sourceLabel: `Knowledge Graph: ${node.name}`, text });
+  for (const node of INDIA_TRADE_GRAPH) {
+    const label = node.label || node.id;
+    const text = `Node: ${label} (${node.type}). Description: ${node.description || 'N/A'}. Capacity: ${node.capacityMtpa || 'Unknown'} Mtpa. ${node.dataSource ? 'Source: ' + node.dataSource : ''}`;
+    chunks.push({ id: `node_${node.id}`, sourceLabel: `Knowledge Graph: ${label}`, text });
   }
 
   // B. Disruption Presets & Historical Analogues
