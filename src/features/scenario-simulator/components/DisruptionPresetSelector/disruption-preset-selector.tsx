@@ -32,11 +32,10 @@ export function DisruptionPresetSelector({
     <div className="space-y-5">
       {/* Section heading — sits on left column which can be map gutter */}
       <div>
-        <h2 className="mb-1 text-sm font-bold uppercase tracking-wider text-foreground"
-            style={{ textShadow: "0 1px 8px rgb(0 0 0 / 0.9), 0 0 24px rgb(0 0 0 / 0.7)" }}>
+        <h2 className="map-overlay-text mb-1 text-sm font-bold uppercase tracking-wider text-foreground">
           {title}
         </h2>
-        <p className="text-xs text-muted-foreground/60">{description}</p>
+        <p className="map-overlay-text text-sm text-muted-foreground">{description}</p>
       </div>
 
       <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">

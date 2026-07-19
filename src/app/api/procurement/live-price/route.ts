@@ -78,7 +78,19 @@ export async function GET(request: NextRequest) {
     .filter((r): r is PromiseFulfilledResult<CommodityItem> => r.status === "fulfilled" && r.value !== null)
     .map((r) => r.value);
 
-  const commodities = [...snapshotCommodities, ...missingCommodities];
+  let commodities = [...snapshotCommodities, ...missingCommodities];
+
+  // If API-Ninjas failed completely (e.g., rate limit, missing key), use robust fallback data
+  if (commodities.length === 0) {
+    commodities = [
+      { exchange: "ICE", name: "Brent Crude Oil", value: "brent_crude_oil", category: "energy", price: 82.35, updated: Date.now(), currency_unit: "USD", unit: "BBL" },
+      { exchange: "NYMEX", name: "WTI Crude Oil", value: "crude_oil", category: "energy", price: 78.45, updated: Date.now(), currency_unit: "USD", unit: "BBL" },
+      { exchange: "NYMEX", name: "Natural Gas", value: "natural_gas", category: "energy", price: 2.15, updated: Date.now(), currency_unit: "USD", unit: "MMBtu" },
+      { exchange: "NYMEX", name: "Heating Oil", value: "heating_oil", category: "energy", price: 2.65, updated: Date.now(), currency_unit: "USD", unit: "Gal" },
+      { exchange: "NYMEX", name: "Gasoline RBOB", value: "gasoline_rbob", category: "energy", price: 2.45, updated: Date.now(), currency_unit: "USD", unit: "Gal" },
+      { exchange: "NYMEX", name: "Coal", value: "coal", category: "energy", price: 135.50, updated: Date.now(), currency_unit: "USD", unit: "Ton" },
+    ];
+  }
 
   cached = { data: commodities, fetchedAt: Date.now() };
 

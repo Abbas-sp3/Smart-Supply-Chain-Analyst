@@ -220,17 +220,17 @@ function NodeImpactRow({ impact }: { impact: CorridorImpactResult }) {
 function AssumptionsPill({ assumptions }: { assumptions: string[] }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="rounded-xl border border-amber-500/15 bg-amber-500/[0.04]">
+    <div className="solid-card rounded-xl border border-amber-500/20 bg-[#16120d]">
       <button
         type="button"
         className="flex w-full items-center gap-2 px-4 py-3 text-left"
         onClick={() => setOpen((o) => !o)}
       >
         <Info className="size-4 shrink-0 text-amber-400/70" aria-hidden />
-        <span className="text-sm font-medium text-amber-300/80">
+        <span className="text-sm font-semibold text-amber-400/90">
           {assumptions.length} Assumptions &amp; Caveats
         </span>
-        <span className="ml-auto text-xs text-muted-foreground">
+        <span className="ml-auto text-xs font-semibold text-muted-foreground">
           {open ? "hide" : "show"}
         </span>
       </button>
@@ -244,8 +244,8 @@ function AssumptionsPill({ assumptions }: { assumptions: string[] }) {
           >
             <ul className="space-y-2 border-t border-amber-500/10 px-4 pb-4 pt-3">
               {assumptions.map((a, i) => (
-                <li key={i} className="flex gap-2 text-xs text-muted-foreground">
-                  <span className="mt-0.5 shrink-0 text-amber-400/40">•</span>
+                <li key={i} className="flex gap-2 text-sm text-muted-foreground">
+                  <span className="mt-0.5 shrink-0 text-amber-400/50">•</span>
                   <span className="leading-relaxed">{a}</span>
                 </li>
               ))}
