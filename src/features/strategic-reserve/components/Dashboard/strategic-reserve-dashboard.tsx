@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useSimulation } from "@/features/scenario-simulator/hooks/useSimulation";
 import { DisruptionPresetSelector } from "@/features/scenario-simulator/components/DisruptionPresetSelector/disruption-preset-selector";
 import { OptimizationResultsPanel } from "@/features/strategic-reserve/components/OptimizationEngine/optimization-results-panel";
-import { SprFacilityCards } from "./spr-facility-cards";
+import { SprFillGauge } from "@/features/strategic-reserve/components/charts/SprFillGauge";
 import { MarketContext } from "./market-context";
 import { Globe2 } from "lucide-react";
 import { APP_NAME } from "@/lib/constants/app";
@@ -36,7 +36,21 @@ export function StrategicReserveDashboard() {
 
       <div className="mx-auto w-full max-w-7xl flex-1 px-6 py-6 space-y-6">
         <MarketContext />
-        <SprFacilityCards />
+
+        {/* SPR facility radial gauges */}
+        <div>
+          <div className="flex items-end justify-between mb-4">
+            <div>
+              <h2 className="text-sm font-semibold uppercase tracking-wider text-foreground flex items-center gap-2">
+                ISPRL Phase I Facilities
+              </h2>
+              <p className="mt-1 text-xs text-muted-foreground max-w-lg">
+                Operational strategic petroleum reserves · Source: Media reports citing government officials, early 2026
+              </p>
+            </div>
+          </div>
+          <SprFillGauge />
+        </div>
 
         <div className="pt-6">
           {!baseline ? (

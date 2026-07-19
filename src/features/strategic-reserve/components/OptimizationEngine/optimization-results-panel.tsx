@@ -6,6 +6,9 @@ import { generateOptimizationStrategy } from "@/features/strategic-reserve/servi
 import { RecommendationCard } from "./recommendation-card";
 import { RefineryPriorityList } from "./refinery-priority-list";
 import { ReasoningDisclosure } from "./reasoning-disclosure";
+import { DrawdownProjectionChart } from "@/features/strategic-reserve/components/charts/DrawdownProjectionChart";
+import { RefineryAllocationChart } from "@/features/strategic-reserve/components/charts/RefineryAllocationChart";
+import { CoverDaysComparatorChart } from "@/features/strategic-reserve/components/charts/CoverDaysComparatorChart";
 import { Calculator } from "lucide-react";
 
 export function OptimizationResultsPanel({ result }: { result: PropagationResult }) {
@@ -24,10 +27,19 @@ export function OptimizationResultsPanel({ result }: { result: PropagationResult
           <ReasoningDisclosure reasoning={strategy.reasoning} />
         </div>
         
-        <div>
+        <div className="space-y-6">
           <RefineryPriorityList prioritizedRefineries={strategy.prioritizedRefineries} />
         </div>
       </div>
+
+      {/* Visual charts row */}
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+        <CoverDaysComparatorChart strategy={strategy} />
+        <DrawdownProjectionChart strategy={strategy} />
+      </div>
+
+      {/* Refinery allocation chart */}
+      <RefineryAllocationChart prioritizedRefineries={strategy.prioritizedRefineries} />
     </div>
   );
 }

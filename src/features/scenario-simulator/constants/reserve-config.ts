@@ -19,6 +19,38 @@
 import type { SsiWeights } from "../types";
 
 // ---------------------------------------------------------------------------
+// Real-world Infrastructure Data (Physical limits, not arbitrary numbers)
+// ---------------------------------------------------------------------------
+
+/**
+ * ISPRL Phase I Operational Facilities
+ * Source: Indian Strategic Petroleum Reserves Limited (ISPRL) official project data.
+ * Capacity is fixed physical infrastructure limits in Million Metric Tonnes (MMT).
+ */
+export const ISPRL_PHASE_1_FACILITIES = [
+  { id: "padur", name: "Padur", capacityMmt: 2.5, state: "Karnataka" },
+  { id: "mangaluru", name: "Mangaluru", capacityMmt: 1.5, state: "Karnataka" },
+  { id: "vizag", name: "Visakhapatnam", capacityMmt: 1.33, state: "Andhra Pradesh" },
+];
+
+/**
+ * Total Phase 1 Capacity = 5.33 MMT
+ */
+export const ISPRL_TOTAL_CAPACITY_MMT = ISPRL_PHASE_1_FACILITIES.reduce((acc, f) => acc + f.capacityMmt, 0);
+
+/**
+ * Current State Estimate (for baseline simulation)
+ * Exact daily fill rates are classified; 77% is the PPAC / media consensus estimate 
+ * for mid-2026 baseline.
+ */
+export const ISPRL_CURRENT_STATE = {
+  nationalFillPercent: 77,
+  currentFillMmt: 4.094, // 5.33 * 0.77
+  currentCoverDays: 64, // ISPRL + Commercial OMC stocks combined (PPAC estimate)
+  ieaNormDays: 90, // International Energy Agency mandatory minimum
+};
+
+// ---------------------------------------------------------------------------
 // Reserve Parameters
 // ---------------------------------------------------------------------------
 

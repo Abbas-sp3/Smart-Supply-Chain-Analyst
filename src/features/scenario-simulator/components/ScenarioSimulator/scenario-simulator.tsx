@@ -37,8 +37,13 @@ import {
 import { DisruptionPresetSelector } from "@/features/scenario-simulator/components/DisruptionPresetSelector/disruption-preset-selector";
 import { MetricsComparison } from "@/features/scenario-simulator/components/MetricsComparison/metrics-comparison";
 import { NodeTrajectoryCard } from "@/features/scenario-simulator/components/NodeTrajectoryCard";
-
 import { ScenarioMap } from "@/features/scenario-simulator/components/ScenarioMap/scenario-map";
+import { SsiGaugeChart } from "@/features/scenario-simulator/components/charts/SsiGaugeChart";
+import { NodeSeverityHeatmap } from "@/features/scenario-simulator/components/charts/NodeSeverityHeatmap";
+import { SupplyGapWaterfallChart } from "@/features/scenario-simulator/components/charts/SupplyGapWaterfallChart";
+import { IndustryCascadeChart } from "@/features/scenario-simulator/components/charts/IndustryCascadeChart";
+import { SingleRangeBarChart } from "@/features/scenario-simulator/components/charts/SingleRangeBarChart";
+import { SsiRadarChart } from "@/features/scenario-simulator/components/charts/SsiRadarChart";
 import type {
   PropagationResult,
   RangeEstimate,
@@ -63,32 +68,7 @@ const SSI_LABEL = (score: number) => {
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function RangeBar({
-  range,
-  maxVal,
-  colorClass = "bg-primary/70",
-}: {
-  range: RangeEstimate;
-  maxVal: number;
-  colorClass?: string;
-}) {
-  const minPct = Math.min(100, (range.min / maxVal) * 100);
-  const likelyPct = Math.min(100, (range.likely / maxVal) * 100);
-  const maxPct = Math.min(100, (range.max / maxVal) * 100);
 
-  return (
-    <div className="relative h-1.5 w-full rounded-full bg-white/5">
-      <div
-        className="absolute top-0 h-1.5 rounded-full bg-white/10"
-        style={{ left: `${minPct}%`, width: `${maxPct - minPct}%` }}
-      />
-      <div
-        className={cn("absolute top-0 h-1.5 w-1 rounded-full", colorClass)}
-        style={{ left: `${likelyPct}%` }}
-      />
-    </div>
-  );
-}
 
 function MetricCard({
   icon: Icon,
@@ -122,7 +102,7 @@ function MetricCard({
         </span>
         <span className="mb-0.5 text-xs text-muted-foreground">{range.unit}</span>
       </div>
-      <RangeBar range={range} maxVal={maxVal} colorClass={colorClass} />
+      <SingleRangeBarChart range={range} maxVal={maxVal} colorClass={colorClass} />
       <div className="mt-1.5 flex justify-between text-xs text-muted-foreground/60">
         <span>{range.min.toFixed(range.min < 10 ? 1 : 0)}</span>
         <span className="text-muted-foreground/30">range</span>
@@ -301,36 +281,32 @@ function ResultsSection({ result }: { result: PropagationResult }) {
           maxVal={30}
           colorClass="bg-indigo-500/80"
         />
-        <div className="solid-card rounded-xl border border-white/10 p-4">
-          <div className="mb-3 flex items-center gap-2">
+        <div className="solid-card rounded-xl border border-white/10 p-4 flex flex-col">
+          <div className="mb-2 flex items-center gap-2">
             <Gauge className="size-4 text-muted-foreground" aria-hidden />
             <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
               SSI
             </span>
           </div>
-          <div
-            className={cn(
-              "text-4xl font-black tabular-nums",
-              SSI_COLOR(result.metrics.supplySecurityIndex),
-            )}
-          >
-            {result.metrics.supplySecurityIndex}
+          <div className="flex-1">
+            <SsiGaugeChart score={result.metrics.supplySecurityIndex} />
           </div>
-          <div
-            className={cn(
-              "mt-0.5 text-sm font-medium",
-              SSI_COLOR(result.metrics.supplySecurityIndex),
-            )}
-          >
-            {SSI_LABEL(result.metrics.supplySecurityIndex)}
-          </div>
-          <div className="mt-1.5 text-xs text-muted-foreground/70">
+          <div className="mt-1.5 text-[10px] text-muted-foreground/50 text-center">
             weights 35/25/30/10
           </div>
         </div>
       </div>
 
-      {/* Node impacts */}
+      {/* Charts row: supply gap waterfall + industry cascade */}
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+        <SupplyGapWaterfallChart nodeImpacts={result.nodeImpacts} />
+        <IndustryCascadeChart industryOutputRiskPct={result.metrics.industryOutputRiskPct} />
+      </div>
+
+      {/* Node severity heatmap */}
+      <NodeSeverityHeatmap nodeImpacts={result.nodeImpacts} />
+
+      {/* Node impacts detail (expandable) */}
       <div className="space-y-2">
         <div className="solid-card flex items-center gap-2 rounded-xl border border-white/10 px-4 py-3">
           <BarChart3 className="size-4 text-muted-foreground" />
@@ -349,59 +325,8 @@ function ResultsSection({ result }: { result: PropagationResult }) {
       {/* Assumptions */}
       <AssumptionsPill assumptions={result.metrics.assumptions} />
 
-      {/* SSI weight decomposition */}
-      <div className="solid-card rounded-xl border border-white/10 p-5">
-        <h3 className="mb-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-          SSI Weight Decomposition
-        </h3>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {[
-            {
-              label: "Supply Gap",
-              weight: result.metrics.ssiWeightsUsed.supplyGapVolume,
-              val: result.metrics.supplyGapMtpa.likely,
-              unit: "Mtpa",
-            },
-            {
-              label: "ETA Shift",
-              weight: result.metrics.ssiWeightsUsed.etaShift,
-              val: result.metrics.etaShiftDays.likely,
-              unit: "days",
-            },
-            {
-              label: "National Reserve Runway",
-              weight: result.metrics.ssiWeightsUsed.reserveTrajectory,
-              val: result.metrics.reserveDepletionDaysToFloor ?? 0,
-              unit: "d to floor",
-            },
-            {
-              label: "Freight + Insurance",
-              weight: result.metrics.ssiWeightsUsed.freightAndInsuranceCost,
-              val: result.metrics.freightRateIndex.likely,
-              unit: "index",
-            },
-          ].map((item) => (
-            <div
-              key={item.label}
-              className="solid-card rounded-lg border border-white/10 p-4"
-            >
-              <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                {item.label}
-              </div>
-              <div className="mt-2 text-2xl font-bold tabular-nums text-foreground">
-                {Math.round(item.weight * 100)}%
-              </div>
-              <div className="text-xs text-muted-foreground">weight</div>
-              <div className="mt-3 text-sm font-semibold tabular-nums text-foreground">
-                {item.val.toFixed(1)}{" "}
-                <span className="text-xs font-normal text-muted-foreground">
-                  {item.unit}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+      {/* SSI weight decomposition radar */}
+      <SsiRadarChart ssiWeightsUsed={result.metrics.ssiWeightsUsed} />
     </div>
   );
 }
