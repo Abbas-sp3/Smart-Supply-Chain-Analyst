@@ -118,18 +118,25 @@ export function generateOptimizationStrategy(
     }
   }
 
-  // Prioritize refineries based on locked volume
+  // Prioritize infrastructure/refinery nodes based on locked volume
+  // Node IDs for refinery infrastructure follow the pattern: infra_refineries_* (e.g. infra_refineries_west)
   const refineryImpacts = result.nodeImpacts
     .filter((impact) => {
-      // Find node in graph
-      const node = INDIA_TRADE_GRAPH.find((n: any) => n.id === impact.nodeId);
-      return impact.nodeId.includes("refinery") && impact.lockedVolumeMtpa !== null && impact.lockedVolumeMtpa > 0;
+      // Match infra_refineries_* nodes (the actual pattern in the knowledge graph)
+      // Also match any corridor/port nodes for completeness if they have significant locks
+      const isRefineryInfra = impact.nodeId.startsWith("infra_refin");
+      return isRefineryInfra && impact.lockedVolumeMtpa !== null && impact.lockedVolumeMtpa > 0;
     })
     .map((impact) => {
       const node = INDIA_TRADE_GRAPH.find((n: any) => n.id === impact.nodeId);
+      // Format the label: strip "infra_" prefix and title-case the rest
+      const fallbackLabel = impact.nodeId
+        .replace(/^infra_/, "")
+        .replace(/_/g, " ")
+        .replace(/\b\w/g, (c) => c.toUpperCase());
       return {
         nodeId: impact.nodeId,
-        name: node?.label ?? impact.nodeId,
+        name: node?.label ?? fallbackLabel,
         lockedVolumeMtpa: impact.lockedVolumeMtpa!,
       };
     })

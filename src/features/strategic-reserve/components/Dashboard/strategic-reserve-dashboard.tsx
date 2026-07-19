@@ -26,7 +26,7 @@ export function StrategicReserveDashboard() {
               <h1 className="text-sm font-semibold uppercase tracking-widest text-foreground">
                 Energy Reserves
               </h1>
-              <p className="text-xs text-muted-foreground/60">
+              <p className="text-sm text-muted-foreground">
                 Strategic Reserve Optimization & Drawdown Planning
               </p>
             </div>
@@ -38,9 +38,9 @@ export function StrategicReserveDashboard() {
         <MarketContext />
         <SprFacilityCards />
 
-        <div className="border-t border-white/10 pt-6">
+        <div className="pt-6">
           {!baseline ? (
-            <div className="max-w-3xl">
+            <div className="solid-card rounded-xl border border-white/10 p-6">
               <DisruptionPresetSelector
                 title="Select Disruption Scenario"
                 description="Run a scenario to analyze supply gaps and calculate strategic reserve optimization."
@@ -59,7 +59,7 @@ export function StrategicReserveDashboard() {
               <div className="mt-8 flex justify-center">
                 <button
                   onClick={() => window.location.reload()}
-                  className="px-6 py-2 border border-white/10 hover:bg-white/5 rounded-lg text-xs font-semibold text-muted-foreground transition-colors"
+                  className="btn-primary-cta flex items-center gap-2"
                 >
                   Clear Results & Run New Scenario
                 </button>

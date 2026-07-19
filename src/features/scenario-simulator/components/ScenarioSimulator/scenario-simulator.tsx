@@ -324,7 +324,7 @@ function ResultsSection({ result }: { result: PropagationResult }) {
           >
             {SSI_LABEL(result.metrics.supplySecurityIndex)}
           </div>
-          <div className="mt-1.5 text-[10px] text-muted-foreground/50">
+          <div className="mt-1.5 text-xs text-muted-foreground/70">
             weights 35/25/30/10
           </div>
         </div>
@@ -332,12 +332,12 @@ function ResultsSection({ result }: { result: PropagationResult }) {
 
       {/* Node impacts */}
       <div className="space-y-2">
-        <div className="flex items-center gap-2 pb-1">
+        <div className="solid-card flex items-center gap-2 rounded-xl border border-white/10 px-4 py-3">
           <BarChart3 className="size-4 text-muted-foreground" />
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          <h3 className="text-sm font-semibold uppercase tracking-wider text-foreground">
             Node Impact Breakdown
           </h3>
-          <span className="ml-auto text-xs text-muted-foreground/50">
+          <span className="ml-auto text-xs text-muted-foreground">
             click to expand rationale
           </span>
         </div>
@@ -556,12 +556,12 @@ export function ScenarioSimulator() {
             {/* Engine methodology note */}
             <div className="solid-card rounded-xl border border-white/5 px-4 py-3">
               <div className="mb-1.5 flex items-center gap-1.5">
-                <Zap className="size-3.5 text-muted-foreground/60" aria-hidden />
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60">
+                <Zap className="size-3.5 text-muted-foreground" aria-hidden />
+                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Engine
                 </span>
               </div>
-              <ul className="space-y-0.5 text-xs text-muted-foreground/50">
+              <ul className="space-y-0.5 text-sm text-muted-foreground">
                 <li>BFS propagation through India trade graph</li>
                 <li>Capacity-constrained · 20 annotated nodes</li>
                 <li>Transit vs. production node branching</li>
@@ -621,7 +621,7 @@ export function ScenarioSimulator() {
                         </span>
                       )}
                     </h2>
-                    <p className="text-xs text-muted-foreground/60">
+                    <p className="text-sm text-muted-foreground">
                       Computed{" "}
                       {new Date(baseline.result.computedAt).toLocaleTimeString()} ·{" "}
                       {baseline.result.nodeImpacts.length} nodes ·{" "}
@@ -664,9 +664,11 @@ export function ScenarioSimulator() {
               {/* Baseline full results */}
               <div>
                 {withLevers && (
-                  <h3 className="mb-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    Baseline — no levers applied
-                  </h3>
+                  <div className="solid-card mb-4 flex items-center rounded-xl border border-white/10 px-4 py-3">
+                    <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                      Baseline — no levers applied
+                    </h3>
+                  </div>
                 )}
                 <ResultsSection result={baseline.result} />
               </div>
@@ -674,9 +676,11 @@ export function ScenarioSimulator() {
               {/* With-levers full results */}
               {withLevers && (
                 <div>
-                  <h3 className="mb-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    With levers applied
-                  </h3>
+                  <div className="solid-card mb-4 flex items-center rounded-xl border border-white/10 px-4 py-3">
+                    <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                      With levers applied
+                    </h3>
+                  </div>
                   <ResultsSection result={withLevers.result} />
                 </div>
               )}

@@ -144,7 +144,9 @@
   }
   html {
     @apply font-sans;
-    font-size: 17px;
+    /* Base size bumped to 18px — all rem-based Tailwind sizes scale up proportionally.
+       This shifts the whole type scale: text-xs=14px, text-sm=16px, text-base=18px, text-lg=20px */
+    font-size: 18px;
   }
 }
 
@@ -160,6 +162,16 @@
     box-shadow: 0 2px 12px 0 rgb(0 0 0 / 0.45), 0 1px 3px 0 rgb(0 0 0 / 0.3);
   }
 
+  /* Text that floats in map gutter space (NOT on a solid card) must use this class
+     to stay legible regardless of the map tile underneath */
+  .map-overlay-text {
+    text-shadow: 0 1px 6px rgb(0 0 0 / 1), 0 0 20px rgb(0 0 0 / 0.9);
+  }
+
+  /* Muted captions sitting on solid cards — ensure minimum legibility */
+  .caption-on-card {
+    @apply text-sm text-muted-foreground;
+  }
   /* Interactive card — adds elevation on hover with smooth transition */
   .card-hover {
     @apply transition-all duration-200;
