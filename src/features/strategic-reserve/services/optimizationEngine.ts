@@ -41,24 +41,37 @@ export function generateOptimizationStrategy(
   
   const preset = DISRUPTION_PRESETS.find((p) => p.id === result.presetId);
   const durationDays = preset?.expectedDurationDays ?? 30; // fallback if not found
-  
-  // Calculate volume needed (MMT)
+
+  // Calculate volume needed over the disruption duration (MMT)
   const totalVolumeNeededMMT = gapMtpa * (durationDays / 365);
-  const commercialBufferMMT = 31.8; // ~45 days cover
-  const severeShockThreshold = 77.4; // 30% of normal annualized consumption
-  const bufferDrainThreshold = 4.7; // ~15% of commercial buffer
+
+  // ── RELEASE TRIGGER THRESHOLDS ─────────────────────────────────────────────
+  // IMPORTANT: These thresholds are ILLUSTRATIVE POLICY PARAMETERS, not derived
+  // from official Indian energy security doctrine, IEA guidelines, or any
+  // government-published trigger rule. They were chosen to approximate
+  // a plausible decision boundary between "use commercial buffer" and
+  // "tap the SPR" — but the correct values depend on political risk tolerance,
+  // OMC stock levels on the day, and government policy at the time.
+  // Treat these as a starting point for calibration, not established policy.
+  // Source: same honest-assumption pattern used for SSI weights, recovery ramps, etc.
+  // ─────────────────────────────────────────────────────────────────────────────
+  const commercialBufferMMT = 31.8; // ~45 days OMC cover at normal consumption (PPAC estimate)
+  // Threshold 1 — Severe shock: gap exceeds 30% of annualized normal consumption
+  const severeShockThreshold = config.normalConsumptionMtpa * 0.30; // illustrative: 30% of consumption
+  // Threshold 2 — Sustained drain: total volume needed > 15% of commercial buffer
+  const bufferDrainThreshold = commercialBufferMMT * 0.15; // illustrative: 15% of OMC stocks
 
   let recommendRelease = false;
   let triggerReason = "";
 
   if (gapMtpa > severeShockThreshold) {
     recommendRelease = true;
-    triggerReason = `Severe shock detected: Supply gap (${gapMtpa.toFixed(2)} MMTPA) exceeds 30% of national consumption.`;
+    triggerReason = `Severe shock detected: Supply gap (${gapMtpa.toFixed(2)} MMTPA) exceeds 30% of national consumption (illustrative threshold — not official policy).`;
   } else if (totalVolumeNeededMMT > bufferDrainThreshold) {
     recommendRelease = true;
-    triggerReason = `Buffer drain detected: Required volume (${totalVolumeNeededMMT.toFixed(2)} MMT) over ${durationDays} days exceeds 15% of OMC commercial stocks.`;
+    triggerReason = `Buffer drain detected: Required volume (${totalVolumeNeededMMT.toFixed(2)} MMT over ${durationDays} days) exceeds 15% of estimated OMC commercial stocks (illustrative threshold — not official policy).`;
   } else if (gapMtpa > 0) {
-    triggerReason = `Supply gap (${gapMtpa.toFixed(2)} MMTPA) over ${durationDays} days requires ${totalVolumeNeededMMT.toFixed(2)} MMT total volume, which is safely absorbed by existing OMC commercial buffers (~31.8 MMT). Preserve SPR reserves.`;
+    triggerReason = `Supply gap (${gapMtpa.toFixed(2)} MMTPA) over ${durationDays} days requires ${totalVolumeNeededMMT.toFixed(2)} MMT — within estimated OMC commercial buffer capacity (~${commercialBufferMMT} MMT). Preserve SPR reserves. Note: release thresholds are illustrative parameters, not official policy.`;
   } else {
     triggerReason = `No supply gap detected.`;
   }
