@@ -42,13 +42,28 @@ export function generateOptimizationStrategy(
   const preset = DISRUPTION_PRESETS.find((p) => p.id === result.presetId);
   const durationDays = preset?.expectedDurationDays ?? 30; // fallback if not found
   
+  // Calculate volume needed (MMT)
+  const totalVolumeNeededMMT = gapMtpa * (durationDays / 365);
+  const commercialBufferMMT = 31.8; // ~45 days cover
+  const severeShockThreshold = 77.4; // 30% of normal annualized consumption
+  const bufferDrainThreshold = 4.7; // ~15% of commercial buffer
+
   let recommendRelease = false;
-  if (gapMtpa > 0) {
+  let triggerReason = "";
+
+  if (gapMtpa > severeShockThreshold) {
     recommendRelease = true;
-    reasoning.push(`Supply Gap detected: ${gapMtpa.toFixed(2)} MMTPA.`);
+    triggerReason = `Severe shock detected: Supply gap (${gapMtpa.toFixed(2)} MMTPA) exceeds 30% of national consumption.`;
+  } else if (totalVolumeNeededMMT > bufferDrainThreshold) {
+    recommendRelease = true;
+    triggerReason = `Buffer drain detected: Required volume (${totalVolumeNeededMMT.toFixed(2)} MMT) over ${durationDays} days exceeds 15% of OMC commercial stocks.`;
+  } else if (gapMtpa > 0) {
+    triggerReason = `Supply gap (${gapMtpa.toFixed(2)} MMTPA) over ${durationDays} days requires ${totalVolumeNeededMMT.toFixed(2)} MMT total volume, which is safely absorbed by existing OMC commercial buffers (~31.8 MMT). Preserve SPR reserves.`;
   } else {
-    reasoning.push(`No Supply Gap detected.`);
+    triggerReason = `No supply gap detected.`;
   }
+
+  reasoning.push(triggerReason);
 
   // Calculate rate required to cover the gap
   // MMTPA is million metric tonnes per annum. Daily rate to cover it = MMTPA / 365
@@ -56,12 +71,17 @@ export function generateOptimizationStrategy(
   let effectiveDailyRate = requiredDailyRate;
   let cappedByRateLimit = false;
 
-  if (requiredDailyRate > config.maxDailyDrawdownMtpa) {
-    effectiveDailyRate = config.maxDailyDrawdownMtpa;
-    cappedByRateLimit = true;
-    reasoning.push(`Requested daily rate of ${(requiredDailyRate * 1000).toFixed(0)}k MT/day capped by physical withdrawal limit of ${(config.maxDailyDrawdownMtpa * 1000).toFixed(0)}k MT/day.`);
-  } else if (recommendRelease) {
-    reasoning.push(`Required daily rate of ${(requiredDailyRate * 1000).toFixed(0)}k MT/day is within physical limits.`);
+  if (recommendRelease) {
+    if (requiredDailyRate > config.maxDailyDrawdownMtpa) {
+      effectiveDailyRate = config.maxDailyDrawdownMtpa;
+      cappedByRateLimit = true;
+      reasoning.push(`Target relief rate of ${(requiredDailyRate * 1000).toFixed(0)} kMT/day far exceeds India's physical SPR injection capacity of ${(config.maxDailyDrawdownMtpa * 1000).toFixed(1)} kMT/day. Drawdown recommendation is strictly capped at maximum deployable rate.`);
+    } else {
+      reasoning.push(`Required daily rate of ${(requiredDailyRate * 1000).toFixed(0)} kMT/day is within physical limits.`);
+    }
+  } else {
+    // Zero out effective rate if NO release
+    effectiveDailyRate = 0;
   }
 
   // Calculate deployable volume

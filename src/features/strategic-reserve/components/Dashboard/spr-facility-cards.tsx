@@ -37,8 +37,8 @@ export function SprFacilityCards() {
             <Database className="size-4 text-emerald-400" />
             ISPRL Phase I Facilities
           </h2>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Operational strategic petroleum reserves · Source: ISPRL & Govt reports (Feb 2026)
+          <p className="mt-1 text-xs text-muted-foreground max-w-lg">
+            Operational strategic petroleum reserves · Source: Media reports citing government officials, early 2026
           </p>
         </div>
         <div className="text-right">
