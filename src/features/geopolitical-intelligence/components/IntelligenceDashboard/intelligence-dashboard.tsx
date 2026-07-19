@@ -32,6 +32,7 @@ import { Recommendations } from "../Recommendations/recommendations";
 import { HistoricalContext } from "../HistoricalContext/historical-context";
 import { WhyIndiaShouldCare } from "../WhyIndiaShouldCare/why-india-should-care";
 import { SupportingEvidence } from "../SupportingEvidence/supporting-evidence";
+import { AskIntelligencePanel } from "../AskIntelligence/AskIntelligencePanel";
 import { MonitoringPriorities } from "../MonitoringPriorities/monitoring-priorities";
 
 // ---------------------------------------------------------------------------
@@ -148,6 +149,7 @@ export function IntelligenceDashboard() {
       {data && (
         <div className="space-y-4 sm:space-y-5">
           <OperationalAssessment assessment={data.current_operational_assessment} />
+          <AskIntelligencePanel />
           
           <KeyDevelopments developments={data.key_developments} />
 
