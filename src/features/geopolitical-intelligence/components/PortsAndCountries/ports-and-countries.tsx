@@ -6,6 +6,7 @@
 
 import { Anchor, Globe2 } from "lucide-react";
 import type { AffectedPort, AffectedCountry } from "../../types";
+import { PortUtilizationChart } from "./PortUtilizationChart";
 
 type PortsProps = { ports: AffectedPort[] };
 type CountriesProps = { countries: AffectedCountry[] };
@@ -34,6 +35,7 @@ function PortsList({ ports }: PortsProps) {
           </li>
         ))}
       </ul>
+      <PortUtilizationChart affectedPortNames={ports.map(p => p.port)} />
     </section>
   );
 }

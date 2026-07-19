@@ -43,26 +43,19 @@ export async function initRagService() {
   chunks.push({
     id: "hist_suez_2021",
     sourceLabel: "Historical Precedent: 2021 Suez Canal Blockage",
-    text: "The 2021 Suez Canal blockage occurred when the Ever Given vessel grounded, closing the canal completely for 6 days. All traffic had to queue or reroute via the Cape of Good Hope. It caused a global trade disruption estimated at $9.6 billion per day. Sources: Lloyd's List, UNCTAD, Oxford Economics."
+    text: "The 2021 Suez Canal blockage occurred when the Ever Given container vessel grounded on March 23, 2021, closing the canal completely for 6 days until March 29, 2021. All traffic had to queue or reroute via the Cape of Good Hope. Lloyd's List estimated the trade disruption at approximately $9.6 billion per day — this is a modelled estimate, not a measured cost. UNCTAD published analysis of cascading supply chain effects. Sources: Lloyd's List (March 2021), UNCTAD Policy Brief (April 2021)."
   });
   chunks.push({
     id: "hist_red_sea_2024",
     sourceLabel: "Historical Precedent: 2024 Houthi Red Sea Attacks",
-    text: "The 2024 Houthi attacks in the Red Sea forced major shipping lines to reroute via the Cape of Good Hope, adding 12-14 days to transit times and significantly increasing bunker fuel costs and insurance premiums. It acts as a major choke point for Europe-Asia trade."
+    text: "Beginning late 2023 and escalating through 2024, Houthi attacks in the Red Sea forced major shipping lines — including Maersk, MSC, and CMA CGM — to reroute via the Cape of Good Hope, adding 12-14 days to Asia-Europe transit times. Bunker fuel costs and war-risk insurance premiums rose significantly. UNCTAD reported a sharp decline in Suez Canal transits. For India, the rerouting increased freight costs and extended lead times on European goods imports. Sources: UNCTAD Global Supply Chain report (January 2024), Freightos Baltic Index, Maersk/MSC public statements (December 2023 – January 2024)."
   });
 
-  // ── Newly added: July 2026 US-Iran Hormuz Naval Blockade ──
-  chunks.push({
-    id: "hist_iran_hormuz_2026",
-    sourceLabel: "Historical Precedent: July 2026 US-Iran Hormuz Naval Blockade",
-    text: `On July 13, 2026, President Trump reinstated a U.S. naval blockade targeting Iranian shipping, citing the need to secure the Strait of Hormuz. Brent crude surged approximately 9.4% in a single session, rising from a baseline of ~$70-80/bbl to ~$83/bbl, then reaching $85-88/bbl by mid-July 2026 — the highest in several weeks. A proposed 20% U.S. toll on all Hormuz transit cargo was announced and abandoned within 24 hours under international pressure. Indian refiners responded by accelerating spot-market sourcing and diversifying crude via Russia and UAE/Oman routing. India's government reported that approximately 70% of India's crude oil imports were being sourced outside the Strait of Hormuz as a strategic hedge. Retail petrol and diesel prices in India were held steady by state-run OMCs despite the crude spike (Delhi petrol: Rs 102.12/litre as of July 19, 2026). Sources: Gulf News, India Today, NewsonAir (Indian government), NDTV Profit, Axios (July 2026).`
-  });
-
-  // ── Newly added: September 2019 Saudi Aramco Abqaiq Attack — India LPG Impact ──
+  // ── September 2019 Saudi Aramco Abqaiq Attack — India LPG Impact ──
   chunks.push({
     id: "hist_aramco_2019",
-    sourceLabel: "Historical Precedent: September 2019 Saudi Aramco Abqaiq Attack — India LPG Impact",
-    text: `On September 14, 2019, drone and missile attacks on Saudi Aramco's Abqaiq and Khurais facilities temporarily cut Saudi oil production by 5.7 million barrels per day (approximately 5-6% of global supply). Brent crude surged nearly 20% in the immediate aftermath. India, which imports over 80% of its crude requirements, faced direct downstream consequences specifically in the LPG sector: Saudi Arabia is a key LPG supplier to India, and the attacks caused deferred LPG shipments. Business Standard and Business Today reported booking backlogs and delivery delays for LPG cylinders in some Indian states, coinciding with the festive season. Indian Oil Marketing Companies (IOC, BPCL, HPCL) sourced emergency LPG cargoes from ADNOC (Abu Dhabi National Oil Company) to bridge the gap. Saudi production was largely restored by early October 2019, limiting the duration of the supply shock. Analysts noted that every $1 increase in oil price raised India's annual import bill by approximately Rs 10,700 crore. Sources: Business Standard, Business Today, The Hindu, Baker Institute (September-October 2019).`
+    sourceLabel: "Historical Precedent: September 2019 Saudi Aramco Abqaiq Attack",
+    text: `On September 14, 2019, drone and missile attacks on Saudi Aramco's Abqaiq and Khurais facilities temporarily cut Saudi oil production by approximately 5.7 million barrels per day — roughly 5% of global daily supply. Brent crude opened approximately 15-20% higher on September 16, 2019, the largest single-day percentage spike in decades. Saudi production was largely restored by early October 2019, limiting the duration of the shock. For India, which imports over 80% of its crude requirements, the event highlighted concentration risk in Gulf sourcing. Indian OMCs sought supply diversification in the immediate aftermath. Analysts regularly cited that every $1 increase in oil price raised India's annual import bill by approximately Rs 10,700 crore — a figure used in parliamentary and MoPNG commentary. Sources: U.S. Energy Information Administration (EIA, September 2019), Reuters, BBC, MoPNG Parliamentary responses.`
   });
 
 

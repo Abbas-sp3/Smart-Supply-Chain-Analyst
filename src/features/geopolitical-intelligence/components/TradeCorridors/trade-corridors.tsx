@@ -6,6 +6,7 @@ import type { AffectedTradeCorridor, MaritimeObservation, SupportingEvidence, Ke
 import { Map, Marker, Popup } from "@/lib/maplibre/client";
 import type { MapLibreMapClass, MapLibreMarkerClass } from "@/lib/maplibre/client";
 import "maplibre-gl/dist/maplibre-gl.css";
+import { CorridorExposureChart } from "./CorridorExposureChart";
 
 type Props = {
   corridors: AffectedTradeCorridor[];
@@ -383,6 +384,9 @@ export function TradeCorridors({
           )}
         </div>
       </div>
+      
+      {/* Credible Data Chart */}
+      <CorridorExposureChart affectedCorridorNames={corridors.map(c => c.corridor)} />
 
       <style dangerouslySetInnerHTML={{ __html: `
         .custom-military-popup .maplibregl-popup-content {

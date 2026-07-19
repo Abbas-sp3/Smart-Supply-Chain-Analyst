@@ -773,6 +773,10 @@ export const INDIA_TRADE_GRAPH: KnowledgeGraphNode[] = [
     label: "Crude Oil",
     aliases: ["crude oil", "petroleum", "crude", "oil imports", "brent", "wti"],
     description: "India imports ~85% of crude oil requirements.",
+    // ── Supply chain resilience metadata ──
+    bufferDays: 14,          // ANALYST_ESTIMATE: ~14 days crude in commercial + pipeline inventory; directionally consistent with MoPNG reporting but not verified from a specific document
+    flexibilityFactor: 0.30, // ANALYST_ESTIMATE: rough split between spot and long-term crude contracts; not verified from PPAC
+    dataSource: "ANALYST_ESTIMATE — not verified from a specific document. Directionally consistent with MoPNG/PPAC reporting patterns.",
     connections: [
       { targetId: "category_energy", relationship: "feeds_into", strategicWeight: "Critical" },
       { targetId: "industry_refining", relationship: "supplies", strategicWeight: "Critical" },
@@ -787,6 +791,10 @@ export const INDIA_TRADE_GRAPH: KnowledgeGraphNode[] = [
     label: "Liquefied Natural Gas (LNG)",
     aliases: ["lng", "natural gas", "liquefied natural gas"],
     description: "India is the 4th largest LNG importer globally.",
+    // ── Supply chain resilience metadata ──
+    bufferDays: 7,           // ANALYST_ESTIMATE: ~7 days LNG in regasification terminal storage; not verified from a specific PNGRB document
+    flexibilityFactor: 0.20, // ANALYST_ESTIMATE: rough long-term vs spot LNG split; not verified from Petronet filings
+    dataSource: "ANALYST_ESTIMATE — not verified from a specific document. Directionally consistent with PNGRB/Petronet LNG reporting.",
     connections: [
       { targetId: "category_energy", relationship: "feeds_into", strategicWeight: "Critical" },
       { targetId: "industry_power", relationship: "supplies", strategicWeight: "High" },
@@ -810,6 +818,10 @@ export const INDIA_TRADE_GRAPH: KnowledgeGraphNode[] = [
     label: "Coal",
     aliases: ["coal", "thermal coal", "coking coal", "metallurgical coal"],
     description: "India's power generation and steel production depend on coal imports.",
+    // ── Supply chain resilience metadata ──
+    bufferDays: 25,          // PARTIALLY_VERIFIED: CEA does publish daily coal stock reports and ~20-30 day buffers at thermal power plants are consistently reported; specific figure not pulled from a single document
+    flexibilityFactor: 0.55, // ANALYST_ESTIMATE: coal has high spot/tender share but exact figure not verified
+    dataSource: "PARTIALLY_VERIFIED — CEA daily coal stock reports consistently show 20-30 day thermal buffer; flexibilityFactor is analyst estimate",
     connections: [
       { targetId: "category_energy", relationship: "feeds_into", strategicWeight: "Critical" },
       { targetId: "industry_power", relationship: "supplies", strategicWeight: "Critical" },
@@ -823,6 +835,10 @@ export const INDIA_TRADE_GRAPH: KnowledgeGraphNode[] = [
     label: "Semiconductors",
     aliases: ["semiconductor", "semiconductors", "chip", "chips", "integrated circuit", "ic"],
     description: "Critical for electronics, automotive, defence, and telecom.",
+    // ── Supply chain resilience metadata ──
+    bufferDays: 21,          // ANALYST_ESTIMATE: typical chip inventory weeks for Indian electronics manufacturers; not verified from IESA survey documents
+    flexibilityFactor: 0.25, // ANALYST_ESTIMATE: Taiwan/Korea concentration estimate; not verified from MeitY documents
+    dataSource: "ANALYST_ESTIMATE — not verified from IESA or MeitY documents. Based on general semiconductor supply chain knowledge.",
     connections: [
       { targetId: "category_electronics_semi", relationship: "feeds_into", strategicWeight: "Critical" },
       { targetId: "industry_electronics", relationship: "supplies", strategicWeight: "Critical" },
@@ -849,6 +865,10 @@ export const INDIA_TRADE_GRAPH: KnowledgeGraphNode[] = [
     label: "Pharmaceutical APIs",
     aliases: ["api", "apis", "active pharmaceutical ingredient", "pharmaceutical ingredient", "drug ingredient", "paracetamol", "ibuprofen"],
     description: "India imports ~68% of APIs from China.",
+    // ── Supply chain resilience metadata ──
+    bufferDays: 30,          // ANALYST_ESTIMATE: post-COVID pharma inventory norms; not verified from IPA survey documents
+    flexibilityFactor: 0.15, // ANALYST_ESTIMATE: China API concentration estimate; 68% China dependency is a cited figure but the flexibility fraction is my estimate
+    dataSource: "ANALYST_ESTIMATE — 68% China API dependency is a real cited figure (FICCI/IPA); bufferDays and flexibilityFactor are analyst estimates not verified from documents.",
     connections: [
       { targetId: "category_pharma", relationship: "feeds_into", strategicWeight: "Critical" },
       { targetId: "industry_pharmaceuticals", relationship: "supplies", strategicWeight: "Critical" },
@@ -861,6 +881,10 @@ export const INDIA_TRADE_GRAPH: KnowledgeGraphNode[] = [
     label: "Fertilizers",
     aliases: ["fertilizer", "fertilizers", "urea", "potash", "dap", "phosphate", "nitrogen fertilizer"],
     description: "Critical for food security; India imports significant quantities.",
+    // ── Supply chain resilience metadata ──
+    bufferDays: 45,          // PARTIALLY_VERIFIED: DoF buffer stock policy norm of ~45 days is widely cited in government documents; specific figure confirmed in spirit if not from a single retrievable URL
+    flexibilityFactor: 0.40, // ANALYST_ESTIMATE: diversified sourcing estimate; not verified from FAI statistics
+    dataSource: "PARTIALLY_VERIFIED — DoF 45-day fertilizer buffer norm is a cited policy figure; flexibilityFactor is analyst estimate",
     connections: [
       { targetId: "category_agri", relationship: "feeds_into", strategicWeight: "Critical" },
       { targetId: "industry_agriculture", relationship: "supplies", strategicWeight: "Critical" },
@@ -873,6 +897,10 @@ export const INDIA_TRADE_GRAPH: KnowledgeGraphNode[] = [
     label: "Electronics & Components",
     aliases: ["electronics", "electronic components", "pcb", "display", "battery"],
     description: "India imports electronics worth $80B+ annually.",
+    // ── Supply chain resilience metadata ──
+    bufferDays: 14,          // ANALYST_ESTIMATE: typical electronics component inventory; not verified from ELCINA survey documents
+    flexibilityFactor: 0.35, // ANALYST_ESTIMATE: China dependency estimate; not verified from MeitY PLI documents
+    dataSource: "ANALYST_ESTIMATE — not verified from ELCINA or MeitY PLI documents.",
     connections: [
       { targetId: "category_electronics_semi", relationship: "feeds_into", strategicWeight: "High" },
       { targetId: "industry_electronics", relationship: "supplies", strategicWeight: "Critical" },
@@ -945,6 +973,10 @@ export const INDIA_TRADE_GRAPH: KnowledgeGraphNode[] = [
     label: "Palm Oil",
     aliases: ["palm oil", "crude palm oil", "cpo"],
     description: "India is the world's largest palm oil importer.",
+    // ── Supply chain resilience metadata ──
+    bufferDays: 20,          // ANALYST_ESTIMATE: import pipeline stock estimate; not verified from SEA India documents
+    flexibilityFactor: 0.45, // ANALYST_ESTIMATE: soybean/sunflower substitution estimate; not verified
+    dataSource: "ANALYST_ESTIMATE — not verified from SEA India documents.",
     connections: [
       { targetId: "category_agri", relationship: "feeds_into", strategicWeight: "Critical" },
       { targetId: "industry_food_processing", relationship: "supplies", strategicWeight: "Critical" },
@@ -956,6 +988,10 @@ export const INDIA_TRADE_GRAPH: KnowledgeGraphNode[] = [
     label: "Edible Oil",
     aliases: ["edible oil", "sunflower oil", "soybean oil", "vegetable oil", "cooking oil"],
     description: "India imports ~60% of edible oil requirements.",
+    // ── Supply chain resilience metadata ──
+    bufferDays: 18,          // ANALYST_ESTIMATE: import pipeline stock estimate; not verified from SEA India documents
+    flexibilityFactor: 0.50, // ANALYST_ESTIMATE: multi-source substitution estimate; not verified
+    dataSource: "ANALYST_ESTIMATE — not verified from SEA India documents.",
     connections: [
       { targetId: "category_agri", relationship: "feeds_into", strategicWeight: "Critical" },
       { targetId: "industry_food_processing", relationship: "supplies", strategicWeight: "Critical" },
