@@ -157,6 +157,42 @@
      where glass-surface would let the map show through text */
   .solid-card {
     @apply bg-[#10151d];
+    box-shadow: 0 2px 12px 0 rgb(0 0 0 / 0.45), 0 1px 3px 0 rgb(0 0 0 / 0.3);
+  }
+
+  /* Interactive card — adds elevation on hover with smooth transition */
+  .card-hover {
+    @apply transition-all duration-200;
+  }
+  .card-hover:hover {
+    box-shadow: 0 6px 24px 0 rgb(0 0 0 / 0.55), 0 2px 8px 0 rgb(0 0 0 / 0.35);
+    transform: translateY(-1px);
+  }
+
+  /* Primary CTA button — solid, high-contrast, impossible to miss on map backgrounds */
+  .btn-primary-cta {
+    @apply relative overflow-hidden rounded-xl px-6 py-4 text-sm font-bold uppercase tracking-wider text-white transition-all duration-200;
+    background: linear-gradient(135deg, #1a2540 0%, #0f1a2e 60%, #111827 100%);
+    border: 1px solid rgb(255 255 255 / 0.18);
+    box-shadow: 0 4px 20px 0 rgb(0 0 0 / 0.6), 0 0 0 1px rgb(255 255 255 / 0.05) inset;
+  }
+  .btn-primary-cta:hover:not(:disabled) {
+    background: linear-gradient(135deg, #1f2e52 0%, #142040 60%, #161d2f 100%);
+    border-color: rgb(255 255 255 / 0.28);
+    box-shadow: 0 6px 28px 0 rgb(0 0 0 / 0.65), 0 0 0 1px rgb(255 255 255 / 0.08) inset;
+    transform: translateY(-1px);
+  }
+  .btn-primary-cta:active:not(:disabled) {
+    transform: translateY(0);
+  }
+  .btn-primary-cta:disabled {
+    @apply opacity-50 cursor-not-allowed;
+  }
+
+  /* Section heading floating over map gutter — must stay legible over any map tile */
+  .section-heading {
+    @apply text-xs font-semibold uppercase tracking-wider text-foreground;
+    text-shadow: 0 1px 8px rgb(0 0 0 / 0.9), 0 0 24px rgb(0 0 0 / 0.7);
   }
 
   .glass-card {

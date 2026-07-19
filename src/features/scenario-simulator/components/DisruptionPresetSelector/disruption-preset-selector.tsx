@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Clock, Ship, TrendingUp, Play, AlertTriangle } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -30,11 +30,13 @@ export function DisruptionPresetSelector({
 }: DisruptionPresetSelectorProps) {
   return (
     <div className="space-y-5">
+      {/* Section heading — sits on left column which can be map gutter */}
       <div>
-        <h2 className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        <h2 className="mb-1 text-sm font-bold uppercase tracking-wider text-foreground"
+            style={{ textShadow: "0 1px 8px rgb(0 0 0 / 0.9), 0 0 24px rgb(0 0 0 / 0.7)" }}>
           {title}
         </h2>
-        <p className="text-xs text-muted-foreground/50">{description}</p>
+        <p className="text-xs text-muted-foreground/60">{description}</p>
       </div>
 
       <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
@@ -49,13 +51,19 @@ export function DisruptionPresetSelector({
               type="button"
               onClick={() => onPresetChange(preset.id)}
               className={cn(
-                "group relative overflow-hidden rounded-xl border p-4 text-left transition-all duration-200 border-l-4",
+                "group relative overflow-hidden rounded-xl border p-4 text-left transition-all duration-200 border-l-4 card-hover",
                 meta.border,
                 isSelected
                   ? "border-y-white/20 border-r-white/20 bg-[#10151d]"
                   : "border-y-white/8 border-r-white/8 bg-[#0e1319] hover:bg-[#10151d]",
               )}
             >
+              {/* Active pulsing border glow */}
+              {isSelected && (
+                <div className="pointer-events-none absolute inset-0 rounded-xl"
+                     style={{ boxShadow: "inset 0 0 0 1px rgb(255 255 255 / 0.18), 0 0 16px 0 rgb(99 102 241 / 0.08)" }} />
+              )}
+
               <div className="flex items-start justify-between gap-2">
                 <div className="flex-1">
                   <span
@@ -77,7 +85,7 @@ export function DisruptionPresetSelector({
                 <div className="shrink-0 text-right">
                   <div
                     className={cn(
-                      "text-lg font-normal tabular-nums",
+                      "text-lg font-bold tabular-nums",
                       SEVERITY_COLOR(preset.severityPct),
                     )}
                   >
@@ -103,7 +111,7 @@ export function DisruptionPresetSelector({
               {isSelected && (
                 <motion.div
                   layoutId="selected-indicator"
-                  className="absolute bottom-0 left-0 right-0 h-0.5 bg-white/30"
+                  className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-white/40 to-transparent"
                 />
               )}
             </button>
@@ -111,17 +119,14 @@ export function DisruptionPresetSelector({
         })}
       </div>
 
-      {/* Run baseline button */}
+      {/* Run baseline button — must read as the primary action, fully visible over map */}
       <motion.button
         type="button"
         onClick={onRunBaseline}
         disabled={loading}
         whileHover={!loading ? { scale: 1.005 } : {}}
         whileTap={!loading ? { scale: 0.995 } : {}}
-        className={cn(
-          "flex w-full items-center justify-center gap-3 rounded-xl border border-white/10 bg-[#0e1319] px-6 py-4 text-sm font-semibold uppercase tracking-wider text-foreground transition-all",
-          "hover:bg-[#10151d] disabled:cursor-not-allowed disabled:opacity-50",
-        )}
+        className="btn-primary-cta flex w-full items-center justify-center gap-3"
       >
         {loading && !hasBaseline ? (
           <>

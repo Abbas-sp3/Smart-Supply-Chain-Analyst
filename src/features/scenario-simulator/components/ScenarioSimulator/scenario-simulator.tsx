@@ -106,10 +106,10 @@ function MetricCard({
   note?: string;
 }) {
   return (
-    <div className="solid-card rounded-xl border border-white/10 p-4">
+    <div className="solid-card card-hover rounded-xl border border-white/10 p-4">
       <div className="mb-3 flex items-center gap-2">
         <Icon className="size-4 text-muted-foreground" aria-hidden />
-        <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+        <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           {label}
         </span>
         {note && (
@@ -117,7 +117,7 @@ function MetricCard({
         )}
       </div>
       <div className="mb-1 flex items-end gap-2">
-        <span className="text-2xl font-bold tabular-nums text-foreground">
+        <span className="text-2xl font-black tabular-nums text-foreground">
           {range.likely.toFixed(range.likely < 10 ? 1 : 0)}
         </span>
         <span className="mb-0.5 text-xs text-muted-foreground">{range.unit}</span>
@@ -139,10 +139,10 @@ function NodeImpactRow({ impact }: { impact: CorridorImpactResult }) {
   return (
     <div
       className={cn(
-        "rounded-lg border transition-colors",
+        "rounded-xl border transition-all duration-200",
         isDedup
           ? "border-white/5 bg-[#0c1018] opacity-50"
-          : "border-white/10 bg-[#0e1319]",
+          : "border-white/10 bg-[#0e1319] card-hover",
       )}
     >
       <button
@@ -467,7 +467,7 @@ export function ScenarioSimulator() {
                   reset();
                   setLeverState(DEFAULT_LEVER_STATE);
                 }}
-                className="ml-auto flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-white/5 hover:text-foreground"
+                className="ml-auto flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.06] px-3 py-1.5 text-xs font-semibold text-foreground transition-all duration-200 hover:bg-white/10 hover:border-white/20"
               >
                 <RotateCcw className="size-3.5" aria-hidden />
                 Reset
@@ -495,7 +495,7 @@ export function ScenarioSimulator() {
           <div className="sticky top-[88px] max-h-[calc(100vh-120px)] overflow-y-auto space-y-4 pb-4">
             {/* Preset detail card */}
             <div className="solid-card rounded-xl border border-white/10 p-5">
-              <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              <div className="mb-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                 Selected Scenario
               </div>
               <h2 className="text-sm font-bold text-foreground">{selectedPreset.label}</h2>
@@ -608,12 +608,12 @@ export function ScenarioSimulator() {
               transition={{ duration: 0.35 }}
               className="mt-10 space-y-8"
             >
-              {/* Section header */}
-              <div className="flex items-center justify-between border-b border-white/10 pb-4">
+              {/* Section header — sits over empty page space, needs strong contrast */}
+              <div className="solid-card flex items-center justify-between rounded-xl border border-white/10 px-5 py-4">
                 <div className="flex items-center gap-3">
                   <Activity className="size-5 text-muted-foreground" />
                   <div>
-                    <h2 className="text-sm font-semibold text-foreground">
+                    <h2 className="text-sm font-bold text-foreground">
                       Simulation Results
                       {withLevers && (
                         <span className="ml-2 text-xs font-normal text-muted-foreground">
