@@ -293,8 +293,8 @@ const RESPONSE_SCHEMA = {
   required: ["executive_summary", "historical_comparison", "market_signals", "price_outlook", "alternatives", "disclaimer"],
 };
 
-const PRIMARY_MODEL = "gemini-3.1-flash-lite";
-const FALLBACK_MODEL = "gemini-2.5-flash-lite";
+const PRIMARY_MODEL = "gemini-2.5-flash";
+const FALLBACK_MODEL = "gemini-2.5-flash";
 
 // Gemini sometimes emits literal escape sequences (e.g. "\u2014") that
 // JSON.parse converts to actual Unicode characters, or double-escaped

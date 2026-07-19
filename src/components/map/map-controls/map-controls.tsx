@@ -11,8 +11,14 @@ export function MapControls() {
   const { map, isReady } = useMap();
   const pathname = usePathname();
 
-  // Hide zoom controls on the Command Center page where the map is just a static backdrop
-  if (!isReady || !map || pathname === "/") {
+  // Hide zoom controls on pages where the map is just a static backdrop
+  if (
+    !isReady ||
+    !map ||
+    pathname === "/" ||
+    pathname.startsWith("/strategic-reserve") ||
+    pathname.startsWith("/scenario-simulator")
+  ) {
     return null;
   }
 

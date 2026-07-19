@@ -362,6 +362,14 @@ AISSTREAM_API_KEY=...
 # Get your key at: https://newsapi.org/
 NEWS_API_KEY=...
 
+# EIA — Crude oil spot prices (Brent/WTI) in the Procurement module
+# Get your key at: https://www.eia.gov/opendata/register.php
+EIA_API_KEY=...
+
+# API Ninjas — Live energy commodity prices (LNG, coal, gas, etc.)
+# Get your key at: https://api-ninjas.com/
+API_NINJAS_KEY=...
+
 # OpenSky Network — Military aviation intelligence (optional)
 # Get credentials at: https://opensky-network.org/
 OPENSKY_CLIENT_ID=
@@ -411,6 +419,12 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ├──────────────────┼─────────────────────────────┼────────────┼───────────────┤
 │  OPENSKY_*       │  Military aviation signals   │  ✅ Yes    │  opensky-     │
 │                  │  for intelligence engine     │            │  network.org  │
+├──────────────────┼─────────────────────────────┼────────────┼───────────────┤
+│  EIA_API_KEY     │  Brent/WTI crude oil spot    │  ✅ Yes    │  eia.gov/     │
+│                  │  prices in Procurement       │            │  opendata     │
+├──────────────────┼─────────────────────────────┼────────────┼───────────────┤
+│  API_NINJAS_KEY  │  Live LNG, gas, coal prices  │  ✅ Yes    │  api-ninjas   │
+│                  │  in Procurement module       │            │  .com         │
 └──────────────────┴─────────────────────────────┴────────────┴───────────────┘
 ```
 

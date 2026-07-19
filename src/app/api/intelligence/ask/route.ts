@@ -21,7 +21,13 @@ export async function POST(req: Request) {
     if (topChunks.length === 0 || topChunks[0].score < 0.25) {
       return NextResponse.json({
         answer: "I don't have enough information in the provided intelligence corpus to answer this question. (No relevant context retrieved)",
-        citations: []
+        citations: [],
+        retrievedChunks: topChunks.map(c => ({
+          sourceLabel: c.sourceLabel,
+          score: c.score,
+          excerpt: c.text.slice(0, 200) + (c.text.length > 200 ? '…' : ''),
+        })),
+        belowThreshold: true,
       });
     }
 
@@ -59,10 +65,17 @@ ${question}
     const data = await res.json();
     const answer = data.choices[0].message.content;
 
-    // Filter citations to only those actually retrieved
-    const citations = topChunks.map(c => c.sourceLabel);
-
-    return NextResponse.json({ answer, citations });
+    return NextResponse.json({ 
+      answer, 
+      citations: topChunks.map(c => c.sourceLabel),
+      // Return the retrieved chunks so the UI can show the retrieval step
+      retrievedChunks: topChunks.map(c => ({
+        sourceLabel: c.sourceLabel,
+        score: c.score,
+        excerpt: c.text.slice(0, 240) + (c.text.length > 240 ? '…' : ''),
+      })),
+      belowThreshold: false,
+    });
 
   } catch (error: any) {
     console.error("Ask Intelligence error:", error);
