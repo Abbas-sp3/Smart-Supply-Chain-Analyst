@@ -14,7 +14,7 @@ export function MarketContext() {
   useEffect(() => {
     async function fetchPrices() {
       try {
-        const res = await fetch("/api/procurement/eia-price");
+        const res = await fetch("/api/strategic-reserve/market-price");
         if (!res.ok) {
           setFetchError(`API ${res.status}`);
           return;
@@ -28,7 +28,7 @@ export function MarketContext() {
         }
 
         if (!prices || (!prices.brent && !prices.wti)) {
-          setFetchError("Price data temporarily unavailable (EIA source unreachable)");
+          setFetchError("Price data temporarily unavailable (source unreachable)");
         } else {
           setFetchError(null);
         }
@@ -84,10 +84,14 @@ export function MarketContext() {
           </div>
         </div>
 
-        {fetchError && (
+        {fetchError ? (
           <div className="ml-auto flex items-center gap-1.5 text-xs text-amber-400/70">
             <AlertCircle className="size-3.5" />
             {fetchError}
+          </div>
+        ) : (
+          <div className="ml-auto text-[10px] uppercase tracking-wider text-muted-foreground/50">
+            Source: Yahoo Finance
           </div>
         )}
       </div>
