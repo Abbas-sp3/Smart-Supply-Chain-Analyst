@@ -3,58 +3,37 @@
 import { useEffect, useState } from "react";
 import { Activity, AlertCircle } from "lucide-react";
 
-type CommodityItem = {
-  name: string;
-  value: string;
-  price: number;
-  currency_unit: string;
-  unit: string;
-};
+type PricePoint = { value: number; asOf: string; changePct: number | null };
 
 export function MarketContext() {
-  const [brent, setBrent] = useState<CommodityItem | null>(null);
-  const [wti, setWti] = useState<CommodityItem | null>(null);
+  const [brent, setBrent] = useState<PricePoint | null>(null);
+  const [wti, setWti] = useState<PricePoint | null>(null);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchPrices() {
       try {
-        const res = await fetch("/api/procurement/live-price");
+        const res = await fetch("/api/procurement/eia-price");
         if (!res.ok) {
           setFetchError(`API ${res.status}`);
           return;
         }
         const data = await res.json();
+        const prices = data.prices;
 
-        if (!data?.commodities || !Array.isArray(data.commodities)) {
-          setFetchError("Unexpected API shape");
-          return;
+        if (prices) {
+          if (prices.brent) setBrent(prices.brent);
+          if (prices.wti) setWti(prices.wti);
         }
 
-        // Try both the canonical 'value' key and a loose name match as fallback
-        const findByValue = (v: string) =>
-          data.commodities.find((c: CommodityItem) => c.value === v);
-        const findByName = (n: string) =>
-          data.commodities.find((c: CommodityItem) =>
-            c.name?.toLowerCase().includes(n)
-          );
-
-        const b = findByValue("brent_crude_oil") ?? findByName("brent");
-        const w = findByValue("crude_oil") ?? findByName("wti");
-
-        if (b) setBrent(b);
-        if (w) setWti(w);
-
-        // If neither found, report what values ARE available for debugging
-        if (!b && !w) {
-          const available = data.commodities.slice(0, 3).map((c: CommodityItem) => c.value).join(", ");
-          setFetchError(`Prices not in response. Available: ${available || "none"}`);
+        if (!prices || (!prices.brent && !prices.wti)) {
+          setFetchError("Price data temporarily unavailable (EIA source unreachable)");
         } else {
           setFetchError(null);
         }
       } catch (e: any) {
-        setFetchError(e?.message ?? "Network error");
+        setFetchError("Price data temporarily unavailable (network error)");
       } finally {
         setLoading(false);
       }
@@ -89,7 +68,7 @@ export function MarketContext() {
           <span className="text-xs uppercase tracking-wider text-muted-foreground">Brent Crude</span>
           <div className="flex items-baseline gap-1.5">
             <span className="text-xl font-bold text-foreground">
-              {brent && brent.price > 0 ? `$${brent.price.toFixed(2)}` : "—"}
+              {brent && brent.value > 0 ? `$${brent.value.toFixed(2)}` : "—"}
             </span>
             <span className="text-xs text-muted-foreground">/ bbl</span>
           </div>
@@ -99,7 +78,7 @@ export function MarketContext() {
           <span className="text-xs uppercase tracking-wider text-muted-foreground">WTI Crude</span>
           <div className="flex items-baseline gap-1.5">
             <span className="text-xl font-bold text-foreground">
-              {wti && wti.price > 0 ? `$${wti.price.toFixed(2)}` : "—"}
+              {wti && wti.value > 0 ? `$${wti.value.toFixed(2)}` : "—"}
             </span>
             <span className="text-xs text-muted-foreground">/ bbl</span>
           </div>
