@@ -140,6 +140,8 @@ export function IntelligenceDashboard() {
         onRefresh={refetch}
       />
 
+      <AskIntelligencePanel />
+
       {isLoading && !data && <IntelligenceLoader />}
 
       {error && !data && (
@@ -149,7 +151,6 @@ export function IntelligenceDashboard() {
       {data && (
         <div className="space-y-4 sm:space-y-5">
           <OperationalAssessment assessment={data.current_operational_assessment} />
-          <AskIntelligencePanel />
           
           <KeyDevelopments developments={data.key_developments} />
 
