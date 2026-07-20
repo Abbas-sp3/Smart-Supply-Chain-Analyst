@@ -1,6 +1,6 @@
 import { config } from 'dotenv';
 config({ path: '.env.local' });
-import { POST } from './src/app/api/intelligence/ask/route.ts';
+import { POST } from './src/app/api/intelligence/ask/route';
 
 async function runTest(question: string) {
   console.log(`\n\n=== Question: ${question} ===`);

@@ -62,6 +62,10 @@ function getCached(): IntelligenceReport | null {
   return entry.report;
 }
 
+export function getIntelligenceCacheTimestamp(): number {
+  return globalStore.__intelligenceCache?.generatedAt || 0;
+}
+
 function setCache(report: IntelligenceReport): void {
   globalStore.__intelligenceCache = { report, generatedAt: Date.now() };
 }

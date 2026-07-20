@@ -66,7 +66,10 @@ export function EnergySupplyOverview() {
                   ))}
                 </Pie>
                 <Tooltip 
-                  formatter={(value: number) => [`${value.toFixed(1)} MMT`, 'Volume']}
+                  formatter={(value: any) => [
+                    `${value.toFixed(1)} Mtpa`,
+                    "Volume"
+                  ]}
                   contentStyle={{ backgroundColor: '#18181b', borderColor: '#27272a', fontSize: '12px' }}
                   itemStyle={{ color: '#e4e4e7' }}
                 />

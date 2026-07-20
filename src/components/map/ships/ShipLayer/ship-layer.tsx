@@ -7,6 +7,7 @@ import { createAnimationLoop } from "@/components/map/animations";
 import { Popup, Marker, type MapLibreMarkerClass, type MapLibrePopupClass } from "@/lib/maplibre/client";
 import { getShips } from "@/services/shipService";
 import type { Ship } from "@/types/ship";
+import { useAisStatus } from "@/lib/aisstream/ais-status-context";
 
 import {
   buildShipPopupContent,
@@ -32,6 +33,7 @@ function lerp(start: number, end: number, progress: number) {
 export function ShipLayer() {
   const { map, isReady } = useMap();
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const { setStatus, setLastUpdated } = useAisStatus();
   const markersRef = useRef<Map<string, ShipMarkerState>>(new Map());
   const popupRef = useRef<MapLibrePopupClass | null>(null);
   const selectedShipIdRef = useRef<string | null>(null);
@@ -148,6 +150,13 @@ export function ShipLayer() {
 
       if (cancelled) {
         return;
+      }
+
+      // Report connection status to shared context
+      setStatus(response.status ?? "unavailable");
+
+      if (response.ships.length > 0) {
+        setLastUpdated(new Date());
       }
 
       if (response.message && response.ships.length === 0) {

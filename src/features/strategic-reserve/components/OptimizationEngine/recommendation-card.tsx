@@ -1,10 +1,14 @@
 "use client";
 
 import type { OptimizationRecommendation } from "@/features/strategic-reserve/services/optimizationEngine";
-import { CheckCircle2, XCircle, AlertTriangle } from "lucide-react";
+import { CheckCircle2, XCircle, AlertTriangle, HelpCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useState } from "react";
+import { AuditTrailModal } from "@/components/ui/AuditTrailModal";
 
 export function RecommendationCard({ strategy }: { strategy: OptimizationRecommendation }) {
+  const [showAudit, setShowAudit] = useState(false);
+
   return (
     <div className="solid-card relative overflow-hidden rounded-xl border border-white/10 p-6">
       <div className="flex items-start justify-between">
@@ -26,10 +30,17 @@ export function RecommendationCard({ strategy }: { strategy: OptimizationRecomme
             )}
           </div>
         </div>
+        <button
+          onClick={() => setShowAudit(true)}
+          className="flex items-center gap-1.5 rounded-full border border-sky-500/20 bg-sky-500/10 px-3 py-1.5 text-xs font-medium text-sky-400 transition-colors hover:bg-sky-500/20"
+        >
+          <HelpCircle className="size-3.5" />
+          Why?
+        </button>
       </div>
 
       {strategy.recommendRelease && (
-        <div className="mt-8 grid grid-cols-2 gap-4">
+        <div className="mt-8 grid grid-cols-3 gap-4">
           <div className="rounded-lg bg-white/5 border border-white/10 p-4">
             <div className="text-xs text-muted-foreground mb-1">Target Daily Rate</div>
             <div className="text-xl font-bold tabular-nums text-foreground">
@@ -55,8 +66,28 @@ export function RecommendationCard({ strategy }: { strategy: OptimizationRecomme
               </div>
             )}
           </div>
+
+          <div className="rounded-lg bg-white/5 border border-white/10 p-4">
+            <div className="text-xs text-muted-foreground mb-1">Replenish Window</div>
+            <div className="text-xl font-bold tabular-nums text-foreground">
+              {strategy.estimatedReplenishmentDays}{" "}
+              <span className="text-xs font-normal text-muted-foreground">days</span>
+            </div>
+          </div>
         </div>
       )}
+
+      <AuditTrailModal
+        isOpen={showAudit}
+        onClose={() => setShowAudit(false)}
+        reasoning={strategy.reasoning}
+        metrics={{
+          supplyGapMtpa: strategy.supplyGapMtpa,
+          breachesFloor: strategy.breachesFloor,
+          estimatedReplenishmentDays: strategy.estimatedReplenishmentDays,
+          targetDailyRateMtpa: strategy.effectiveDailyRateMtpa,
+        }}
+      />
     </div>
   );
 }

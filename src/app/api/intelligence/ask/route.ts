@@ -31,12 +31,14 @@ export async function POST(req: Request) {
       });
     }
 
-    const contextText = topChunks.map((c, i) => `[Source ${i+1}: ${c.sourceLabel}]\n${c.text}`).join('\n\n');
+    const contextText = topChunks.map((c, i) => `[Source ${i+1}: ${c.sourceLabel} | Scenario ID: ${c.scenarioId || 'N/A'} | Type: ${c.type}]\n${c.text}`).join('\n\n');
 
-    const prompt = `You are a strict intelligence analyst. Answer the following user question based ONLY on the provided Context below.
+    const prompt = `You are a strategic intelligence analyst. Synthesize a coherent, narrative impact analysis based ONLY on the provided Context below.
+Do not simply list the facts; weave them into a comprehensive strategic brief that explains downstream effects, affected industries, and strategic implications for India.
+If retrieved chunks come from different scenarios (as indicated by the Scenario ID or content), attribute each claim to its specific scenario by name (e.g. 'under a full closure...' vs 'a partial closure would instead...'). Never merge details from different scenarios into a single unqualified description.
+Use historical precedent context (chunks with Type: precedent) as supporting historical comparison, not as equal-weight current facts.
 If the context does not contain the answer, you must state: "I don't have enough information in the provided intelligence corpus to answer this question."
-Do NOT use outside or general knowledge.
-Keep your answer concise and factual.
+Only use facts, figures, and claims that are explicitly present in the retrieved context above. Do not introduce any external facts, entities, organizations, or events not contained in the provided chunks, even if they seem plausible or commonly true.
 
 Context:
 ${contextText}

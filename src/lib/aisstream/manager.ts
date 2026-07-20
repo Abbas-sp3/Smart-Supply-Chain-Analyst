@@ -34,16 +34,25 @@ class AisStreamManager {
   private readonly vessels = new Map<string, VesselCacheEntry>();
   private lastMessageAt: number | null = null;
   private serviceError: string | null = null;
+  private reconnectAttempts = 0;
 
   getShips(): ShipsResponse {
     this.ensureConnection();
 
-    if (!process.env.AISSTREAM_API_KEY) {
-      return { ships: [], message: UNAVAILABLE_MESSAGE };
+    let status: "connected" | "reconnecting" | "unavailable" = "unavailable";
+    if (this.socket?.readyState === WebSocket.OPEN) {
+      status = "connected";
+    } else if (this.connecting || this.reconnectTimer) {
+      status = "reconnecting";
     }
 
-    if (this.serviceError) {
-      return { ships: [], message: UNAVAILABLE_MESSAGE };
+    if (!process.env.AISSTREAM_API_KEY) {
+      return { ships: [], message: UNAVAILABLE_MESSAGE, status: "unavailable" };
+    }
+
+    if (this.serviceError && this.vessels.size === 0) {
+      // It's okay to have an error if we still have cached ships to show
+      return { ships: [], message: UNAVAILABLE_MESSAGE, status };
     }
 
     const filtered = Array.from(this.vessels.values())
@@ -68,15 +77,18 @@ class AisStreamManager {
         return isCargoOrTanker && isRelevantToIndia;
       });
 
-    console.log(`Live ships - Total cached: ${this.vessels.size}, Filtered matching India/Cargo: ${filtered.length}`);
+    // Only log if we have actual ships, to prevent terminal spam when offline
+    if (filtered.length > 0) {
+      console.log(`Live ships - Total cached: ${this.vessels.size}, Filtered matching India/Cargo: ${filtered.length}`);
+    }
 
     const ships = sortByRecency(filtered).slice(0, MAX_RETURNED_SHIPS);
 
     if (ships.length === 0 && !this.lastMessageAt) {
-      return { ships: [], message: UNAVAILABLE_MESSAGE };
+      return { ships: [], message: UNAVAILABLE_MESSAGE, status };
     }
 
-    return { ships };
+    return { ships, status };
   }
 
   private ensureConnection() {
@@ -99,6 +111,7 @@ class AisStreamManager {
 
     socket.on("open", () => {
       console.log("AISStream WebSocket opened, sending subscription...");
+      this.reconnectAttempts = 0; // Reset attempts on successful connection
       this.connecting = false;
       socket.send(
         JSON.stringify({
@@ -114,12 +127,18 @@ class AisStreamManager {
     });
 
     socket.on("error", (err) => {
-      console.error("AISStream WebSocket error details:", err);
+      // Suppress terminal spam during network drops — we handle this via UI graceful degradation
+      // if (this.reconnectAttempts === 0) {
+      //   console.error("AISStream WebSocket error details:", err);
+      // }
       this.serviceError = UNAVAILABLE_MESSAGE;
     });
 
     socket.on("close", (code, reason) => {
-      console.warn(`AISStream WebSocket closed. Code: ${code}, Reason: ${reason ? reason.toString() : "No reason provided"}`);
+      // Suppress terminal spam during network drops
+      // if (this.reconnectAttempts === 0) {
+      //   console.warn(`AISStream WebSocket closed. Code: ${code}, Reason: ${reason ? reason.toString() : "No reason provided"}`);
+      // }
       this.connecting = false;
       this.socket = null;
       this.scheduleReconnect();
@@ -131,10 +150,13 @@ class AisStreamManager {
       return;
     }
 
+    const backoffDelay = Math.min(RECONNECT_DELAY_MS * Math.pow(2, this.reconnectAttempts), 60000); // Max 1 minute
+    this.reconnectAttempts++;
+
     this.reconnectTimer = setTimeout(() => {
       this.reconnectTimer = null;
       this.ensureConnection();
-    }, RECONNECT_DELAY_MS);
+    }, backoffDelay);
   }
 
   private handleMessage(raw: string) {
@@ -154,7 +176,8 @@ class AisStreamManager {
     }
 
     const messageType = envelope.MessageType;
-    console.log("AISStream message received type:", messageType);
+    // Commented out to prevent terminal spam
+    // console.log("AISStream message received type:", messageType);
     const mmsi = String(
       envelope.MetaData?.MMSI ??
         envelope.Message?.[messageType ?? ""]?.UserID ??
@@ -222,7 +245,8 @@ class AisStreamManager {
     existing.country = existing.country || resolveCountryFromMmsi(mmsi);
     this.vessels.set(mmsi, existing);
     this.lastMessageAt = Date.now();
-    console.log(`AISStream cached vessel ${mmsi}. Name: ${existing.name}. Total cached: ${this.vessels.size}`);
+    // Commented out to prevent terminal spam
+    // console.log(`AISStream cached vessel ${mmsi}. Name: ${existing.name}. Total cached: ${this.vessels.size}`);
     this.serviceError = null;
   }
 

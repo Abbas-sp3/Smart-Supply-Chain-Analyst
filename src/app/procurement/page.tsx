@@ -975,8 +975,16 @@ export default function ProcurementPage() {
         )}
 
         {replaySnapshot && !replayLoading && (
-          <div className="grid gap-4 md:grid-cols-2">
-            {/* System recommendation card */}
+          <div className="space-y-4">
+            {/* Calibration Warning Label */}
+            <div className="flex items-center gap-2 rounded-lg border border-amber-500/20 bg-amber-500/[0.05] px-3 py-2 text-[11px] text-amber-400/90">
+              <Clock className="size-3.5 shrink-0" aria-hidden />
+              <span>
+                <strong className="text-amber-400">Validated calibration snapshot</strong> — documented historical outcome used to anchor predictive models, not a live simulation run.
+              </span>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
             <div className="rounded-lg border border-white/10 bg-white/[0.02] p-4">
               <div className="mb-2 flex items-center gap-2">
                 <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
@@ -1035,6 +1043,7 @@ export default function ProcurementPage() {
               )}
             </div>
           </div>
+        </div>
         )}
 
         {!selectedReplayDate && !replayLoading && (

@@ -280,8 +280,8 @@ export function runPropagation(
 
       if (isDuplicate) {
         lockedVolumeMtpa = 0;
+        effectiveSeverityPct = 0;
         spareCapacityMtpa = null;
-        effectiveSeverityPct = preset.severityPct;
 
         rationale =
           isPortDuplicate
@@ -306,7 +306,9 @@ export function runPropagation(
           );
         }
 
-        effectiveSeverityPct = preset.severityPct;
+        effectiveSeverityPct = indiaFlowMtpa > 0 
+          ? Math.round((lockedVolumeMtpa / indiaFlowMtpa) * 100)
+          : preset.severityPct;
 
         rationale =
           `${node.type === "corridor" ? "Corridor" : "Port"} throughput reduced ${preset.severityPct}%. ` +

@@ -9,7 +9,7 @@ export async function getShips(): Promise<ShipsResponse> {
     });
 
     if (!response.ok) {
-      return { ships: [], message: UNAVAILABLE_MESSAGE };
+      return { ships: [], message: UNAVAILABLE_MESSAGE, status: "unavailable" };
     }
 
     const data = (await response.json()) as ShipsResponse;
@@ -17,8 +17,9 @@ export async function getShips(): Promise<ShipsResponse> {
     return {
       ships: data.ships ?? [],
       message: data.message,
+      status: data.status ?? "unavailable",
     };
   } catch {
-    return { ships: [], message: UNAVAILABLE_MESSAGE };
+    return { ships: [], message: UNAVAILABLE_MESSAGE, status: "unavailable" };
   }
 }

@@ -22,6 +22,8 @@ export type OptimizationRecommendation = {
   breachesFloor: boolean;
   /** Total volume projected to be deployed (MMT) */
   totalVolumeDeployedMMT: number;
+  /** Estimated days to refill the drawn down volume post-disruption */
+  estimatedReplenishmentDays: number;
   /** Sorted list of refineries prioritized for supply */
   prioritizedRefineries: {
     nodeId: string;
@@ -146,6 +148,17 @@ export function generateOptimizationStrategy(
     reasoning.push(`Prioritized ${refineryImpacts.length} refineries based on inflexible (locked) supply volume dependency.`);
   }
 
+  // ── REPLENISHMENT ESTIMATE ───────────────────────────────────────────────
+  // Illustrative assumption: a constant daily import replenishment rate once the 
+  // disruption scenario ends. (e.g., 80 kMT/day)
+  const REPLENISHMENT_RATE_MMT_DAY = 0.08; 
+  let estimatedReplenishmentDays = 0;
+  
+  if (recommendRelease && totalVolumeDeployedMMT > 0) {
+    estimatedReplenishmentDays = Math.ceil(totalVolumeDeployedMMT / REPLENISHMENT_RATE_MMT_DAY);
+    reasoning.push(`At estimated import replenishment rate (${(REPLENISHMENT_RATE_MMT_DAY * 1000).toFixed(0)} kMT/day), reserve refills to pre-drawdown level within ${estimatedReplenishmentDays} days post-disruption.`);
+  }
+
   return {
     recommendRelease,
     supplyGapMtpa: gapMtpa,
@@ -156,6 +169,7 @@ export function generateOptimizationStrategy(
     cappedByRateLimit,
     breachesFloor,
     totalVolumeDeployedMMT,
+    estimatedReplenishmentDays,
     prioritizedRefineries: refineryImpacts,
     reasoning,
   };

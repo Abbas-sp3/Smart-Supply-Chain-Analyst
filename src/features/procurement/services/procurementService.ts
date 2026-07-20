@@ -38,11 +38,19 @@ type GlobalProcurementState = typeof globalThis & {
 const globalStore = globalThis as GlobalProcurementState;
 
 async function fetchArticles(): Promise<ProcurementArticle[]> {
-  const apiKey = process.env.NEWS_API_KEY;
-  if (!apiKey) {
-    console.log("[procurementService] No NEWS_API_KEY — using mock articles.");
+  // Support dual API keys to spread across quota limits — use NEWS_API_KEY_2 as overflow
+  const keys = [
+    process.env.NEWS_API_KEY,
+    process.env.NEWS_API_KEY_2,
+  ].filter(Boolean) as string[];
+
+  if (keys.length === 0) {
+    console.log("[procurementService] No NEWS_API_KEY set — using mock articles.");
     return MOCK_PROCUREMENT_ARTICLES;
   }
+
+  // Round-robin: alternate keys by minute so both quota pools are used evenly
+  const apiKey = keys[Math.floor(Date.now() / 60_000) % keys.length];
 
   try {
     const url = new URL("https://newsapi.org/v2/everything");
@@ -53,12 +61,20 @@ async function fetchArticles(): Promise<ProcurementArticle[]> {
     url.searchParams.set("apiKey", apiKey);
 
     const res = await fetch(url.toString(), { cache: "no-store" });
+
+    // Diagnostic: always log the HTTP status so we can see 426/429/200 in terminal
+    console.log(`[procurementService] NewsAPI HTTP ${res.status} (key: ...${apiKey.slice(-6)})`);
+
     if (!res.ok) {
-      console.error(`[procurementService] NewsAPI error: ${res.status}`);
+      console.warn(`[procurementService] NewsAPI non-OK (${res.status}) — falling back to mock articles.`);
       return MOCK_PROCUREMENT_ARTICLES;
     }
 
     const data = (await res.json()) as {
+      status?: string;
+      code?: string;
+      message?: string;
+      totalResults?: number;
       articles?: Array<{
         title?: string;
         description?: string;
@@ -67,6 +83,12 @@ async function fetchArticles(): Promise<ProcurementArticle[]> {
         url?: string;
       }>;
     };
+
+    // NewsAPI sometimes returns HTTP 200 with status:"error" body (e.g. apiKeyInvalid)
+    if (data.status === "error") {
+      console.warn(`[procurementService] NewsAPI error body: ${data.code} — ${data.message}. Falling back to mock.`);
+      return MOCK_PROCUREMENT_ARTICLES;
+    }
 
     const articles = (data.articles ?? [])
       .filter((a) => a.title && a.description)
@@ -78,9 +100,17 @@ async function fetchArticles(): Promise<ProcurementArticle[]> {
         url: a.url ?? "",
       }));
 
-    return articles.length > 0 ? articles : MOCK_PROCUREMENT_ARTICLES;
+    console.log(`[procurementService] NewsAPI returned ${articles.length} usable articles (of ${data.totalResults ?? "?"} total).`);
+
+    // Empty successful response → still fall back to mock so LLM has real content
+    if (articles.length === 0) {
+      console.warn("[procurementService] Zero articles after filtering — falling back to mock articles.");
+      return MOCK_PROCUREMENT_ARTICLES;
+    }
+
+    return articles;
   } catch (err) {
-    console.error("[procurementService] News fetch failed:", err);
+    console.error("[procurementService] News fetch threw:", err);
     return MOCK_PROCUREMENT_ARTICLES;
   }
 }
@@ -112,6 +142,26 @@ async function generateFromLLM(
     energyBriefingSchema,
     "procurementService",
   );
+
+  // Safety check: if the LLM produced a generic "no articles" sentinel or an empty
+  // executive_summary, the model failed to synthesize anything meaningful.
+  // Throw so the caller falls through to the mock briefing.
+  const summary: string = (validated as { executive_summary?: string }).executive_summary ?? "";
+  const EMPTY_SENTINELS = [
+    "no relevant energy news articles",
+    "no relevant articles",
+    "no news articles",
+    "no articles were found",
+    "no relevant news",
+  ];
+  if (
+    !summary ||
+    summary.length < 40 ||
+    EMPTY_SENTINELS.some((s) => summary.toLowerCase().includes(s))
+  ) {
+    console.warn("[procurementService] LLM returned empty/generic summary — triggering mock fallback.");
+    throw new Error("LLM produced empty executive_summary — fallback triggered");
+  }
 
   return {
     ...validated,

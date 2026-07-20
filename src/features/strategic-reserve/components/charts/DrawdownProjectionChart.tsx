@@ -68,6 +68,7 @@ export function DrawdownProjectionChart({ strategy }: Props) {
             label={{ value: "Days", position: "insideBottomRight", fill: "rgba(255,255,255,0.3)", fontSize: 10, offset: -4 }}
           />
           <YAxis
+            domain={[0, (dataMax: number) => Math.ceil(dataMax * 1.15)]}
             tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 10 }}
             axisLine={false}
             tickLine={false}

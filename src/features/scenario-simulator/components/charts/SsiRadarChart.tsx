@@ -39,7 +39,7 @@ export function SsiRadarChart({ ssiWeightsUsed }: Props) {
         SSI Weight Decomposition
       </div>
       <div className="flex-1 min-h-[220px]">
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height={220}>
           <RadarChart cx="50%" cy="50%" outerRadius="70%" data={data}>
             <PolarGrid stroke="rgba(255,255,255,0.1)" />
             <PolarAngleAxis

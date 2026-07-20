@@ -16,4 +16,5 @@ export type Ship = {
 export type ShipsResponse = {
   ships: Ship[];
   message?: string;
+  status?: "connected" | "reconnecting" | "unavailable";
 };

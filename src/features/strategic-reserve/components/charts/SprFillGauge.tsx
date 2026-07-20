@@ -99,7 +99,7 @@ export function SprFillGauge() {
       {/* Per-facility gauges */}
       <div className="grid grid-cols-3 gap-4">
         {ISPRL_PHASE_1_FACILITIES.map((f) => (
-          <FacilityGauge key={f.id} name={f.name} state={f.state} capacityMmt={f.capacityMmt} fillPct={nationalFillPercent} />
+          <FacilityGauge key={f.id} name={f.name} state={f.state} capacityMmt={f.capacityMmt} fillPct={f.fillPct} />
         ))}
       </div>
       

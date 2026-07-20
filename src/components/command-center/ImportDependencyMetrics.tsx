@@ -62,7 +62,7 @@ export function ImportDependencyMetrics() {
               cursor={{ fill: "rgba(255,255,255,0.05)" }}
               contentStyle={{ backgroundColor: '#18181b', borderColor: '#27272a', fontSize: '12px' }}
               itemStyle={{ color: '#e4e4e7' }}
-              formatter={(value: number, name: string) => [`${value}%`, name]}
+              formatter={(value: any, name: any) => [`${value}%`, name]}
               itemSorter={(item) => -(item.value as number)}
             />
             

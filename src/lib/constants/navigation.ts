@@ -62,13 +62,6 @@ export const NAV_ITEMS: NavItem[] = [
     enabled: true,
   },
   {
-    id: "historical-replay",
-    label: "Historical Replay",
-    href: "/historical-replay",
-    icon: Clock3,
-    enabled: true,
-  },
-  {
     id: "analytics",
     label: "Analytics",
     href: "/analytics",

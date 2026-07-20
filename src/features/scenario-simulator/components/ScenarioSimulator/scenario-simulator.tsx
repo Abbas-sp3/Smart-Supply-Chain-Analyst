@@ -49,6 +49,7 @@ import type {
   RangeEstimate,
   CorridorImpactResult,
 } from "@/features/scenario-simulator/types";
+import { ProcurementAlternatives } from "@/features/procurement/components/ProcurementAlternatives";
 
 
 
@@ -504,6 +505,11 @@ export function ScenarioSimulator() {
               hasBaseline={baseline !== null}
               loading={loading}
             />
+
+            {/* Procurement Alternatives — appears for energy scenarios */}
+            <div className="solid-card rounded-xl border border-white/10 p-5">
+              <ProcurementAlternatives preset={selectedPreset} />
+            </div>
           </div>
         </div>
 

@@ -87,8 +87,8 @@ function SidebarInner({ showLabels }: SidebarInnerProps) {
       >
         <PanelLeft aria-hidden className="size-4 shrink-0 text-primary" />
         {showLabels && (
-          <span className="ml-2.5 truncate text-xs font-semibold uppercase tracking-widest">
-            {APP_NAME}
+          <span className="ml-2.5 text-[10px] font-semibold uppercase tracking-widest leading-normal text-muted-foreground">
+            Energy Supply Chain
           </span>
         )}
       </div>

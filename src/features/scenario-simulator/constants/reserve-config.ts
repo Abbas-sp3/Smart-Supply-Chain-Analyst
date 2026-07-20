@@ -28,9 +28,9 @@ import type { SsiWeights } from "../types";
  * Capacity is fixed physical infrastructure limits in Million Metric Tonnes (MMT).
  */
 export const ISPRL_PHASE_1_FACILITIES = [
-  { id: "padur", name: "Padur", capacityMmt: 2.5, state: "Karnataka" },
-  { id: "mangaluru", name: "Mangaluru", capacityMmt: 1.5, state: "Karnataka" },
-  { id: "vizag", name: "Visakhapatnam", capacityMmt: 1.33, state: "Andhra Pradesh" },
+  { id: "padur", name: "Padur", capacityMmt: 2.5, state: "Karnataka", fillPct: 77.2 },
+  { id: "mangaluru", name: "Mangaluru", capacityMmt: 1.5, state: "Karnataka", fillPct: 77.3 },
+  { id: "vizag", name: "Visakhapatnam", capacityMmt: 1.33, state: "Andhra Pradesh", fillPct: 76.7 },
 ];
 
 /**
