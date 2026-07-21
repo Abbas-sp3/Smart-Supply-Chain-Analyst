@@ -514,6 +514,87 @@ When an event is detected (e.g., "Houthi attack in Red Sea"), the graph engine:
 
 ---
 
+## Architecture
+
+```mermaid
+graph TD
+    %% 1. Data Ingestion Layer
+    subgraph "External Data & Signals (Ingestion Layer)"
+        NewsAPI["Geopolitical News Feeds (NewsAPI)"]
+        AISData["Live Maritime AIS Data (Simulated)"]
+        CommodityData["Spot Market Prices (Simulated)"]
+        ReservesData["Strategic Petroleum Reserves (PPAC Baseline)"]
+    end
+
+    %% 2. Agentic AI & Processing Engine Layer
+    subgraph "AI & Analytics Engine (Backend Layer)"
+        RAGAgent["Geopolitical Risk Agent (RAG Pipeline)"]
+        LLM["Groq / LLaMA-3 (NLP Extraction & Analysis)"]
+        Simulator["Disruption Scenario Modeller (BFS Graph)"]
+        ProcurementOrch["Adaptive Procurement Orchestrator"]
+        ReserveOpt["Strategic Reserve Optimisation Agent"]
+        
+        %% Internal links within Backend
+        NewsAPI --> RAGAgent
+        RAGAgent <--> LLM
+        AISData --> Simulator
+        CommodityData --> ProcurementOrch
+        ReservesData --> ReserveOpt
+        Simulator --> ReserveOpt
+    end
+
+    %% 3. Strategic Intelligence Synthesis Layer
+    subgraph "Strategic Intelligence Layer (Cross-Module Synthesis)"
+        AnalyticsEngine["Analytics Synthesis Engine"]
+        AnalyticsEngine <--> LLM
+        RAGAgent --> AnalyticsEngine
+        Simulator --> AnalyticsEngine
+        ProcurementOrch --> AnalyticsEngine
+        ReserveOpt --> AnalyticsEngine
+    end
+
+    %% 4. Presentation & Digital Twin Layer
+    subgraph "Supply Chain Digital Twin (Frontend Layer - Next.js/React)"
+        CommandCenter["Command Center (Geospatial Mapbox Twin)"]
+        RiskModule["Geopolitical Risk Module"]
+        ProcureModule["Energy Procurement Module"]
+        SimModule["Scenario Simulator Module"]
+        RefineModule["Refinery & Processing Module"]
+        ReserveModule["Energy Reserves Module"]
+        ExecBrief["Analytics (Executive Strategic Brief)"]
+    end
+
+    %% Connect Backend to Frontend
+    RAGAgent --> RiskModule
+    Simulator --> SimModule
+    ProcurementOrch --> ProcureModule
+    ReserveOpt --> ReserveModule
+    Simulator --> RefineModule
+    
+    %% All modules feed into the live Command Center
+    RiskModule -.-> CommandCenter
+    ProcureModule -.-> CommandCenter
+    SimModule -.-> CommandCenter
+    RefineModule -.-> CommandCenter
+    ReserveModule -.-> CommandCenter
+    
+    %% Analytics drives the final brief
+    AnalyticsEngine --> ExecBrief
+
+    %% Styling to make it look professional
+    classDef frontend fill:#1e293b,stroke:#cbd5e1,stroke-width:1px,color:#f8fafc;
+    classDef backend fill:#0f172a,stroke:#3b82f6,stroke-width:2px,color:#f8fafc;
+    classDef data fill:#020617,stroke:#10b981,stroke-width:2px,color:#f8fafc;
+    classDef synthesis fill:#312e81,stroke:#a855f7,stroke-width:2px,color:#f8fafc;
+
+    class CommandCenter,RiskModule,ProcureModule,SimModule,RefineModule,ReserveModule,ExecBrief frontend;
+    class RAGAgent,LLM,Simulator,ProcurementOrch,ReserveOpt backend;
+    class NewsAPI,AISData,CommodityData,ReservesData data;
+    class AnalyticsEngine synthesis;
+```
+
+---
+
 ## Development
 
 ### Available Scripts
