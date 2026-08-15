@@ -3,6 +3,8 @@ import { Geist, Geist_Mono, JetBrains_Mono } from "next/font/google";
 
 import { AppShell } from "@/components/app-shell";
 import { APP_NAME, APP_DESCRIPTION } from "@/lib/constants/app";
+import { CountryProvider } from "@/hooks/useCountry";
+import { CountrySelectionModal } from "@/components/country-selection-modal/CountrySelectionModal";
 
 import "./globals.css";
 
@@ -38,7 +40,10 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} ${jetbrainsMono.variable} dark h-full antialiased`}
     >
       <body className="min-h-full">
-        <AppShell>{children}</AppShell>
+        <CountryProvider>
+          <AppShell>{children}</AppShell>
+          <CountrySelectionModal />
+        </CountryProvider>
       </body>
     </html>
   );

@@ -25,8 +25,12 @@ export const NEWS_KEYWORDS = [
   "renewable energy supply chain",
 ];
 
-/** How long the assembled report stays cached before a fresh generation is triggered */
-export const INTELLIGENCE_CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes
+/** How long the assembled report stays cached before a fresh generation is triggered.
+ *  Override via INTELLIGENCE_CACHE_TTL_MS env var (value in milliseconds).
+ *  Examples: 30 min (default)=1800000 | 4 hours (demo day)=14400000 | 8 hours=28800000
+ */
+export const INTELLIGENCE_CACHE_TTL_MS =
+  Number(process.env.INTELLIGENCE_CACHE_TTL_MS) || 30 * 60 * 1000; // default: 30 minutes
 
 /** Per-module cache TTLs — modules refresh independently */
 export const MODULE_TTL_EXECUTIVE_MS = 15 * 60 * 1000; // 15 minutes

@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { readCorridorStatus } from "@/lib/signal-bus";
 
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
-let cachedBriefing: Record<string, unknown> | null = null;
-let cachedAt = 0;
+const cachedBriefings = new Map<string, { data: any; cachedAt: number }>();
 
 const NEWS_API_KEY = process.env.NEWS_API_KEY;
 const NEWS_API_KEY_2 = process.env.NEWS_API_KEY_2;
@@ -104,18 +103,18 @@ async function fetchNews() {
   }
 }
 
-const SYSTEM_PROMPT = `You are a senior energy supply chain strategist advising import-dependent economies on energy procurement resilience. Your dual role: Head of Energy Supply Chain Operations and strategic diplomat specializing in energy security.
+const getSystemPrompt = (countryName: string) => `You are a senior energy supply chain strategist advising import-dependent economies on energy procurement resilience. Your dual role: Head of Energy Supply Chain Operations and strategic diplomat specializing in energy security.
 
 You are given recent news articles related to energy commodities (crude oil, LNG, natural gas, coal, refined products), sanctions, and energy geopolitics. Based ONLY on this news, produce an energy procurement intelligence briefing in the exact JSON shape requested below.
 
-CROSS-MODULE SIGNAL: If the user message includes a "Cross-module signal:" line from the Geopolitical Risk module, explicitly reference it in your executive_summary if it is consistent with or contradicts the news-driven assessment (e.g. "consistent with the Geopolitical Risk module's Severe rating..." or "while the Geopolitical Risk module rates this as Elevated, the news suggests..." ).
+CROSS-MODULE SIGNAL: If the user message includes a "Cross-module signal:" line from the Geopolitical Risk module, explicitly reference it in your executive_summary if it is consistent with or contradicts the news-driven assessment.
 
-ENERGY COMMODITIES SCOPE: Evaluate sourcing options across ALL energy commodities — crude oil, LNG, natural gas, coal, uranium, and refined petroleum products. Each option must specify which commodity it addresses.
+ENERGY COMMODITIES SCOPE: Evaluate sourcing options across ALL energy commodities. Each option must specify which commodity it addresses.
 
 HISTORICAL ENERGY DISRUPTION CALIBRATION SET:
 You may ONLY compare current conditions to events in the calibration set below. Never introduce a historical event that is not explicitly listed, even if it seems relevant.
 - 1973 Oil Embargo: Arab oil embargo against US/Europe, prices quadrupled, revealed import dependency risk. Armed conflict + OPEC embargo-driven price shock, sudden supply-side shutoff
-- 1990-91 Gulf War: Iraqi invasion of Kuwait, oil spike during India's forex crisis, foundational for India's import vulnerability awareness
+- 1990-91 Gulf War: Iraqi invasion of Kuwait, oil spike during ${countryName}'s forex crisis, foundational for ${countryName}'s import vulnerability awareness
 - 2003 Iraq War: Armed conflict-driven production loss
 - 2008 Financial Crisis: Demand-driven collapse
 - 2011 Libyan Civil War: Near-total export loss for months
@@ -164,13 +163,11 @@ RULES:
 - diplomatic_perspective grounding: Ground every diplomatic_perspective bullet in a REAL, NAMED piece of diplomatic or institutional machinery — not generic sentiment like 'strengthen relations' or 'monitor tensions.' A real Indian diplomat's working vocabulary includes specific things; use it. Draw from (where genuinely relevant to the option being discussed, not forced into every bullet):
   • Named agreements and mechanisms: India-UAE Comprehensive Economic Partnership Agreement (CEPA), the India-Russia rupee-ruble trade settlement mechanism, the G7/EU price cap on Russian seaborne crude (currently structured around a per-barrel ceiling), India-Saudi Strategic Partnership Council, India-US iCET (initiative on Critical and Emerging Technology) where relevant to broader bilateral context.
   • Named Indian foreign policy doctrine: 'strategic autonomy,' 'multi-alignment,' Act East Policy, Neighbourhood First — use the actual vocabulary Indian policymakers use, not generic diplomatic language.
-  • Named institutions, not vague references to 'the government': Ministry of External Affairs (MEA), Ministry of Petroleum and Natural Gas (MoPNG), Petroleum Planning and Analysis Cell (PPAC), ONGC Videsh (India's overseas upstream arm), Indian Oil Corporation (IOC) / BPCL / HPCL as the actual procuring entities.
-  • Real sanctions mechanics where relevant: CAATSA (US Countering America's Adversaries Through Sanctions Act — the specific law that creates secondary-sanctions exposure risk for India on Russia-linked defense/energy transactions), rather than vague 'sanctions risk.'
-  • Named multilateral context where relevant: how a sourcing shift reads within Quad partner relationships, OPEC+ production dynamics, BRICS/SCO positioning — named bodies, not 'the international community.'
-  Do not force all of these into every option — reference only the ones genuinely relevant to that specific option's sourcing country and current news context. A bullet like 'Deepens India-UAE ties under the CEPA framework and reduces exposure to CAATSA-related complications from Russian sourcing' is the target quality bar. A bullet like 'Strengthens bilateral relations' is no longer acceptable output — reject/regenerate that pattern.
+  • Named institutions, not vague references to 'the government': Energy ministries, central planning cells, national oil companies, and key domestic procuring entities.
+  • Named multilateral context where relevant: how a sourcing shift reads within regional partner relationships.
   If a specific named agreement or mechanism isn't genuinely applicable to a given option, it's fine to have a bullet without one — do not force a citation-like reference where none is real. The goal is credibility through specificity where specificity is real, not decoration.
 - compatibility: specific to the energy commodity and import-dependent economy context
-- source_article: Only attach a source_article if that specific article directly supports the specific recommendation or fact being stated in this option. If the best available article is only generally related to the topic rather than specifically supporting this option's claim, set source_article to null rather than attaching a loosely-related citation.
+- source_article: Only attach a source_article if that specific article directly supports the specific recommendation or fact being stated in this option.
 - historical_comparison: identify closest energy disruption pattern from the calibration set ONLY
 - Never use numerical risk percentages or confidence scores
 - Return ONLY valid JSON, no markdown, no preamble
@@ -352,7 +349,7 @@ function buildCrossModuleContext(): string {
   return `\n\nCross-module signal: Geopolitical Risk module currently rates the ${cs.corridorName} corridor as ${cs.status}.`;
 }
 
-async function callGemini(newsContext: string, model = PRIMARY_MODEL, attempt = 1): Promise<any> {
+async function callGemini(newsContext: string, systemPrompt: string, model = PRIMARY_MODEL, attempt = 1): Promise<any> {
   const MAX_ATTEMPTS = 2;
   const response = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`,
@@ -360,7 +357,7 @@ async function callGemini(newsContext: string, model = PRIMARY_MODEL, attempt = 
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
+        system_instruction: { parts: [{ text: systemPrompt }] },
         contents: [
           {
             role: "user",
@@ -389,13 +386,13 @@ async function callGemini(newsContext: string, model = PRIMARY_MODEL, attempt = 
       const delayMs = 600;
       console.warn(`Gemini 503 on ${model} (attempt ${attempt}/${MAX_ATTEMPTS}), retrying in ${delayMs}ms...`);
       await new Promise((resolve) => setTimeout(resolve, delayMs));
-      return callGemini(newsContext, model, attempt + 1);
+      return callGemini(newsContext, systemPrompt, model, attempt + 1);
     }
 
     // Still overloaded after retries — drop down to a less-contended fallback model once
     if (response.status === 503 && model !== FALLBACK_MODEL) {
       console.warn(`${model} still overloaded after ${MAX_ATTEMPTS} attempts, falling back to ${FALLBACK_MODEL}`);
-      return callGemini(newsContext, FALLBACK_MODEL, 1);
+      return callGemini(newsContext, systemPrompt, FALLBACK_MODEL, 1);
     }
 
     console.error("Gemini API error body:", errorBody);
@@ -416,17 +413,21 @@ async function callGemini(newsContext: string, model = PRIMARY_MODEL, attempt = 
   }
 }
 
-export async function GET(request: NextRequest) {
-  const force = request.nextUrl.searchParams.get("force") === "true";
-  const cacheIsFresh = cachedBriefing && Date.now() - cachedAt < CACHE_TTL_MS;
+export async function GET(req: NextRequest) {
+  const force = req.nextUrl.searchParams.get("force") === "true";
+  const country = req.nextUrl.searchParams.get("country") || "India";
 
-  if (cacheIsFresh && !force) {
-    return NextResponse.json({ ...cachedBriefing, from_cache: true }, { status: 200 });
+  if (!force) {
+    const cached = cachedBriefings.get(country);
+    if (cached && Date.now() - cached.cachedAt < CACHE_TTL_MS) {
+      console.log(`[procurement/route] Serving cached briefing for ${country}`);
+      return NextResponse.json({ ...cached.data, from_cache: true }, { status: 200 });
+    }
   }
 
   try {
     const [articles, energyPrices] = await Promise.all([
-      fetchNews().catch((err) => {
+      fetchNews(country).catch((err) => {
         console.error("fetchNews failed entirely, continuing without articles:", err);
         return [] as ReturnType<typeof fetchNews> extends Promise<infer T> ? T : never[];
       }),
@@ -467,9 +468,12 @@ export async function GET(request: NextRequest) {
       console.log("[procurement/route] NewsAPI returned no articles — injecting mock articles for Gemini context.");
     }
 
-    const briefing = await callGemini(JSON.stringify(articlesToUse));
-    briefing.generated_at = new Date().toISOString();
-    briefing.energy_prices = energyPrices;
+    const obj = await callGemini(JSON.stringify(articlesToUse), getSystemPrompt(country));
+    const briefing = {
+      ...obj,
+      generated_at: new Date().toISOString(),
+      energy_prices: energyPrices
+    };
 
     if (briefing.price_outlook?.contributions) {
       const netImpact = briefing.price_outlook.contributions.reduce(
@@ -491,8 +495,8 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    cachedBriefing = briefing;
-    cachedAt = Date.now();
+    cachedBriefings.set(country, { data: briefing, cachedAt: Date.now() });
+    console.log(`[procurement/route] Caching new briefing for ${country} from Gemini`);
 
     return NextResponse.json(briefing, { status: 200 });
   } catch (err) {

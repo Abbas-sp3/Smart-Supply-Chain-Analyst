@@ -28,9 +28,8 @@
  */
 
 import {
-  INDIA_TRADE_GRAPH,
   type KnowledgeGraphNode,
-} from "../../geopolitical-intelligence/knowledge-graph/indiaTradeGraph";
+} from "../../geopolitical-intelligence/knowledge-graph/tradeGraph";
 import type {
   CorridorImpactResult,
   DecisionLever,
@@ -40,34 +39,11 @@ import type {
   SsiWeights,
 } from "../types";
 import type { DisruptionPreset } from "../types";
-import { DEFAULT_SSI_WEIGHTS, INDIA_RESERVE_CONFIG, type ReserveConfig } from "../constants/reserve-config";
+import { DEFAULT_SSI_WEIGHTS, type ReserveConfig } from "../constants/reserve-config";
 import { computeReserveDrawdown } from "./reserveService";
 import { computeMetrics } from "./metricsService";
-
-// ─── India-specific flow fractions for global corridors ───────────────────
-//
-// "What fraction of this corridor's ACTUAL throughput is India-relevant?"
-// Basis:
-//   Hormuz: India imports ~175 Mtpa Gulf crude; Hormuz actual ~810 Mtpa → 22%
-//   Suez: India's bilateral trade via Suez ~35 Mtpa; Suez actual ~715 Mtpa → 5%
-//   Malacca: India eastbound cargo ~45 Mtpa; Malacca actual ~1353 Mtpa → ~6% (inc. re-exports)
-//   SCS: India's SCS-transiting cargo est. ~4% of SCS volume
-//   Black Sea: India is large grain+fertilizer buyer; ~15% of Black Sea cargo is India-bound
-//   Bab-el-Mandeb: India's Red Sea cargo ~8% (containers + oil combined)
-//   Cape: India's Cape-routed cargo fraction is small (~4%); mostly Europe rerouting
-//
-// ANALYST_ESTIMATE — not independently audited per cargo type.
-// Stored in assumptions when any corridor node is processed.
-//
-export const INDIA_CORRIDOR_FRACTION: Record<string, number> = {
-  corridor_hormuz:          0.22,
-  corridor_bab_el_mandeb:   0.08,
-  corridor_suez:            0.05,
-  corridor_malacca:         0.06,
-  corridor_south_china_sea: 0.04,
-  corridor_black_sea:       0.15,
-  corridor_cape_good_hope:  0.04,
-};
+import { CountryProfile } from "@/data/countries/types";
+import { indiaProfile } from "@/data/countries/india";
 
 // ─── Route families ───────────────────────────────────────────────────────
 //
@@ -93,63 +69,17 @@ const REROUTE_DAYS: Record<string, number> = {
   multi_sector:    14,
 };
 
-// ─── Port → upstream corridor map ───────────────────────────────────────
-//
-// When a port AND its upstream corridor both appear in the same preset's
-// affectedNodeIds, the supply gap is already captured at the corridor level.
-// The port contributes ETA impact but NOT additional locked volume.
-//
-const PORT_UPSTREAM_CORRIDOR: Record<string, string> = {
-  port_jnpt:     "corridor_suez",   // JNPT primary west-side corridor
-  port_mundra:   "corridor_hormuz", // Mundra primary source corridor
-  port_kandla:   "corridor_hormuz",
-  port_kochi:    "corridor_suez",
-  port_mangalore:"corridor_hormuz",
-  port_chennai:  "corridor_malacca",
-  port_vizag:    "corridor_malacca",
-  port_kolkata:  "corridor_malacca",
-  port_ennore:   "corridor_malacca",
-};
-
-/**
- * Fraction of a port's total traffic that flows via a specific disrupted corridor.
- * A Suez closure does NOT affect all of Mundra's traffic — only the Suez-dependent
- * portion (machinery, chemicals from Europe). Oil from Gulf = Hormuz, not Suez.
- *
- * Keys: "portId:corridorId" → fraction [0.0–1.0]
- * ANALYST_ESTIMATE: derived from connection strategicWeight and commodity mix.
- */
-export const PORT_CORRIDOR_FRACTION: Record<string, number> = {
-  // Suez corridor → port fractions
-  "port_jnpt:corridor_suez":      0.35,  // JNPT: ~35% traffic is Europe/Med via Suez (containers)
-  "port_mundra:corridor_suez":    0.17,  // Mundra: ~17% via Suez (containers + chemicals from Europe;
-                                          //   bulk of Mundra traffic is Gulf crude via Hormuz)
-  "port_kochi:corridor_suez":     0.30,  // Kochi: significant Europe-origin cargo
-  "port_kandla:corridor_suez":    0.15,  // Kandla: mostly bulk/oil; smaller Suez fraction
-  // Hormuz corridor → port fractions
-  "port_mundra:corridor_hormuz":  0.55,  // Mundra: ~55% traffic is Gulf crude via Hormuz
-  "port_kandla:corridor_hormuz":  0.60,
-  "port_mangalore:corridor_hormuz":0.85, // NMPT: almost all traffic is Gulf crude
-  "port_jnpt:corridor_hormuz":    0.08,  // JNPT: some LNG/chemicals via Hormuz
-  "port_kochi:corridor_hormuz":   0.40,
-  // Malacca corridor → port fractions
-  "port_chennai:corridor_malacca": 0.45, // Chennai: significant Asia-origin containers
-  "port_vizag:corridor_malacca":   0.40,
-  "port_kolkata:corridor_malacca": 0.35,
-  "port_ennore:corridor_malacca":  0.25,
-};
 
 
 export function runPropagation(
   preset: DisruptionPreset,
   levers: DecisionLever[],
-  graph: KnowledgeGraphNode[] = INDIA_TRADE_GRAPH,
+  country: CountryProfile = indiaProfile,
   ssiWeights: SsiWeights = DEFAULT_SSI_WEIGHTS,
-  reserveConfig: ReserveConfig = INDIA_RESERVE_CONFIG,
 ): PropagationResult {
 
   const nodeMap = new Map<string, KnowledgeGraphNode>(
-    graph.map((n) => [n.id, n]),
+    country.tradeGraph.map((n) => [n.id, n]),
   );
 
   const assumptions: string[] = [
@@ -230,20 +160,17 @@ export function runPropagation(
 
     // ── THROUGHPUT NODE branch ──────────────────────────────────────────
     } else {
-      // Determine India-specific flow through this node
-      let indiaFlowMtpa: number;
+      let countryFlowMtpa: number;
       if (node.type === "port") {
         // Port: compute ONLY the fraction of port traffic affected by the disrupted corridors.
-        // A Suez closure affects Mundra's Suez-origin cargo (~22%), not all 155 Mtpa.
-        // Find which disrupted corridor this port is being affected by.
         const activeCorridor = preset.affectedNodeIds.find(
-          (id) => PORT_CORRIDOR_FRACTION[`${nodeId}:${id}`] !== undefined,
+          (id) => country.portCorridorFractions[`${nodeId}:${id}`] !== undefined,
         );
         const portCorridorFrac = activeCorridor
-          ? (PORT_CORRIDOR_FRACTION[`${nodeId}:${activeCorridor}`] ?? 0.20)
+          ? (country.portCorridorFractions[`${nodeId}:${activeCorridor}`] ?? 0.20)
           : 0.20; // default conservative estimate
 
-        indiaFlowMtpa = hasCapacity
+        countryFlowMtpa = hasCapacity
           ? node.capacityMtpa! * (utilPct / 100) * portCorridorFrac
           : 0;
 
@@ -253,16 +180,16 @@ export function runPropagation(
           );
         }
       } else if (node.type === "corridor") {
-        const fraction = INDIA_CORRIDOR_FRACTION[nodeId] ?? 0.03;
-        indiaFlowMtpa = hasCapacity
+        const fraction = country.corridorFractions[nodeId] ?? 0.03;
+        countryFlowMtpa = hasCapacity
           ? node.capacityMtpa! * (utilPct / 100) * fraction
           : 0;
       } else {
         // infrastructure / other without production_output tag
-        indiaFlowMtpa = hasCapacity ? node.capacityMtpa! * (utilPct / 100) : 0;
+        countryFlowMtpa = hasCapacity ? node.capacityMtpa! * (utilPct / 100) : 0;
       }
 
-      const affectedFlow = indiaFlowMtpa * severityFraction;
+      const affectedFlow = countryFlowMtpa * severityFraction;
 
       // Route-family deduplication (corridors):
       const routeFamily = ROUTE_FAMILY[nodeId];
@@ -270,11 +197,18 @@ export function runPropagation(
 
       // Port deduplication: if upstream corridor is already being counted in
       // this preset's affectedNodeIds, the port contributes zero supply gap.
-      const upstreamCorridor = PORT_UPSTREAM_CORRIDOR[nodeId];
-      const isPortDuplicate =
-        node.type === "port" &&
-        upstreamCorridor !== undefined &&
-        preset.affectedNodeIds.includes(upstreamCorridor);
+      // We check if any of the affected corridors is mapped as feeding this port.
+      let isPortDuplicate = false;
+      let matchedCorridor = "";
+      if (node.type === "port") {
+        for (const id of preset.affectedNodeIds) {
+          if (country.portCorridorFractions[`${nodeId}:${id}`] !== undefined) {
+            isPortDuplicate = true;
+            matchedCorridor = id;
+            break;
+          }
+        }
+      }
 
       const isDuplicate = isCorridorDuplicate || isPortDuplicate;
 
@@ -285,7 +219,7 @@ export function runPropagation(
 
         rationale =
           isPortDuplicate
-          ? `Port supply gap zeroed: upstream corridor (${upstreamCorridor}) already counted in this preset's affected nodes. Port contributes ETA and industry impact only.`
+          ? `Port supply gap zeroed: upstream corridor (${matchedCorridor}) already counted in this preset's affected nodes. Port contributes ETA and industry impact only.`
           : `Route-family duplicate (family: "${routeFamily}"): ETA and cost effects captured; ` +
             `supply gap zeroed to prevent double-counting with primary node in same family.`;
       } else {
@@ -297,7 +231,7 @@ export function runPropagation(
         // Spare capacity on this node after disruption
         if (hasCapacity) {
           const postDisruptionCapacity = node.capacityMtpa! * (1 - severityFraction);
-          const normalFlow = indiaFlowMtpa;
+          const normalFlow = countryFlowMtpa;
           spareCapacityMtpa = Math.max(0, postDisruptionCapacity - normalFlow * (1 - severityFraction));
         } else {
           spareCapacityMtpa = null;
@@ -306,13 +240,13 @@ export function runPropagation(
           );
         }
 
-        effectiveSeverityPct = indiaFlowMtpa > 0 
-          ? Math.round((lockedVolumeMtpa / indiaFlowMtpa) * 100)
+        effectiveSeverityPct = countryFlowMtpa > 0 
+          ? Math.round((lockedVolumeMtpa / countryFlowMtpa) * 100)
           : preset.severityPct;
 
         rationale =
           `${node.type === "corridor" ? "Corridor" : "Port"} throughput reduced ${preset.severityPct}%. ` +
-          `India flow: ${indiaFlowMtpa.toFixed(1)} Mtpa. ` +
+          `Country flow: ${countryFlowMtpa.toFixed(1)} Mtpa. ` +
           `After disruption: ${affectedFlow.toFixed(1)} Mtpa affected; ` +
           `${(flexFactor * 100).toFixed(0)}% reroutable → ` +
           `${(affectedFlow * flexFactor).toFixed(1)} Mtpa rerouted, ` +
@@ -325,7 +259,7 @@ export function runPropagation(
       // ETA shift contribution for this node
       // Weighted average: (1-flex) fraction waits; flex fraction reroutes via Cape
       const waitDays    = preset.expectedDurationDays;
-      const weight      = indiaFlowMtpa * severityFraction;
+      const weight      = countryFlowMtpa * severityFraction;
       const etaLikely   = (1 - flexFactor) * waitDays + flexFactor * rerouteDays;
       const etaMin      = (1 - flexFactor) * preset.durationRange.min + flexFactor * (rerouteDays * 0.7);
       const etaMax      = (1 - flexFactor) * preset.durationRange.max + flexFactor * (rerouteDays * 1.3);
@@ -395,7 +329,10 @@ export function runPropagation(
   };
 
   // ── Compute reserve drawdown from levers ────────────────────────────────
-  const reserve = computeReserveDrawdown(levers, reserveConfig);
+  const reserve = computeReserveDrawdown(
+    levers,
+    country.reserveConfig,
+  );
 
   if (reserve.isActive) {
     if (reserve.cappedByRateLimit) {
@@ -405,7 +342,7 @@ export function runPropagation(
     }
     if (reserve.cappedByFloor) {
       assumptions.push(
-        `Reserve drawdown halts at day ${reserve.daysToFloor?.toFixed(1)}, when the policy floor of ${reserveConfig.minReserveFloorDays} days cover is reached. Reserves are not simulated below that level.`,
+        `Reserve drawdown halts at day ${reserve.daysToFloor?.toFixed(1)}, when the policy floor of ${country.reserveConfig.minReserveFloorDays} days cover is reached. Reserves are not simulated below that level.`,
       );
     }
   }
@@ -419,7 +356,7 @@ export function runPropagation(
     levers,
     reserve,
     ssiWeights,
-    reserveConfig,
+    reserveConfig: country.reserveConfig,
     assumptions,
   });
 

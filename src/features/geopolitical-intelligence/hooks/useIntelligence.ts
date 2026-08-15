@@ -1,8 +1,8 @@
 /**
  * useIntelligence — Client-side data hook
  *
- * Fetches the intelligence report from /api/intelligence.
- * - Triggers on mount
+ * Fetches the intelligence report from /api/intelligence?countryId=<id>.
+ * - Triggers on mount and whenever countryId changes
  * - Exposes loading, error, and refetch states
  * - Auto-refreshes every 30 minutes to match server-side cache TTL
  */
@@ -22,7 +22,7 @@ type IntelligenceState = {
   refetch: () => void;
 };
 
-export function useIntelligence(): IntelligenceState {
+export function useIntelligence(countryId: string = "india"): IntelligenceState {
   const [data, setData] = useState<IntelligenceReport | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -46,6 +46,14 @@ export function useIntelligence(): IntelligenceState {
     };
   }, [refetch]);
 
+  // Re-fetch whenever countryId changes — reset state so stale data is cleared
+  useEffect(() => {
+    setData(null);
+    setGeneratedAt(null);
+    setError(null);
+    setFetchTrigger((n) => n + 1);
+  }, [countryId]);
+
   // Fetch runs as a side-effect of fetchTrigger changing
   useEffect(() => {
     let cancelled = false;
@@ -56,7 +64,7 @@ export function useIntelligence(): IntelligenceState {
       setError(null);
 
       try {
-        const res = await fetch("/api/intelligence", { cache: "no-store" });
+        const res = await fetch(`/api/intelligence?countryId=${encodeURIComponent(countryId)}`, { cache: "no-store" });
         const json = (await res.json()) as
           | { report: IntelligenceReport; generatedAt: string }
           | { error: string };
@@ -87,7 +95,7 @@ export function useIntelligence(): IntelligenceState {
     return () => {
       cancelled = true;
     };
-  }, [fetchTrigger]);
+  }, [fetchTrigger, countryId]);
 
   return { data, isLoading, error, generatedAt, refetch };
 }

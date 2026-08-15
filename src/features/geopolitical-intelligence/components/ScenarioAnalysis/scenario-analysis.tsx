@@ -25,8 +25,8 @@ export function ScenarioAnalysis({
             {scenarios.best_case.description}
           </p>
           <p className="mt-2 text-xs text-muted-foreground">
-            <span className="font-semibold text-foreground/60">Impact on India:</span>{" "}
-            {scenarios.best_case.impact_on_india}
+            <span className="font-semibold text-foreground/60">National Impact:</span>{" "}
+            {scenarios.best_case.impact_on_country}
           </p>
         </div>
         <div className="bg-background/95 px-5 py-4 backdrop-blur-xl">
@@ -37,8 +37,8 @@ export function ScenarioAnalysis({
             {scenarios.most_likely.description}
           </p>
           <p className="mt-2 text-xs text-muted-foreground">
-            <span className="font-semibold text-foreground/60">Impact on India:</span>{" "}
-            {scenarios.most_likely.impact_on_india}
+            <span className="font-semibold text-foreground/60">National Impact:</span>{" "}
+            {scenarios.most_likely.impact_on_country}
           </p>
         </div>
         <div className="bg-background/95 px-5 py-4 backdrop-blur-xl">
@@ -49,8 +49,8 @@ export function ScenarioAnalysis({
             {scenarios.worst_case.description}
           </p>
           <p className="mt-2 text-xs text-muted-foreground">
-            <span className="font-semibold text-foreground/60">Impact on India:</span>{" "}
-            {scenarios.worst_case.impact_on_india}
+            <span className="font-semibold text-foreground/60">National Impact:</span>{" "}
+            {scenarios.worst_case.impact_on_country}
           </p>
         </div>
       </div>

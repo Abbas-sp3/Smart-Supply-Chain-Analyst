@@ -1,3 +1,4 @@
+import type { CountryProfile } from "@/data/countries/types";
 /**
  * Geopolitical Intelligence Engine — Type Definitions
  *
@@ -112,7 +113,7 @@ export type HistoricalEvent = {
 
 export type ScenarioCase = {
   description: string;
-  impact_on_india: string;
+  impact_on_country: string;
 };
 
 export type ScenarioAnalysis = {
@@ -157,7 +158,7 @@ export type IntelligenceReport = {
   possible_supply_chain_impacts: SupplyChainImpact[];
   alternative_supply_options: AlternativeSupplyOption[];
   recommendations: Recommendation[];
-  why_india_should_care: string;
+  strategic_implications: string;
   supporting_evidence: SupportingEvidence[];
   military_observations: MilitaryObservation[];
   maritime_observations: MaritimeObservation[];
@@ -227,5 +228,5 @@ export interface AugmentedObservation {
 
 export interface DataSourcePlugin {
   readonly name: string;
-  fetch(): Promise<DataSourceOutput[]>;
+  fetch(country: CountryProfile): Promise<DataSourceOutput[]>;
 }

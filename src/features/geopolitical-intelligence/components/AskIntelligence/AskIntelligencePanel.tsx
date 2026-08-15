@@ -15,6 +15,7 @@ import {
   FileSearch,
   Cpu,
 } from "lucide-react";
+import { useCountry } from "@/hooks/useCountry";
 
 interface RetrievedChunk {
   sourceLabel: string;
@@ -123,6 +124,7 @@ function SourceChunkCard({ chunk, index }: { chunk: RetrievedChunk; index: numbe
 }
 
 export function AskIntelligencePanel() {
+  const { activeCountry } = useCountry();
   const [query, setQuery] = useState("");
   const [phase, setPhase] = useState<Phase>("idle");
   const [result, setResult] = useState<Result | null>(null);
@@ -227,7 +229,7 @@ export function AskIntelligencePanel() {
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="e.g. What was the impact of the 2021 Suez blockage on India?"
+              placeholder={`e.g. What was the impact of the 2021 Suez blockage on ${activeCountry.name}?`}
               className="w-full rounded-lg border border-white/10 bg-black/30 py-2.5 pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground/30 focus:border-primary/40 focus:outline-none focus:ring-1 focus:ring-primary/20"
             />
           </div>

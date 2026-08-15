@@ -48,7 +48,7 @@ export async function POST(req: Request) {
     }
 
     const groq = new Groq({ apiKey });
-    const { nesi, grf, srf, scrf, activeAlerts, scenarioRun } = await req.json();
+    const { nesi, grf, srf, scrf, activeAlerts, scenarioRun, countryName = "India" } = await req.json();
 
     // Build rich alert context — include commodities + exposed ports, not just corridor names
     let alertsContext: string;
@@ -56,7 +56,7 @@ export async function POST(req: Request) {
       const alertLines = activeAlerts.map((a: any) => {
         const detail = matchCorridorDetail(a.title ?? "");
         const detailStr = detail
-          ? `\n    Commodities at risk: ${detail.imports}\n    Exposed Indian ports: ${detail.ports}`
+          ? `\n    Commodities at risk: ${detail.imports}\n    Exposed ports: ${detail.ports}`
           : "";
         return `- [${a.severity}] ${a.title}${detailStr}`;
       });
@@ -74,7 +74,7 @@ export async function POST(req: Request) {
     const highCount = (activeAlerts ?? []).filter((a: any) => a.severity === "High").length;
     const grfPenalty = criticalCount * 15 + highCount * 10;
 
-    const prompt = `You are a senior energy supply-chain analyst briefing a decision-maker in 4–5 sentences.
+    const prompt = `You are a senior energy supply-chain analyst briefing a decision-maker in 4–5 sentences. The analysis must be specifically scoped to ${countryName}.
 
 CRITICAL RULES — violations make the briefing useless:
 1. DO NOT simply restate the numeric scores (GRF=${grf}, SRF=${srf}, ScRF=${scrf}, NESI=${nesi}). Those are already visible in the dashboard gauges directly above this text. Your job is to explain WHAT THEY MEAN and WHY, not to recite them.
@@ -82,12 +82,13 @@ CRITICAL RULES — violations make the briefing useless:
 3. DO NOT invent events, ports, prices, or news. Use ONLY the data supplied below.
 4. The FIRST sentence must identify the primary operational risk in concrete terms (which corridor, which commodity/product flow, which ports are exposed).
 5. The SECOND sentence must explain the GRF driver: ${criticalCount} Critical and ${highCount} High-severity alert(s) each carrying illustrative penalty points (Critical=15pts, High=10pts) yielding a ${grfPenalty}-point reduction from GRF baseline.
-6. The THIRD/FOURTH sentence must address practical implication for India's energy supply chain — rerouting risk, freight cost exposure, which specific commodity/refinery input is strained — again, only using data below.
+6. The THIRD/FOURTH sentence must address practical implication for ${countryName}'s energy supply chain — rerouting risk, freight cost exposure, which specific commodity/refinery input is strained — again, only using data below.
 7. Close with a one-sentence note on the scenario simulation status and what it means for risk confidence.
 
 SUPPLIED CONTEXT:
 ---
-NESI Score: ${nesi}/100  |  GRF: ${grf}/100  |  SRF: ${srf}/100 (as of mid-2026 PPAC estimate)  |  ScRF: ${scrf}/100
+Country: ${countryName}
+NESI Score: ${nesi}/100  |  GRF: ${grf}/100  |  SRF: ${srf}/100  |  ScRF: ${scrf}/100
 
 ${alertsContext}
 

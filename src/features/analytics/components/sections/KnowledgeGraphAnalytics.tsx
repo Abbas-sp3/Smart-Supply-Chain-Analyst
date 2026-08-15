@@ -2,6 +2,7 @@
 
 import { Network, TrendingDown, TrendingUp } from "lucide-react";
 import type { GraphCentralityRank, ResilienceRank } from "@/features/analytics/services/analyticsEngine";
+import { useCountry } from "@/hooks/useCountry";
 
 type Props = {
   graphCentralityRanks: GraphCentralityRank[];
@@ -18,6 +19,7 @@ const TYPE_COLORS: Record<string, string> = {
 };
 
 export function KnowledgeGraphAnalytics({ graphCentralityRanks, resilienceRanks }: Props) {
+  const { activeCountry } = useCountry();
   const mostCentral = graphCentralityRanks.slice(0, 8);
   const mostResilient = resilienceRanks.slice(0, 4);
   const leastResilient = [...resilienceRanks].reverse().slice(0, 4);
@@ -32,7 +34,7 @@ export function KnowledgeGraphAnalytics({ graphCentralityRanks, resilienceRanks 
           Knowledge Graph Analytics
         </span>
         <span className="ml-auto text-[10px] text-muted-foreground/50">
-          India Trade Graph — structural analysis
+          {activeCountry.name} Trade Graph — structural analysis
         </span>
       </div>
 

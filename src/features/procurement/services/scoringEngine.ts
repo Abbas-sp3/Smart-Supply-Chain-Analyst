@@ -12,7 +12,8 @@
  */
 
 import type { CrudeAlternative } from "../data/alternativeSources";
-import { CRUDE_ALTERNATIVES } from "../data/alternativeSources";
+import { CountryProfile } from "@/data/countries/types";
+import { indiaProfile } from "@/data/countries/india";
 
 export type ScoredAlternative = CrudeAlternative & {
   /** Final weighted composite score, 0–100 */
@@ -55,9 +56,12 @@ function normalize(value: number, min: number, max: number): number {
  *   - Sources with no relevantForPresets filter are also included (universally applicable).
  *   - Sources with relevantForPresets set that does NOT include the presetId are excluded.
  */
-export function rankAlternatives(presetId?: string): ScoredAlternative[] {
+export function rankAlternatives(
+  presetId?: string,
+  country: CountryProfile = indiaProfile
+): ScoredAlternative[] {
   // Filter by preset relevance
-  const candidates = CRUDE_ALTERNATIVES.filter((alt) => {
+  const candidates = country.defaultAlternativeSources.filter((alt) => {
     if (!alt.relevantForPresets || alt.relevantForPresets.length === 0) return true;
     if (!presetId) return true;
     return alt.relevantForPresets.includes(presetId);

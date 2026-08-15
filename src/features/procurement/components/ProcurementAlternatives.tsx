@@ -1,12 +1,13 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Award, Clock, DollarSign, Anchor, Beaker, Info } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import type { DisruptionPreset } from "@/features/scenario-simulator/types";
 import { rankAlternatives, SCORING_WEIGHTS } from "../services/scoringEngine";
 import type { ScoredAlternative } from "../services/scoringEngine";
+import { useCountry } from "@/hooks/useCountry";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -71,7 +72,10 @@ type Props = {
 };
 
 export function ProcurementAlternatives({ preset }: Props) {
-  const ranked = useMemo(() => rankAlternatives(preset.id), [preset.id]);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const { activeCountry } = useCountry();
+
+  const ranked = useMemo(() => rankAlternatives(preset.id, activeCountry), [preset.id, activeCountry]);
   const top = ranked[0];
 
   const isEnergyScenario = preset.category === "energy";

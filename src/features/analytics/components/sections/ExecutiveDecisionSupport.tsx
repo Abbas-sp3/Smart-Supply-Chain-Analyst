@@ -4,6 +4,7 @@ import { Lightbulb, Package, Shield, Clock, TrendingDown } from "lucide-react";
 import type { ScenarioAnalysis } from "@/features/analytics/services/analyticsEngine";
 import { CRUDE_ALTERNATIVES } from "@/features/procurement/data/alternativeSources";
 import type { DisruptionPreset } from "@/features/scenario-simulator/types";
+import { useCountry } from "@/hooks/useCountry";
 
 type Props = {
   activeAnalysis: ScenarioAnalysis;
@@ -11,6 +12,7 @@ type Props = {
 };
 
 export function ExecutiveDecisionSupport({ activeAnalysis, activePreset }: Props) {
+  const { activeCountry } = useCountry();
   const bestAlt = CRUDE_ALTERNATIVES.filter(
     (a) =>
       !a.relevantForPresets ||
@@ -34,7 +36,7 @@ export function ExecutiveDecisionSupport({ activeAnalysis, activePreset }: Props
         </span>
       </div>
       <h3 className="mb-5 text-base font-semibold text-foreground">
-        If <span className="text-amber-400">{activePreset.label}</span> occurred today — what should India do?
+        If <span className="text-amber-400">{activePreset.label}</span> occurred today — what should {activeCountry.name} do?
       </h3>
 
       <div className="grid gap-4 md:grid-cols-2">

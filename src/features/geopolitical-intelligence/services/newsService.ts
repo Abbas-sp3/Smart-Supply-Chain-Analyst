@@ -8,6 +8,16 @@
  * - Return normalized RawArticle objects
  *
  * If NEWS_API_KEY is not set, falls back to curated mock articles
+/**
+ * newsService.ts — News Data Source Plugin
+ *
+ * Responsibilities:
+ * - Fetch latest India-trade-relevant news from NewsAPI
+ * - Remove duplicate articles (by URL)
+ * - Clean article text (strip HTML, truncate)
+ * - Return normalized RawArticle objects
+ *
+ * If NEWS_API_KEY is not set, falls back to curated mock articles
  * so the rest of the pipeline always has data to work with.
  *
  * Implements DataSourcePlugin — future sources (AIS, commodity prices,
@@ -16,12 +26,13 @@
 
 import type { DataSourceOutput, DataSourcePlugin, RawArticle } from "../types";
 import { NEWS_KEYWORDS, MAX_ARTICLES_PER_FETCH } from "../constants";
+import type { CountryProfile } from "@/data/countries/types";
 
 // ---------------------------------------------------------------------------
 // Curated mock articles — used when NEWS_API_KEY is not set.
 // Covers the most strategically important India trade intelligence topics.
 // ---------------------------------------------------------------------------
-const MOCK_ARTICLES: RawArticle[] = [
+const MOCK_ARTICLES_INDIA: RawArticle[] = [
   {
     title: "Red Sea Houthi Attacks Force Major Shipping Reroutes Around Cape of Good Hope",
     source: "Reuters",
@@ -46,63 +57,32 @@ const MOCK_ARTICLES: RawArticle[] = [
       "The United States has expanded semiconductor export controls targeting China, restricting advanced chip manufacturing equipment. China has responded with export restrictions on gallium and germanium, rare earth materials critical for semiconductor fabrication. India's growing electronics manufacturing sector, particularly for smartphones and automotive electronics, sources key components from both the US and Chinese supply chains. The disruption could delay India's PLI scheme targets for electronics manufacturing.",
     url: "https://bloomberg.com/mock-semi",
   },
-  {
-    title: "Strait of Hormuz Tensions Rise Amid Iran-US Standoff",
-    source: "Al Jazeera",
-    publishedAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
-    content:
-      "Tensions in the Strait of Hormuz have increased following naval standoffs between Iranian forces and US naval vessels in the Persian Gulf. Approximately 20% of global oil trade passes through this strategic chokepoint. India imports a significant portion of its crude oil from Gulf states including UAE, Saudi Arabia, and Iraq, all of which route through or near the Strait of Hormuz. A closure or significant disruption to this corridor could create acute energy supply challenges for Indian refineries.",
-    url: "https://aljazeera.com/mock-hormuz",
-  },
-  {
-    title: "China Restricts Rare Earth Exports, Affecting Global Supply Chains",
-    source: "The Guardian",
-    publishedAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
-    content:
-      "China has imposed new licensing requirements on the export of rare earth minerals including neodymium, dysprosium, and terbium. China controls approximately 60% of global rare earth mining and 85% of processing capacity. These minerals are essential for electric vehicle motors, wind turbines, defense electronics, and industrial machinery. India's defense sector, nascent EV industry, and electronics manufacturing are particularly vulnerable to these restrictions.",
-    url: "https://theguardian.com/mock-rare-earth",
-  },
-  {
-    title: "India Pharmaceutical Industry Faces API Supply Disruption from China",
-    source: "Economic Times",
-    publishedAt: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
-    content:
-      "Indian pharmaceutical manufacturers are facing disruptions in Active Pharmaceutical Ingredient (API) supplies from China following environmental crackdowns on chemical plants in Hubei and Shandong provinces. India imports approximately 70% of its API requirements from China. Key affected APIs include paracetamol, ibuprofen, and several antibiotic precursors. Industry bodies have warned of potential medicine shortages if alternative sources are not secured within the next quarter.",
-    url: "https://economictimes.com/mock-pharma",
-  },
-  {
-    title: "Port of Singapore Reports Record Congestion Affecting Trans-shipment",
-    source: "Straits Times",
-    publishedAt: new Date(Date.now() - 7 * 60 * 60 * 1000).toISOString(),
-    content:
-      "The Port of Singapore, the world's second busiest container port, is experiencing severe congestion with vessel waiting times reaching record highs. The congestion is attributed to rerouting caused by Red Sea disruptions and increased Asia-Europe trade volumes. Singapore is a critical trans-shipment hub for Indian trade with Southeast Asia, Australia, and East Asia. Delays at Singapore are cascading to Indian feeder ports including Chennai, Kochi, and Vizag.",
-    url: "https://straitstimes.com/mock-singapore",
-  },
-  {
-    title: "Russia-Ukraine Conflict Disrupts Global Fertilizer and Food Supply Chains",
-    source: "Reuters",
-    publishedAt: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
-    content:
-      "The ongoing Russia-Ukraine conflict continues to disrupt global supplies of fertilizers, wheat, and sunflower oil. Russia and Belarus together account for a significant share of global potash and nitrogen fertilizer exports. India, as one of the world's largest consumers of fertilizers for its agricultural sector, is exposed to these supply disruptions. The Indian government has been actively seeking alternative fertilizer suppliers from Canada, Saudi Arabia, and Morocco.",
-    url: "https://reuters.com/mock-fertilizer",
-  },
-  {
-    title: "Global Shipping Rates Surge on Multiple Simultaneous Disruptions",
-    source: "Lloyd's List",
-    publishedAt: new Date(Date.now() - 9 * 60 * 60 * 1000).toISOString(),
-    content:
-      "Global container shipping rates have surged significantly due to simultaneous disruptions across multiple key shipping corridors including the Red Sea, Panama Canal drought restrictions, and port congestion at major Asian hubs. The Freightos Baltic Index shows rates on Asia-Europe routes have risen dramatically. Indian importers across sectors including electronics, machinery, chemicals, and consumer goods are facing sharply higher logistics costs, which are expected to pass through to end consumer prices.",
-    url: "https://lloydslist.com/mock-rates",
-  },
-  {
-    title: "Australia-India Critical Minerals Partnership Advances Amid China Concerns",
-    source: "Mint",
-    publishedAt: new Date(Date.now() - 10 * 60 * 60 * 1000).toISOString(),
-    content:
-      "India and Australia have advanced their Critical Minerals Investment Partnership, targeting lithium, cobalt, nickel, and rare earth supplies from Australian mining projects. This follows India's strategic decision to reduce dependence on Chinese critical mineral processing. The partnership aims to establish a reliable supply chain for India's electric vehicle battery manufacturing ambitions and defense electronics sector. Several Indian companies have signed preliminary agreements with Australian mining firms.",
-    url: "https://livemint.com/mock-minerals",
-  },
 ];
+
+const MOCK_ARTICLES_SINGAPORE: RawArticle[] = [
+  {
+    title: "Malacca Strait Congestion Hits Record Highs Amid Regional Naval Drills",
+    source: "Reuters",
+    publishedAt: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(),
+    content:
+      "Unprecedented maritime traffic and regional naval exercises have led to severe congestion in the Malacca Strait. Singapore's transshipment volumes are experiencing significant delays. As a critical node for global trade, Singapore's port operations are heavily stressed, impacting supply chains for goods moving between the Middle East, Europe, and East Asia.",
+    url: "https://reuters.com/mock-malacca",
+  },
+  {
+    title: "Global Supply Chain Realignments Increase Demand for Singapore Refineries",
+    source: "Bloomberg",
+    publishedAt: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
+    content:
+      "Disruptions in traditional oil flows have sharply increased demand for Singapore's refining capacity. The Jurong Island refinery complex is operating at peak utilization to satisfy regional demand for refined products. This strategic pressure highlights Singapore's vital role in ensuring regional energy security amidst shifting global crude supply dynamics.",
+    url: "https://bloomberg.com/mock-singapore-refinery",
+  }
+];
+
+function getMockArticles(country: CountryProfile): RawArticle[] {
+  if (country.id === 'singapore') return MOCK_ARTICLES_SINGAPORE;
+  return MOCK_ARTICLES_INDIA;
+}
+
 
 // ---------------------------------------------------------------------------
 // Article cleaning utilities
@@ -140,14 +120,14 @@ function deduplicateByContent(articles: RawArticle[]): RawArticle[] {
 // NewsAPI fetcher
 // ---------------------------------------------------------------------------
 
-async function fetchFromNewsApi(): Promise<RawArticle[]> {
+async function fetchFromNewsApi(country: CountryProfile): Promise<RawArticle[]> {
   const apiKey = process.env.NEWS_API_KEY;
   if (!apiKey) {
     return [];
   }
 
   const keyword = NEWS_KEYWORDS[Math.floor(Date.now() / 3_600_000) % NEWS_KEYWORDS.length];
-  const query = `(${keyword}) AND (India OR shipping OR supply chain OR trade)`;
+  const query = `(${keyword}) AND (${country.name} OR shipping OR supply chain OR trade)`;
 
   const url = new URL("https://newsapi.org/v2/everything");
   url.searchParams.set("q", query);
@@ -191,24 +171,27 @@ async function fetchFromNewsApi(): Promise<RawArticle[]> {
 // DataSourcePlugin implementation
 // ---------------------------------------------------------------------------
 
-class NewsDataSourcePlugin implements DataSourcePlugin {
+export class NewsDataSourcePlugin implements DataSourcePlugin {
   readonly name = "NewsAPI";
 
-  async fetch(): Promise<DataSourceOutput[]> {
+  async fetch(country: CountryProfile): Promise<DataSourceOutput[]> {
     let articles: RawArticle[];
 
     try {
-      const fetched = await fetchFromNewsApi();
-      articles = fetched.length > 0 ? fetched : MOCK_ARTICLES;
+      const fetched = await fetchFromNewsApi(country);
+      const mock = getMockArticles(country);
+      articles = fetched.length > 0 ? fetched : mock;
     } catch (err) {
       console.error("[newsService] Fetch failed, using mock articles:", err);
-      articles = MOCK_ARTICLES;
+      const mock = getMockArticles(country);
+      articles = mock;
     }
 
     const unique = deduplicateByContent(articles).slice(0, MAX_ARTICLES_PER_FETCH);
 
+    const isMock = unique.some((a) => getMockArticles(country).includes(a));
     console.log(
-      `[newsService] Articles ready: ${unique.length} (${unique.some((a) => MOCK_ARTICLES.includes(a)) ? "includes mock" : "live"})`,
+      `[newsService] Articles ready: ${unique.length} (${isMock ? "includes mock" : "live"}) for ${country.id}`,
     );
 
     // Return structured data instead of string formatting

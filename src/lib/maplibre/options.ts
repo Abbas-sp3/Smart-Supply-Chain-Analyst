@@ -10,8 +10,8 @@ export const WORLD_MAP_OPTIONS = {
   style: DEFAULT_MAP_STYLE,
   center: DEFAULT_MAP_CENTER,
   zoom: DEFAULT_MAP_ZOOM,
-  minZoom: DEFAULT_MAP_ZOOM,
-  maxZoom: DEFAULT_MAP_ZOOM,
+  minZoom: 1,
+  maxZoom: 10,
   // Disable all interactions — map is a static decorative backdrop
   scrollZoom: false,
   dragPan: false,
@@ -31,14 +31,17 @@ export const WORLD_MAP_OPTIONS = {
   trackResize: true,
   refreshExpiredTiles: false,
   attributionControl: false,
-} as const satisfies Partial<MapInstanceOptions>;
+} satisfies Partial<MapInstanceOptions>;
 
 export function createWorldMapOptions(
   container: HTMLElement,
+  overrides?: { center?: [number, number]; zoom?: number },
 ): MapInstanceOptions {
   return {
     ...WORLD_MAP_OPTIONS,
     container,
+    ...(overrides?.center !== undefined ? { center: overrides.center } : {}),
+    ...(overrides?.zoom !== undefined ? { zoom: overrides.zoom } : {}),
   };
 }
 

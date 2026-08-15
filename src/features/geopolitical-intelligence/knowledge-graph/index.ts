@@ -13,7 +13,7 @@ import {
   ALTERNATIVE_SUPPLIERS,
   type KnowledgeGraphNode,
   type AlternativeSupplierMapping,
-} from "./indiaTradeGraph";
+} from "./tradeGraph";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Public types — consumed by intelligenceContextService

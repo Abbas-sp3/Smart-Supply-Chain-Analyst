@@ -123,6 +123,22 @@ export const CORRIDOR_ROUTES: Record<string, LonLat[]> = {
   ],
 };
 
+export const SG_CORRIDOR_ROUTES: Record<string, LonLat[]> = {
+  // Persian Gulf → Strait of Hormuz → Indian Ocean → Malacca → Singapore
+  corridor_hormuz: [
+    [50, 27], [52, 26], [54.5, 25.5], [56.3, 26.6], [57.5, 24.5], [59, 22.5], [64, 18],
+    [70, 10], [78, 4], [85, 5], [93, 6], [98.5, 4.5], [100.9, 2.8], [103.5, 1.3]
+  ],
+  // Just the Malacca strait approach
+  corridor_malacca: [
+    [98.5, 4.5], [100.9, 2.8], [103.5, 1.3]
+  ],
+  // South China Sea approach
+  corridor_south_china_sea: [
+    [115, 15], [112.5, 12], [109, 8], [107, 5], [104.5, 2], [103.5, 1.3]
+  ],
+};
+
 // ─── Alternate routes (for supplier-switch / spot-charter lever overlays) ─────
 
 /** Supplier country → which corridor their shipments travel to reach India */
@@ -146,6 +162,11 @@ export const INDIA_PORTS: { id: string; label: string; coords: LonLat }[] = [
   { id: "port_chennai",    label: "Chennai",  coords: [80.3, 13.1] },
   { id: "port_vizag",      label: "Vizag",    coords: [83.3, 17.7] },
   { id: "port_mangalore",  label: "Mangalore",coords: [74.9, 12.9] },
+];
+
+export const SINGAPORE_PORTS: { id: string; label: string; coords: LonLat }[] = [
+  { id: "port_jurong", label: "Jurong", coords: [103.68, 1.26] },
+  { id: "port_bukom",  label: "Bukom",  coords: [103.76, 1.23] },
 ];
 
 // ─── Simplified land-mass polygons ─────────────────────────────────────────────

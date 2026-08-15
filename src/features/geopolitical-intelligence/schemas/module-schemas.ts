@@ -62,7 +62,7 @@ const monitoringPrioritySchema = z.object({
 
 const scenarioCaseSchema = z.object({
   description: z.string(),
-  impact_on_india: z.string(),
+  impact_on_country: z.string(),
 });
 
 const historicalEventSchema = z.object({
@@ -93,7 +93,7 @@ export const executiveSummaryModuleSchema = z.object({
     .array(intelligenceObservationSchema)
     .optional()
     .default([]),
-  why_india_should_care: z.string(),
+  strategic_implications: z.string(),
 });
 
 export const supplyChainImpactModuleSchema = z.object({

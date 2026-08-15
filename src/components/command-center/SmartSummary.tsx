@@ -8,9 +8,11 @@ import type { NesiComponents } from "@/lib/nesi";
 interface SmartSummaryProps {
   components: NesiComponents;
   activeAlerts: any[];
+  countryId?: string;
+  countryName?: string;
 }
 
-export function SmartSummary({ components, activeAlerts }: SmartSummaryProps) {
+export function SmartSummary({ components, activeAlerts, countryId = "india", countryName = "India" }: SmartSummaryProps) {
   const [summary, setSummary] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -33,7 +35,9 @@ export function SmartSummary({ components, activeAlerts }: SmartSummaryProps) {
             srf: components.srf,
             scrf: components.scrf,
             activeAlerts,
-            scenarioRun: null // Not persistently available, explicit via instructions
+            scenarioRun: null,
+            countryId,
+            countryName,
           }),
         });
         

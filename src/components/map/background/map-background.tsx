@@ -21,7 +21,7 @@ export function MapBackground() {
 
         layers.forEach((layer) => {
           const id = layer.id.toLowerCase();
-          
+
           // Define which layers represent base geography we want to KEEP
           const isBaseGeography =
             id.includes("background") ||

@@ -6,6 +6,7 @@ import { Clock, Ship, TrendingUp, Play, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DISRUPTION_PRESETS } from "@/features/scenario-simulator/constants/disruption-presets";
 import { CATEGORY_META, SEVERITY_COLOR } from "@/features/scenario-simulator/constants/ui-constants";
+import type { DisruptionPreset } from "@/features/scenario-simulator/types";
 
 type DisruptionPresetSelectorProps = {
   selectedPresetId: string;
@@ -16,6 +17,8 @@ type DisruptionPresetSelectorProps = {
   error: string | null;
   title?: string;
   description?: string;
+  /** Optional override — pass country-scoped presets. Falls back to global DISRUPTION_PRESETS. */
+  presets?: DisruptionPreset[];
 };
 
 export function DisruptionPresetSelector({
@@ -27,10 +30,13 @@ export function DisruptionPresetSelector({
   error,
   title = "Select Disruption Scenario",
   description = "No LLM in the computation path — engine runs deterministically",
+  presets: presetsProp,
 }: DisruptionPresetSelectorProps) {
+  const presets = presetsProp ?? DISRUPTION_PRESETS;
+
   return (
     <div className="space-y-5">
-      {/* Section heading — sits on left column which can be map gutter */}
+      {/* Section heading */}
       <div>
         <h2 className="mb-1 text-sm font-bold uppercase tracking-wider text-foreground">
           {title}
@@ -38,7 +44,7 @@ export function DisruptionPresetSelector({
       </div>
 
       <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-        {DISRUPTION_PRESETS.map((preset) => {
+        {presets.map((preset) => {
           const meta =
             CATEGORY_META[preset.category] ?? CATEGORY_META.multi_sector;
           const isSelected = preset.id === selectedPresetId;
@@ -76,7 +82,7 @@ export function DisruptionPresetSelector({
                   <h3 className="mt-1 text-sm font-semibold leading-tight text-foreground">
                     {preset.label}
                   </h3>
-                  <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+                  <p className="mt-1 line-clamp-4 text-xs leading-relaxed text-muted-foreground">
                     {preset.description}
                   </p>
                 </div>
@@ -117,7 +123,7 @@ export function DisruptionPresetSelector({
         })}
       </div>
 
-      {/* Run baseline button — must read as the primary action, fully visible over map */}
+      {/* Run baseline button */}
       <motion.button
         type="button"
         onClick={onRunBaseline}

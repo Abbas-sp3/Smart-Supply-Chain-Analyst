@@ -11,6 +11,7 @@
 
 import type { DataSourcePlugin, IntelligenceReport } from "../types";
 import { intelligenceReportSchema } from "../schemas/intelligence.schema";
+import type { CountryProfile } from "@/data/countries/types";
 import { newsDataSource } from "./newsService";
 import { openSkyDataSource } from "./openSkyService";
 import { aisIntelligenceDataSource } from "./aisIntelligenceService";
@@ -41,7 +42,7 @@ const DATA_SOURCES: DataSourcePlugin[] = [
 ];
 
 // ---------------------------------------------------------------------------
-// Full-report cache (assembled output)
+// Full-report cache keyed by country.id (assembled output)
 // ---------------------------------------------------------------------------
 type CacheEntry = {
   report: IntelligenceReport;
@@ -49,36 +50,37 @@ type CacheEntry = {
 };
 
 type GlobalIntelligenceState = typeof globalThis & {
-  __intelligenceCache?: CacheEntry;
-  __intelligenceInProgress?: Promise<IntelligenceReport>;
+  __intelligenceCache?: Record<string, CacheEntry>;
+  __intelligenceInProgress?: Record<string, Promise<IntelligenceReport>>;
 };
 
 const globalStore = globalThis as GlobalIntelligenceState;
 
-function getCached(): IntelligenceReport | null {
-  const entry = globalStore.__intelligenceCache;
+function getCached(countryId: string): IntelligenceReport | null {
+  const entry = globalStore.__intelligenceCache?.[countryId];
   if (!entry) return null;
   if (Date.now() - entry.generatedAt > INTELLIGENCE_CACHE_TTL_MS) return null;
   return entry.report;
 }
 
-export function getIntelligenceCacheTimestamp(): number {
-  return globalStore.__intelligenceCache?.generatedAt || 0;
+export function getIntelligenceCacheTimestamp(countryId: string): number {
+  return globalStore.__intelligenceCache?.[countryId]?.generatedAt || 0;
 }
 
-function setCache(report: IntelligenceReport): void {
-  globalStore.__intelligenceCache = { report, generatedAt: Date.now() };
+function setCache(countryId: string, report: IntelligenceReport): void {
+  if (!globalStore.__intelligenceCache) globalStore.__intelligenceCache = {};
+  globalStore.__intelligenceCache[countryId] = { report, generatedAt: Date.now() };
 }
 
 // ---------------------------------------------------------------------------
 // Core generation — modular pipeline
 // ---------------------------------------------------------------------------
-async function generateFresh(): Promise<IntelligenceReport> {
-  console.log("[intelligenceService] Generating fresh intelligence report (modular pipeline)...");
+async function generateFresh(country: CountryProfile): Promise<IntelligenceReport> {
+  console.log(`[intelligenceService] Generating fresh intelligence report for ${country.name} (modular pipeline)...`);
 
   // Step 1: Collect from all data source plugins
   const pluginResults = await Promise.allSettled(
-    DATA_SOURCES.map((plugin) => plugin.fetch()),
+    DATA_SOURCES.map((plugin) => plugin.fetch(country)),
   );
 
   const allSources = pluginResults.flatMap((result, i) => {
@@ -101,7 +103,7 @@ async function generateFresh(): Promise<IntelligenceReport> {
   );
 
   // Step 2: Preprocess — fact extraction, knowledge graph, prioritization
-  const augmentedObservations = await preprocessIntelligence(allSources);
+  const augmentedObservations = await preprocessIntelligence(allSources, country);
 
   // Step 3: Build enriched intelligence context (with KG tracing + evidence fusion)
   const context = buildIntelligenceContext(augmentedObservations, allSources);
@@ -114,15 +116,25 @@ async function generateFresh(): Promise<IntelligenceReport> {
       `${context.evidence_signals.length} corroborated signals.`,
   );
 
-  // Step 4: Run independent Groq modules in parallel
-  const [executive, supplyChain, recommendations, scenarios, evidence] =
-    await Promise.all([
-      runExecutiveSummaryModule(context),
-      runSupplyChainImpactModule(context),
-      runRecommendationsModule(context),
-      runScenarioAnalysisModule(context, contextHash),
-      runEvidenceModule(context),
-    ]);
+  // Step 4: Run Groq modules sequentially (not parallel) to stay within per-minute RPM limits.
+  // 5 parallel calls saturate both Groq keys + Gemini fallback simultaneously.
+  // Sequential calls with a 1.5s gap spread load across ~10s — well within the 60s window.
+  // Impact on end-users: negligible once the 30-min cache (Stage A) is warm.
+  const MODULE_INTER_CALL_DELAY_MS = Number(process.env.MODULE_INTER_CALL_DELAY_MS) || 1500;
+  const delay = (ms: number) => new Promise(r => setTimeout(r, ms));
+
+  console.log(`[intelligenceService] Running 5 modules sequentially (${MODULE_INTER_CALL_DELAY_MS}ms gap)...`);
+
+  const executive = await runExecutiveSummaryModule(context, country);
+  await delay(MODULE_INTER_CALL_DELAY_MS);
+  const supplyChain = await runSupplyChainImpactModule(context, country);
+  await delay(MODULE_INTER_CALL_DELAY_MS);
+  const recommendations = await runRecommendationsModule(context, country);
+  await delay(MODULE_INTER_CALL_DELAY_MS);
+  const scenarios = await runScenarioAnalysisModule(context, contextHash, country);
+  await delay(MODULE_INTER_CALL_DELAY_MS);
+  const evidence = await runEvidenceModule(context, country);
+
 
   // Step 5: Assemble into unified IntelligenceReport (with KG gap-filling)
   const report = assembleIntelligenceReport(
@@ -155,30 +167,40 @@ async function generateFresh(): Promise<IntelligenceReport> {
 
   console.log("[intelligenceService] Modular report assembled and validated.");
 
-  setCache(validated);
+  setCache(country.id, validated);
   return validated;
 }
 
 // ---------------------------------------------------------------------------
-// Public API
+// Public API — country-parameterized, cache keyed by country.id
 // ---------------------------------------------------------------------------
 
-export async function generateIntelligenceReport(): Promise<IntelligenceReport> {
-  const cached = getCached();
+export async function generateIntelligenceReport(country: CountryProfile): Promise<IntelligenceReport> {
+  const cached = getCached(country.id);
   if (cached) {
-    console.log("[intelligenceService] Returning cached report.");
+    const ageSeconds = Math.round((Date.now() - (globalStore.__intelligenceCache?.[country.id]?.generatedAt ?? 0)) / 1000);
+    console.log(
+      `[intelligenceService] Cache HIT for ${country.id} (age: ${ageSeconds}s) — serving from cache, all 5 LLM module calls skipped.`
+    );
     return cached;
   }
 
-  if (globalStore.__intelligenceInProgress) {
-    console.log("[intelligenceService] Generation in progress — awaiting existing promise.");
-    return globalStore.__intelligenceInProgress;
+  if (!globalStore.__intelligenceInProgress) {
+    globalStore.__intelligenceInProgress = {};
   }
 
-  const promise = generateFresh().finally(() => {
-    globalStore.__intelligenceInProgress = undefined;
+  const inProgress = globalStore.__intelligenceInProgress[country.id] as IntelligenceReport | Promise<IntelligenceReport> | undefined;
+  if (inProgress) {
+    console.log(`[intelligenceService] Generation in progress for ${country.id} — awaiting existing promise.`);
+    return globalStore.__intelligenceInProgress[country.id]!;
+  }
+
+  const promise = generateFresh(country).finally(() => {
+    if (globalStore.__intelligenceInProgress) {
+      delete globalStore.__intelligenceInProgress[country.id];
+    }
   });
 
-  globalStore.__intelligenceInProgress = promise;
+  globalStore.__intelligenceInProgress[country.id] = promise;
   return promise;
 }

@@ -1,4 +1,7 @@
+"use client";
+
 import { Brain } from "lucide-react";
+import { useCountry } from "@/hooks/useCountry";
 import { DISRUPTION_PRESETS } from "@/features/scenario-simulator/constants/disruption-presets";
 import {
   runAnalyticsEngine,
@@ -17,27 +20,29 @@ import { HistoricalPatternAnalysis } from "@/features/analytics/components/secti
 import { ExecutiveDecisionSupport } from "@/features/analytics/components/sections/ExecutiveDecisionSupport";
 import { ResponsePipeline } from "@/features/analytics/components/sections/ResponsePipeline";
 
-export const metadata = {
-  title: "Analytics — Strategic Intelligence Layer | Supply Chain Resilience Platform",
-  description:
-    "Executive-level synthesis of all operational modules. Cross-scenario analysis, vulnerability rankings, and decision support for India's energy supply chain.",
-};
+import { EnergyFlowSection } from "@/features/analytics/components/sections/EnergyFlowSection";
+import { EnergyHorusWidgets } from "@/features/analytics/components/sections/EnergyHorusWidgets";
+
+// Metadata cannot be exported from a client component, moved or removed
 
 // Default to the highest-severity preset (Hormuz Full Closure) as the active scenario
 const DEFAULT_PRESET_ID = "hormuz_full_closure";
 
 export default function AnalyticsPage() {
+  const { activeCountry } = useCountry();
+  const presets = activeCountry.disruptionPresets;
+
   const activePreset =
-    DISRUPTION_PRESETS.find((p) => p.id === DEFAULT_PRESET_ID) ?? DISRUPTION_PRESETS[0];
+    presets.find((p) => p.id === DEFAULT_PRESET_ID) ?? presets[0];
 
   let summary: ReturnType<typeof runAnalyticsEngine>;
   let insights: string[];
   let mitigationComparison: ReturnType<typeof computeMitigationComparison>;
 
   try {
-    summary = runAnalyticsEngine();
+    summary = runAnalyticsEngine(activeCountry);
     insights = generateStrategicBrief(summary, activePreset);
-    mitigationComparison = computeMitigationComparison(activePreset);
+    mitigationComparison = computeMitigationComparison(activePreset, [], activeCountry);
   } catch (err) {
     console.error("[Analytics] Engine error:", err);
     // Safe fallback — re-throw so Next.js error boundary catches it
@@ -49,28 +54,6 @@ export default function AnalyticsPage() {
   )!;
 
   return (
-    <div className="flex h-full flex-col overflow-y-auto">
-      <div className="sticky top-0 z-10 border-b border-white/10 bg-background/80 backdrop-blur-md">
-        <div className="mx-auto max-w-7xl px-6 py-4">
-          <div className="flex items-center gap-3">
-            <div className="flex size-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.06]">
-              <Brain className="size-5 text-sky-400" aria-hidden />
-            </div>
-            <div>
-              <h1 className="text-sm font-bold uppercase tracking-widest text-foreground">
-                Strategic Intelligence Layer
-              </h1>
-              <p className="text-xs text-muted-foreground">
-                Executive synthesis of all operational modules — answers what no single module can
-              </p>
-            </div>
-            <div className="ml-auto hidden items-center gap-1.5 rounded-full border border-sky-500/20 bg-sky-500/5 px-3 py-1 text-[10px] font-semibold text-sky-400 md:flex">
-              <span className="size-1.5 animate-pulse rounded-full bg-sky-400" />
-              ACTIVE: {activePreset.label}
-            </div>
-          </div>
-        </div>
-      </div>
       <div className="mx-auto w-full max-w-7xl flex-1 space-y-6 px-6 py-6">
         <section aria-labelledby="freshness-heading">
           <h2 id="freshness-heading" className="sr-only">Data Freshness</h2>
@@ -83,6 +66,10 @@ export default function AnalyticsPage() {
             activePreset={activePreset}
             summary={summary}
           />
+        </section>
+        <section aria-labelledby="energy-flow-heading">
+          <h2 id="energy-flow-heading" className="sr-only">Strategic Energy Flow</h2>
+          <EnergyFlowSection />
         </section>
         <section aria-labelledby="vulnerability-heading">
           <h2 id="vulnerability-heading" className="sr-only">Systemic Vulnerability Analysis</h2>
@@ -106,6 +93,11 @@ export default function AnalyticsPage() {
             resilienceRanks={summary.resilienceRanks}
           />
         </section>
+        <section aria-labelledby="energy-horus-heading">
+          <h2 id="energy-horus-heading" className="sr-only">Energy Market & Risk Intelligence</h2>
+          <EnergyHorusWidgets />
+        </section>
+
         <div className="grid gap-6 xl:grid-cols-2">
           <section aria-labelledby="market-analytics-heading">
             <h2 id="market-analytics-heading" className="sr-only">Market Analytics</h2>
@@ -130,6 +122,5 @@ export default function AnalyticsPage() {
         </section>
 
       </div>
-    </div>
   );
 }

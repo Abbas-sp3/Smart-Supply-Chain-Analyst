@@ -16,31 +16,28 @@ import {
 import { cn } from "@/lib/utils";
 import type { PropagationResult, CorridorImpactResult } from "@/features/scenario-simulator/types";
 import type { DisruptionPreset } from "@/features/scenario-simulator/types";
-import {
-  INDIA_CORRIDOR_FRACTION,
-  PORT_CORRIDOR_FRACTION,
-} from "@/features/scenario-simulator/services/propagationEngine";
-import { INDIA_TRADE_GRAPH } from "@/features/geopolitical-intelligence/knowledge-graph/indiaTradeGraph";
+import { useCountry } from "@/hooks/useCountry";
+import { CountryProfile } from "@/data/countries/types";
 
 // ── helpers ─────────────────────────────────────────────────────────────────
 
-function getNodeBaslineMtpa(impact: CorridorImpactResult, preset: DisruptionPreset): number {
-  const node = INDIA_TRADE_GRAPH.find((n) => n.id === impact.nodeId);
+function getNodeBaslineMtpa(impact: CorridorImpactResult, preset: DisruptionPreset, country: CountryProfile): number {
+  const node = country.tradeGraph.find((n) => n.id === impact.nodeId);
   if (!node || !node.capacityMtpa) return 0;
   const util = (node.baseUtilizationPct ?? 75) / 100;
 
   if (node.type === "corridor") {
-    const frac = INDIA_CORRIDOR_FRACTION[impact.nodeId] ?? 0.05;
+    const frac = country.corridorFractions[impact.nodeId] ?? 0.05;
     return node.capacityMtpa * util * frac;
   }
 
   if (node.type === "port") {
     // Find which disrupted corridor this port is affected by
     const activeCorridor = preset.affectedNodeIds.find(
-      (id) => PORT_CORRIDOR_FRACTION[`${impact.nodeId}:${id}`] !== undefined,
+      (id) => country.portCorridorFractions[`${impact.nodeId}:${id}`] !== undefined,
     );
     const portFrac = activeCorridor
-      ? (PORT_CORRIDOR_FRACTION[`${impact.nodeId}:${activeCorridor}`] ?? 0.20)
+      ? (country.portCorridorFractions[`${impact.nodeId}:${activeCorridor}`] ?? 0.20)
       : 0.20;
     return node.capacityMtpa * util * portFrac;
   }
@@ -62,8 +59,9 @@ function buildTrajectory(
   impact: CorridorImpactResult,
   withLeversImpact: CorridorImpactResult | null,
   preset: DisruptionPreset,
+  country: CountryProfile,
 ): TrajectoryPoint[] {
-  const baselineMtpa = getNodeBaslineMtpa(impact, preset);
+  const baselineMtpa = getNodeBaslineMtpa(impact, preset, country);
   const lagDays = impact.lagDays ?? 0;
   const duration = preset.expectedDurationDays;
   const recoveryDays = Math.min(duration * 0.6, 30);
@@ -203,6 +201,8 @@ type NodeTrajectoryCardProps = {
 };
 
 export function NodeTrajectoryCard({ baseline, withLevers, preset }: NodeTrajectoryCardProps) {
+  const { activeCountry } = useCountry();
+  
   // Filter to nodes with meaningful impact, sort by severity desc
   const tabNodes = useMemo(() => {
     return baseline.nodeImpacts
@@ -231,13 +231,13 @@ export function NodeTrajectoryCard({ baseline, withLevers, preset }: NodeTraject
 
   const trajectoryData = useMemo(() => {
     if (!activeImpact) return [];
-    return buildTrajectory(activeImpact, withLeversImpact, preset);
-  }, [activeImpact, withLeversImpact, preset]);
+    return buildTrajectory(activeImpact, withLeversImpact, preset, activeCountry);
+  }, [activeImpact, withLeversImpact, preset, activeCountry]);
 
   const baselineMtpa = useMemo(() => {
     if (!activeImpact) return 0;
-    return getNodeBaslineMtpa(activeImpact, preset);
-  }, [activeImpact, preset]);
+    return getNodeBaslineMtpa(activeImpact, preset, activeCountry);
+  }, [activeImpact, preset, activeCountry]);
 
   const peakGap = activeImpact?.lockedVolumeMtpa || (baselineMtpa * (activeImpact?.effectiveSeverityPct ?? 0) / 100);
   const leverGap = withLeversImpact

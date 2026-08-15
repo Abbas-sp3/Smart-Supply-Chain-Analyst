@@ -38,7 +38,7 @@ export type ExecutiveSummaryModuleOutput = {
   current_operational_assessment: OperationalAssessment;
   key_developments: KeyDevelopment[];
   intelligence_observations: IntelligenceObservation[];
-  why_india_should_care: string;
+  strategic_implications: string;
 };
 
 export type SupplyChainImpactModuleOutput = {

@@ -219,7 +219,7 @@ export function assembleIntelligenceReport(
     current_operational_assessment: executive.current_operational_assessment,
     key_developments: executive.key_developments,
     intelligence_observations: executive.intelligence_observations,
-    why_india_should_care: executive.why_india_should_care,
+    strategic_implications: executive.strategic_implications,
     ...projected,
     possible_supply_chain_impacts: supplyChain.supply_chain_impacts,
     alternative_supply_options: recommendations.alternative_supply_options,

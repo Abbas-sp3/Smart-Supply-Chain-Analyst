@@ -12,8 +12,10 @@ import { EnergyCorridorWatch } from "@/components/command-center/EnergyCorridorW
 import { ImportDependencyMetrics } from "@/components/command-center/ImportDependencyMetrics";
 import { calculateGrf, calculateSrf, calculateNesi, type NesiComponents, type AlertSeverity } from "@/lib/nesi";
 import { ISPRL_CURRENT_STATE, ISPRL_TOTAL_CAPACITY_MMT } from "@/features/scenario-simulator/constants/reserve-config";
+import { useCountry } from "@/hooks/useCountry";
 
 export function WorkspaceContent() {
+  const { activeCountry } = useCountry();
   const [components, setComponents] = useState<NesiComponents | null>(null);
   const [activeAlerts, setActiveAlerts] = useState<any[]>([]);
 
@@ -80,7 +82,12 @@ export function WorkspaceContent() {
             <NesiHero components={components} />
           </div>
           <div className="w-full">
-            <SmartSummary components={components} activeAlerts={activeAlerts} />
+            <SmartSummary
+              components={components}
+              activeAlerts={activeAlerts}
+              countryId={activeCountry.id}
+              countryName={activeCountry.name}
+            />
           </div>
         </div>
 

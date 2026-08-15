@@ -6,12 +6,11 @@
  * from DISRUPTION_PRESETS, INDIA_TRADE_GRAPH, and existing engine outputs.
  */
 
-import { DISRUPTION_PRESETS } from "@/features/scenario-simulator/constants/disruption-presets";
 import { runPropagation } from "@/features/scenario-simulator/services/propagationEngine";
 import { generateOptimizationStrategy } from "@/features/strategic-reserve/services/optimizationEngine";
-import { INDIA_TRADE_GRAPH } from "@/features/geopolitical-intelligence/knowledge-graph/indiaTradeGraph";
-import { CRUDE_ALTERNATIVES } from "@/features/procurement/data/alternativeSources";
 import type { DisruptionPreset } from "@/features/scenario-simulator/types";
+import { CountryProfile } from "@/data/countries/types";
+import { indiaProfile } from "@/data/countries/india";
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
@@ -73,11 +72,13 @@ export type AnalyticsSummary = {
 
 // ── Engine ────────────────────────────────────────────────────────────────
 
-export function runAnalyticsEngine(): AnalyticsSummary {
+export function runAnalyticsEngine(country: CountryProfile = indiaProfile): AnalyticsSummary {
+  const presets = country.disruptionPresets;
+
   // 1. Run propagation + optimization for ALL presets
-  const scenarioAnalyses: ScenarioAnalysis[] = DISRUPTION_PRESETS.map((preset) => {
-    const prop = runPropagation(preset, []);
-    const opt = generateOptimizationStrategy(prop);
+  const scenarioAnalyses: ScenarioAnalysis[] = presets.map((preset) => {
+    const prop = runPropagation(preset, [], country);
+    const opt = generateOptimizationStrategy(prop, country);
 
     const totalLocked = prop.nodeImpacts.reduce(
       (sum, n) => sum + (n.lockedVolumeMtpa ?? 0),
@@ -105,8 +106,8 @@ export function runAnalyticsEngine(): AnalyticsSummary {
 
   // 2. Systemic Vulnerability: count how many presets affect each node
   const nodeFrequency: Record<string, { freq: number; locked: number }> = {};
-  for (const preset of DISRUPTION_PRESETS) {
-    const prop = runPropagation(preset, []);
+  for (const preset of presets) {
+    const prop = runPropagation(preset, [], country);
     for (const impact of prop.nodeImpacts) {
       if (!nodeFrequency[impact.nodeId]) {
         nodeFrequency[impact.nodeId] = { freq: 0, locked: 0 };
@@ -116,9 +117,9 @@ export function runAnalyticsEngine(): AnalyticsSummary {
     }
   }
 
-  const vulnerabilityRanks: VulnerabilityRank[] = Object.entries(nodeFrequency)
+    const vulnerabilityRanks: VulnerabilityRank[] = Object.entries(nodeFrequency)
     .map(([nodeId, data]) => {
-      const node = INDIA_TRADE_GRAPH.find((n) => n.id === nodeId);
+      const node = country.tradeGraph.find((n) => n.id === nodeId);
       return {
         nodeId,
         label: node?.label ?? nodeId.replace(/_/g, " "),
@@ -131,7 +132,7 @@ export function runAnalyticsEngine(): AnalyticsSummary {
     .slice(0, 12);
 
   // 3. Knowledge Graph Centrality (degree centrality by connection count)
-  const graphCentralityRanks: GraphCentralityRank[] = INDIA_TRADE_GRAPH.map((node) => ({
+  const graphCentralityRanks: GraphCentralityRank[] = country.tradeGraph.map((node) => ({
     nodeId: node.id,
     label: node.label,
     type: node.type,
@@ -145,7 +146,7 @@ export function runAnalyticsEngine(): AnalyticsSummary {
     .slice(0, 12);
 
   // 4. Resilience ranking: high flex + low utilization = resilient
-  const resilienceRanks: ResilienceRank[] = INDIA_TRADE_GRAPH.filter(
+  const resilienceRanks: ResilienceRank[] = country.tradeGraph.filter(
     (n) => n.flexibilityFactor !== undefined && n.baseUtilizationPct !== undefined
   )
     .map((node) => {
@@ -191,13 +192,14 @@ export function runAnalyticsEngine(): AnalyticsSummary {
 
 export function computeMitigationComparison(
   preset: DisruptionPreset,
-  procurementAlternatives: { name: string; supplyMtpa: number }[] = []
+  procurementAlternatives: { name: string; supplyMtpa: number }[] = [],
+  country: CountryProfile = indiaProfile
 ): MitigationComparison[] {
-  const baseProp = runPropagation(preset, []);
+  const baseProp = runPropagation(preset, [], country);
   const baseGap = baseProp.metrics.supplyGapMtpa.likely;
 
   // After SPR deployment (partial fill at max drawdown rate)
-  const sprOpt = generateOptimizationStrategy(baseProp);
+  const sprOpt = generateOptimizationStrategy(baseProp, country);
   const sprDeployedMtpa = sprOpt.effectiveDailyRateMtpa * 365; // annualized deployed volume
   const afterSprGap = Math.max(0, baseGap - sprDeployedMtpa);
 
@@ -243,9 +245,11 @@ export function computeMitigationComparison(
 
 export function generateStrategicBrief(
   summary: AnalyticsSummary,
-  activePreset: DisruptionPreset
+  activePreset: DisruptionPreset,
+  country: CountryProfile = indiaProfile
 ): string[] {
   const insights: string[] = [];
+  const presets = country.disruptionPresets;
 
   // From active scenario
   const activeAnalysis = summary.scenarioAnalyses.find(
@@ -277,11 +281,11 @@ export function generateStrategicBrief(
 
   // Cross-scenario structural insight
   insights.push(
-    `Across all ${DISRUPTION_PRESETS.length} modelled scenarios, SPR release is triggered in ${summary.sprRequiredCount} cases — suggesting concentrated risk in high-severity Gulf disruptions.`
+    `Across all ${presets.length} modelled scenarios, SPR release is triggered in ${summary.sprRequiredCount} cases — suggesting concentrated risk in high-severity Gulf disruptions.`
   );
 
   insights.push(
-    `${summary.mostImpactedNode} is the most frequently impacted supply chain node, appearing in ${summary.vulnerabilityRanks[0]?.frequencyCount ?? 0} of ${DISRUPTION_PRESETS.length} disruption scenarios.`
+    `${summary.mostImpactedNode} is the most frequently impacted supply chain node, appearing in ${summary.vulnerabilityRanks[0]?.frequencyCount ?? 0} of ${presets.length} disruption scenarios.`
   );
 
   // Worst case
@@ -290,12 +294,12 @@ export function generateStrategicBrief(
   );
 
   // Procurement insight (most relevant alternative for active scenario)
-  const bestAlt = CRUDE_ALTERNATIVES.filter(
-    (a) =>
+  const bestAlt = country.defaultAlternativeSources.filter(
+    (a: any) =>
       !a.relevantForPresets ||
       a.relevantForPresets.length === 0 ||
       a.relevantForPresets.includes(activePreset.id)
-  ).sort((a, b) => a.priceDiffBbl - b.priceDiffBbl)[0];
+  ).sort((a: any, b: any) => a.priceDiffBbl - b.priceDiffBbl)[0];
 
   if (bestAlt) {
     insights.push(

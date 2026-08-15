@@ -5,6 +5,8 @@ import type {
   PropagationResult,
   DecisionLever,
 } from "@/features/scenario-simulator/types";
+import { useCountry } from "@/hooks/useCountry";
+import { CountryProfile } from "@/data/countries/types";
 
 export type SimulationRun = {
   result: PropagationResult;
@@ -25,11 +27,12 @@ export type UseSimulationReturn = {
 async function callEngine(
   presetId: string,
   levers: DecisionLever[],
+  country: CountryProfile
 ): Promise<PropagationResult> {
   const res = await fetch("/api/scenario-simulator", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ presetId, levers }),
+    body: JSON.stringify({ presetId, levers, countryId: country.id }),
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error ?? "Simulation failed");
@@ -42,27 +45,28 @@ export function useSimulation(): UseSimulationReturn {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const { activeCountry } = useCountry();
 
   const runBaseline = useCallback(async (presetId: string) => {
     setLoading(true);
     setError(null);
     setWithLevers(null);
     try {
-      const result = await callEngine(presetId, []);
+      const result = await callEngine(presetId, [], activeCountry);
       setBaseline({ result, levers: [], label: "Baseline" });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Unknown error");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [activeCountry]);
 
   const runWithLevers = useCallback(
     async (presetId: string, levers: DecisionLever[]) => {
       setLoading(true);
       setError(null);
       try {
-        const result = await callEngine(presetId, levers);
+        const result = await callEngine(presetId, levers, activeCountry);
         setWithLevers({ result, levers, label: "With levers" });
       } catch (e) {
         setError(e instanceof Error ? e.message : "Unknown error");
@@ -70,7 +74,7 @@ export function useSimulation(): UseSimulationReturn {
         setLoading(false);
       }
     },
-    [],
+    [activeCountry],
   );
 
   const reset = useCallback(() => {

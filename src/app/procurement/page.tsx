@@ -12,6 +12,8 @@ import {
   ReferenceLine,
 } from "recharts";
 import { ProvenanceBadge } from "@/components/ProvenanceBadge";
+import { useCountry } from "@/hooks/useCountry";
+import { AlternativeFlowSankeySection } from "@/features/procurement/components/AlternativeFlowSankeySection";
 
 const lineDrawCSS = `
 @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
@@ -166,6 +168,7 @@ function cls(...classes: (string | false | undefined | null)[]) {
 }
 
 export default function ProcurementPage() {
+  const { activeCountry } = useCountry();
   const [data, setData] = useState<ProcurementData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -242,7 +245,11 @@ export default function ProcurementPage() {
       setLoading(true);
       setError(null);
       try {
-        const url = forceRefresh ? "/api/procurement?force=true" : "/api/procurement";
+        const baseUrl = "/api/procurement";
+        const params = new URLSearchParams();
+        if (forceRefresh) params.append("force", "true");
+        if (activeCountry) params.append("country", activeCountry.name);
+        const url = `${baseUrl}?${params.toString()}`;
         const res = await fetch(url);
         if (!res.ok) throw new Error(`Request failed: ${res.status}`);
         const json = (await res.json()) as ProcurementData | { error: string };
@@ -266,7 +273,7 @@ export default function ProcurementPage() {
     return () => {
       cancelled = true;
     };
-  }, [fetchTrigger, forceRefresh]);
+  }, [fetchTrigger, forceRefresh, activeCountry]);
 
   useEffect(() => { loadForecast(); loadCommodities(); }, [loadForecast, loadCommodities]);
 
@@ -316,41 +323,57 @@ export default function ProcurementPage() {
   const importData = [
     {
       name: "Crude Oil",
-      pct: 87,
+      pct: activeCountry.id === "singapore" ? 100 : 87,
       fill: "#f59e0b",
-      topSources: ["Iraq (22%)", "Saudi Arabia (18%)", "UAE (12%)", "Russia (10%)", "Kuwait (7%)"],
+      topSources: activeCountry.id === "singapore"
+        ? ["Saudi Arabia (28%)", "UAE (20%)", "Kuwait (15%)", "Qatar (12%)"]
+        : ["Iraq (22%)", "Saudi Arabia (18%)", "UAE (12%)", "Russia (10%)", "Kuwait (7%)"],
       risk: "High",
-      riskDetail: "80%+ imported; Strait of Hormuz chokepoint; OPEC+ supply cuts directly impact costs",
-      impact: "Every $10/bbl rise widens current account deficit by ~$15B annually",
+      riskDetail: activeCountry.id === "singapore"
+        ? "100% imported; dependent on Middle East supply and Malacca transit"
+        : "80%+ imported; Strait of Hormuz chokepoint; OPEC+ supply cuts directly impact costs",
+      impact: activeCountry.id === "singapore"
+        ? "Feedstock cost spikes squeeze refining margins and reduce export competitiveness"
+        : "Every $10/bbl rise widens current account deficit by ~$15B annually",
     },
     {
       name: "LNG",
-      pct: 55,
+      pct: activeCountry.id === "singapore" ? 95 : 55,
       fill: "#06b6d4",
-      topSources: ["Qatar (42%)", "USA (18%)", "Australia (12%)", "Russia (8%)"],
+      topSources: activeCountry.id === "singapore"
+        ? ["Australia (35%)", "Qatar (25%)", "USA (15%)", "Malaysia (10%)"]
+        : ["Qatar (42%)", "USA (18%)", "Australia (12%)", "Russia (8%)"],
       risk: "Medium-High",
-      riskDetail: "Qatar dominance creates single-source risk; long-term contracts limit flexibility",
+      riskDetail: activeCountry.id === "singapore"
+        ? "Critical for power generation; spot market volatility poses acute risks"
+        : "Qatar dominance creates single-source risk; long-term contracts limit flexibility",
       impact: "Spot LNG price spikes can raise power generation costs 20-30% in peak demand",
     },
     {
       name: "Natural Gas",
-      pct: 50,
+      pct: activeCountry.id === "singapore" ? 100 : 50,
       fill: "#3b82f6",
-      topSources: ["Qatar (pipeline + LNG)", "Domestic production (~40%)", "Myanmar pipeline"],
-      risk: "Medium",
-      riskDetail: "Domestic output covers ~40%; pipeline imports from limited corridors",
-      impact: "Gas-dependent fertilizer & power sectors face input cost volatility",
+      topSources: activeCountry.id === "singapore"
+        ? ["Indonesia (pipeline)", "Malaysia (pipeline)"]
+        : ["Qatar (pipeline + LNG)", "Domestic production (~40%)", "Myanmar pipeline"],
+      risk: activeCountry.id === "singapore" ? "High" : "Medium",
+      riskDetail: activeCountry.id === "singapore"
+        ? "No domestic production; pipeline disruptions immediately impact grid stability"
+        : "Domestic output covers ~40%; pipeline imports from limited corridors",
+      impact: activeCountry.id === "singapore"
+        ? "Directly translates to electricity tariff hikes for industrials and consumers"
+        : "Gas-dependent fertilizer & power sectors face input cost volatility",
     },
     {
       name: "Coal",
-      pct: 25,
+      pct: activeCountry.id === "singapore" ? 0 : 25,
       fill: "#71717a",
       topSources: ["Indonesia (50%)", "Australia (20%)", "South Africa (10%)", "Russia (8%)"],
       risk: "Low-Medium",
       riskDetail: "Domestic production significant; Indonesia provides diversified supply",
       impact: "Imported coking coal critical for steel; thermal coal largely domestic",
     },
-  ];
+  ].filter(d => activeCountry.id !== "singapore" || d.name !== "Coal"); // Singapore does not import coal for power
 
   return (
     <div className="space-y-4 p-6 bg-background">
@@ -363,7 +386,7 @@ export default function ProcurementPage() {
               Energy Procurement &amp; Sourcing Intelligence
             </p>
             <p className="mt-1 numeric text-xs text-muted-foreground">
-              For import-dependent economies
+              For {activeCountry.name}
               {data ? ` \u00B7 Generated at ${new Date(data.generated_at).toLocaleTimeString()}` : ""}
             </p>
           </div>
@@ -569,7 +592,7 @@ export default function ProcurementPage() {
           {/* Left: Horizontal Bar Chart */}
           <div className="lg:w-1/2">
             <p className="mb-3 text-[11px] text-muted-foreground/60">
-              India imports % of each energy commodity it consumes. Higher bars = greater exposure to global supply shocks.
+              {activeCountry.name} imports % of each energy commodity it consumes. Higher bars = greater exposure to global supply shocks.
             </p>
             <div className="h-56">
               <ResponsiveContainer width="100%" height="100%">
@@ -616,15 +639,20 @@ export default function ProcurementPage() {
             ))}
             <div className="rounded-lg bg-white/[0.02] border border-white/5 p-3 mt-2">
               <p className="text-[11px] text-foreground/70 leading-relaxed">
-                <span className="font-semibold text-foreground/80">Why this matters:</span> India is the world's 3rd largest energy consumer.
-                87% crude oil import dependence means global price shocks directly hit the rupee, inflation, and fiscal deficit.
+                <span className="font-semibold text-foreground/80">Why this matters:</span> {activeCountry.name} is a major energy consumer.
+                {activeCountry.id === 'singapore' 
+                  ? "100% crude oil import dependence means global price shocks directly hit refining margins and export competitiveness. The Strait of Malacca is a critical chokepoint."
+                  : "87% crude oil import dependence means global price shocks directly hit the domestic economy, inflation, and fiscal deficit."
+                }
                 The Strait of Hormuz — through which 20M+ bbl/day transits — is a critical chokepoint; any disruption there
-                would immediately spike Indian fuel and input costs across manufacturing, transport, and agriculture.
+                would immediately spike fuel and input costs across manufacturing, transport, and agriculture.
               </p>
             </div>
           </div>
         </div>
       </div>
+      {/* ====== Alternative Sourcing Routes (Sankey) ====== */}
+      <AlternativeFlowSankeySection />
 
       {/* ====== Price History & Forecast Chart ====== */}
       <div className="glass-surface rounded-xl border border-white/10 p-4">

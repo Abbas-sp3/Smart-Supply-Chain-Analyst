@@ -9,12 +9,15 @@ import {
   project,
   toSvgDSmooth,
   CORRIDOR_ROUTES,
+  SG_CORRIDOR_ROUTES,
   SUPPLIER_CORRIDOR,
   INDIA_PORTS,
+  SINGAPORE_PORTS,
   LAND_MASSES,
   REGION_LABELS,
 } from "@/features/scenario-simulator/constants/route-geometry";
 import { COASTLINE_POLYGONS } from "@/features/scenario-simulator/constants/coastline-polygons";
+import { useCountry } from "@/hooks/useCountry";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -147,12 +150,18 @@ type ScenarioMapProps = {
 };
 
 export function ScenarioMap({ preset, levers, hasRun }: ScenarioMapProps) {
+  const { activeCountry } = useCountry();
+  const isSingapore = activeCountry.id === "singapore";
+
   const disrupted = useMemo(() => affectedCorridors(preset), [preset]);
   const alternate = useMemo(() => resolveAlternateCorridor(levers), [levers]);
   const hasLever = levers.supplierSwitch.enabled || levers.spotCharter.enabled;
 
-  // All corridor IDs we know about
-  const allCorridorIds = Object.keys(CORRIDOR_ROUTES);
+  const currentRoutes = isSingapore ? SG_CORRIDOR_ROUTES : CORRIDOR_ROUTES;
+  const currentPorts = isSingapore ? SINGAPORE_PORTS : INDIA_PORTS;
+
+  // All corridor IDs we know about for the active country
+  const allCorridorIds = Object.keys(currentRoutes);
 
   // Epicentre coordinates from preset
   const [epicLon, epicLat] = preset.mapCoordinates as [number, number];
@@ -263,7 +272,7 @@ export function ScenarioMap({ preset, levers, hasRun }: ScenarioMapProps) {
         {/* ── Corridor routes ── */}
         <g id="routes">
           {allCorridorIds.map((corridorId) => {
-            const waypoints = CORRIDOR_ROUTES[corridorId];
+            const waypoints = currentRoutes[corridorId];
             if (!waypoints) return null;
 
             const isDisrupted = disrupted.includes(corridorId);
@@ -287,9 +296,9 @@ export function ScenarioMap({ preset, levers, hasRun }: ScenarioMapProps) {
           })}
         </g>
 
-        {/* ── Indian port dots ── */}
+        {/* ── Country port dots ── */}
         <g id="ports">
-          {INDIA_PORTS.map((port) => {
+          {currentPorts.map((port) => {
             const [px, py] = project(port.coords);
             const isAffected = hasRun && preset.affectedNodeIds.includes(port.id);
             return (
@@ -339,7 +348,7 @@ export function ScenarioMap({ preset, levers, hasRun }: ScenarioMapProps) {
           <line x1="280" y1="0" x2="310" y2="0" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5" />
           <text x="318" y="5" fontSize="16" fill="rgba(255,255,255,0.5)" fontFamily="system-ui, sans-serif" letterSpacing="0.5">Normal</text>
           <circle cx="410" cy="0" r="5" fill="rgba(96,165,250,0.6)" />
-          <text x="420" y="5" fontSize="16" fill="rgba(255,255,255,0.5)" fontFamily="system-ui, sans-serif" letterSpacing="0.5">India Port</text>
+          <text x="420" y="5" fontSize="16" fill="rgba(255,255,255,0.5)" fontFamily="system-ui, sans-serif" letterSpacing="0.5">{isSingapore ? "Singapore Port" : "India Port"}</text>
         </g>
       </svg>
     </div>

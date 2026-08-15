@@ -25,7 +25,7 @@ const EXECUTIVE_SUMMARY_DEFAULTS = {
   },
   key_developments: [] as unknown[],
   intelligence_observations: [] as unknown[],
-  why_india_should_care: "",
+  strategic_implications: "",
 };
 
 const SUPPLY_CHAIN_IMPACT_DEFAULTS = {
@@ -41,9 +41,9 @@ const RECOMMENDATIONS_DEFAULTS = {
 
 const SCENARIO_ANALYSIS_DEFAULTS = {
   scenario_analysis: {
-    best_case: { description: "", impact_on_india: "" },
-    most_likely: { description: "", impact_on_india: "" },
-    worst_case: { description: "", impact_on_india: "" },
+    best_case: { description: "", impact_on_country: "" },
+    most_likely: { description: "", impact_on_country: "" },
+    worst_case: { description: "", impact_on_country: "" },
   },
   historical_similar_events: [] as unknown[],
 };
@@ -72,15 +72,15 @@ const INTELLIGENCE_REPORT_DEFAULTS = {
   possible_supply_chain_impacts: [] as unknown[],
   alternative_supply_options: [] as unknown[],
   recommendations: [] as unknown[],
-  why_india_should_care: "",
+  strategic_implications: "",
   supporting_evidence: [] as unknown[],
   military_observations: [] as unknown[],
   maritime_observations: [] as unknown[],
   historical_similar_events: [] as unknown[],
   scenario_analysis: {
-    best_case: { description: "", impact_on_india: "" },
-    most_likely: { description: "", impact_on_india: "" },
-    worst_case: { description: "", impact_on_india: "" },
+    best_case: { description: "", impact_on_country: "" },
+    most_likely: { description: "", impact_on_country: "" },
+    worst_case: { description: "", impact_on_country: "" },
   },
   monitoring_priorities: [] as unknown[],
 };
@@ -180,7 +180,7 @@ export const PROPERTY_ALIASES: Record<string, string> = {
   currentAssessment: "current_operational_assessment",
   currentOperationalAssessment: "current_operational_assessment",
   operationalAssessment: "current_operational_assessment",
-  whyIndiaShouldCare: "why_india_should_care",
+  strategicImplications: "strategic_implications",
   keyDevelopments: "key_developments",
   intelligenceObservations: "intelligence_observations",
   threatLevel: "threat_level",
@@ -192,7 +192,7 @@ export const PROPERTY_ALIASES: Record<string, string> = {
   bestCase: "best_case",
   mostLikely: "most_likely",
   worstCase: "worst_case",
-  impactOnIndia: "impact_on_india",
+  impactOnIndia: "impact_on_country",
   historicalSimilarEvents: "historical_similar_events",
   historicalComparison: "historical_comparison",
   supportingEvidence: "supporting_evidence",

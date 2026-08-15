@@ -43,13 +43,13 @@ const DATA_SOURCES: DataSourceEntry[] = [
   {
     label: "SPR Optimization",
     status: "computed",
-    detail: "Optimization Engine — INDIA_RESERVE_CONFIG",
+    detail: "Optimization Engine — RESERVE_CONFIG",
     freshnessNote: "Computed in-browser. Reserve parameters are illustrative.",
   },
   {
     label: "Knowledge Graph",
     status: "cached",
-    detail: "India Trade Knowledge Graph — embedded constants",
+    detail: "Trade Knowledge Graph — embedded constants",
     freshnessNote: "Static graph. Calibrated from EIA / UNCTAD 2024-25 data.",
   },
 ];

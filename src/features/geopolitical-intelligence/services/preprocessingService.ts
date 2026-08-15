@@ -21,6 +21,7 @@ import {
   buildKnowledgeGraphContext,
   type KnowledgeGraphResult,
 } from "../knowledge-graph";
+import type { CountryProfile } from "@/data/countries/types";
 
 function safeJoin(values: string[] | undefined | null): string {
   return (values ?? []).join(" ");
@@ -45,10 +46,10 @@ function sanitizeNewsFact(fact: Partial<NewsFact>): NewsFact {
 /**
  * Extracts structured facts from News data using a fast LLM pass.
  */
-async function extractNewsFacts(newsData: unknown[]): Promise<NewsFact[]> {
+async function extractNewsFacts(newsData: unknown[], country: CountryProfile): Promise<NewsFact[]> {
   if (!newsData || newsData.length === 0) return [];
 
-  const prompt = `You are a Fact Extraction engine for a Supply Chain Intelligence system focused on India's imports.
+  const prompt = `You are a Fact Extraction engine for a Supply Chain Intelligence system focused on ${country.name}'s imports.
 Convert the following news summaries into structured observations.
 Focus on extracting SUPPLY CHAIN relevant information — not just political narrative.
 
@@ -330,6 +331,7 @@ function extractRegionKeywords(text: string): string[] {
  */
 export async function preprocessIntelligence(
   sources: DataSourceOutput[],
+  country: CountryProfile,
 ): Promise<AugmentedObservation[]> {
   console.log(
     "[preprocessingService] Starting Fact Extraction & Prioritization...",
@@ -340,7 +342,7 @@ export async function preprocessIntelligence(
   const maritimeSource = sources.find((s) => s.source.includes("AIS"));
 
   const [newsFacts, militaryFacts, maritimeFacts] = await Promise.all([
-    extractNewsFacts((newsSource?.data as unknown[]) || []),
+    extractNewsFacts((newsSource?.data as unknown[]) || [], country),
     Promise.resolve(
       extractMilitaryFacts(
         militarySource?.data as Record<string, unknown> | null | undefined,

@@ -5,7 +5,7 @@ import {
   Factory, RefreshCw, BarChart3, AlertTriangle, Fuel,
   ShieldAlert, CheckCircle2, Wrench, ChevronDown, ChevronUp,
   Building2, MapPin, Calendar, Gauge, TrendingUp, ArrowUpRight,
-  Calculator, Globe2, Link2,
+  Calculator, Globe2, Link2, Activity, Shield,
 } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
@@ -15,6 +15,7 @@ import { CapacityGauge } from "@/components/refinery/capacity-gauge";
 import { ImportSubstitutionCalculator } from "@/components/refinery/import-substitution";
 import { RefineryVulnerabilityMap } from "@/components/refinery/vulnerability-map";
 import { CrudeCompatibilityPanel } from "@/components/refinery/crude-compatibility-panel";
+import { useCountry } from "@/hooks/useCountry";
 
 
 // ── Types ──────────────────────────────────────────────────────────
@@ -118,6 +119,7 @@ function getAge(d: string): number {
 
 // ── Page ───────────────────────────────────────────────────────────
 export default function RefineryPage() {
+  const { activeCountry } = useCountry();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedRegion, setSelectedRegion] = useState("all");
@@ -156,6 +158,222 @@ export default function RefineryPage() {
       setImpactLoading(false);
     }
   }, []);
+
+  if (activeCountry.id !== "india") {
+    const refineries = activeCountry.tradeGraph.filter(
+      (n) => n.type === "infrastructure" && n.capacityType === "production_output",
+    );
+    const ports = activeCountry.tradeGraph.filter((n) => n.type === "port");
+    const corridors = activeCountry.tradeGraph.filter((n) => n.type === "corridor");
+    const totalCapacity = refineries.reduce((sum, r) => sum + (r.capacityMtpa || 0), 0);
+    const totalPortCapacity = ports.reduce((sum, p) => sum + (p.capacityMtpa || 0), 0);
+    const weightedUtil =
+      refineries.length > 0
+        ? refineries.reduce((sum, r) => sum + (r.baseUtilizationPct || 0), 0) / refineries.length
+        : 0;
+    const ep = activeCountry.energyProfile;
+
+    return (
+      <div className="space-y-4 p-6 bg-background">
+        {/* Header */}
+        <div className="glass-surface flex items-center justify-between rounded-xl border border-white/[0.06] p-4">
+          <div className="flex items-center gap-3">
+            <Factory className="size-5 text-primary" />
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-widest">
+                {activeCountry.name} Refinery &amp; Processing
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {refineries.length} processing facilities &middot; {totalCapacity} MMTPA installed
+                capacity &middot; {ep.currentUtilizationPct}% avg utilization
+              </p>
+            </div>
+          </div>
+          <div className="text-right">
+            <p className="text-2xl font-black tabular-nums text-primary">{ep.importSharePct}%</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Import dependent</p>
+          </div>
+        </div>
+
+        {/* National stats */}
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          {[
+            { label: "Total Refining Capacity", value: `${totalCapacity} MMTPA`, color: "text-primary", icon: <Factory className="size-4" /> },
+            { label: "Port Throughput Capacity", value: `${totalPortCapacity} MMTPA`, color: "text-blue-400", icon: <Building2 className="size-4" /> },
+            { label: "Avg Utilization", value: `${weightedUtil.toFixed(0)}%`, color: weightedUtil >= 85 ? "text-amber-400" : "text-emerald-400", icon: <Gauge className="size-4" /> },
+            { label: "Active Corridors", value: `${corridors.length}`, color: "text-violet-400", icon: <Link2 className="size-4" /> },
+          ].map((s) => (
+            <div key={s.label} className="glass-surface rounded-xl border border-white/10 p-3">
+              <div className="flex items-center gap-2">
+                <span className={s.color}>{s.icon}</span>
+                <p className="text-[9px] uppercase tracking-wider text-muted-foreground">{s.label}</p>
+              </div>
+              <p className="mt-1 text-lg font-bold text-foreground numeric">{s.value}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Refinery cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {refineries.map((r) => {
+            const util = r.baseUtilizationPct ?? 80;
+            const utilColor = util >= 90 ? "bg-amber-400" : util >= 75 ? "bg-emerald-400" : "bg-blue-400";
+            const utilTextColor = util >= 90 ? "text-amber-400" : util >= 75 ? "text-emerald-400" : "text-blue-400";
+            return (
+              <div key={r.id} className="glass-surface rounded-xl border border-white/10 p-5 space-y-4">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="text-sm font-bold text-foreground">{r.label}</h3>
+                    <p className="text-xs text-muted-foreground mt-1">{r.description || "Processing facility"}</p>
+                  </div>
+                  <div className="flex flex-col items-end">
+                    <span className="text-xl font-black tabular-nums text-primary">{r.capacityMtpa}</span>
+                    <span className="text-[10px] text-muted-foreground uppercase">MMTPA</span>
+                  </div>
+                </div>
+
+                {/* Utilization bar */}
+                <div>
+                  <div className="flex justify-between text-xs mb-1">
+                    <span className="text-muted-foreground">Utilization</span>
+                    <span className={`font-bold ${utilTextColor}`}>{util}%</span>
+                  </div>
+                  <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all ${utilColor}`}
+                      style={{ width: `${Math.min(100, util)}%` }}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4 text-xs">
+                  <div className="flex items-center gap-1.5 text-emerald-400">
+                    <Activity className="size-3.5" />
+                    <span>Operational</span>
+                  </div>
+                  {r.bufferDays && (
+                    <div className="flex items-center gap-1.5 text-amber-400">
+                      <Shield className="size-3.5" />
+                      <span>{r.bufferDays}d feedstock buffer</span>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-1.5 text-blue-400">
+                    <Calculator className="size-3.5" />
+                    <span>{((r.capacityMtpa ?? 0) * (util / 100)).toFixed(1)} MMTPA output</span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Port throughput */}
+        {ports.length > 0 && (
+          <div className="glass-surface rounded-xl border border-white/10 p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Globe2 className="size-4 text-muted-foreground" />
+              <p className="text-sm font-bold uppercase tracking-widest text-foreground">Port Infrastructure</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {ports.map((p) => {
+                const util = p.baseUtilizationPct ?? 75;
+                return (
+                  <div key={p.id} className="flex items-center justify-between rounded-lg border border-white/5 bg-white/[0.02] px-4 py-3">
+                    <div>
+                      <p className="text-xs font-semibold text-foreground/90">{p.label}</p>
+                      <p className="text-[10px] text-muted-foreground mt-0.5">{p.description}</p>
+                    </div>
+                    <div className="text-right shrink-0 ml-4">
+                      <p className="text-sm font-black tabular-nums text-blue-400">{p.capacityMtpa}</p>
+                      <p className="text-[9px] text-muted-foreground">MMTPA · {util}% util</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Disruption scenario impact cards */}
+        <div className="glass-surface rounded-xl border border-white/10 p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <ShieldAlert className="size-4 text-muted-foreground" />
+            <p className="text-sm font-bold uppercase tracking-widest text-foreground">Disruption Scenario Impact</p>
+          </div>
+          <p className="text-[11px] text-muted-foreground/60 mb-3">
+            Impact of key disruption events on {activeCountry.name}'s refinery intake and output.
+          </p>
+          <div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
+            {activeCountry.disruptionPresets.slice(0, 6).map((preset) => {
+              const impactPct = (preset.severityPct / 100) * (1 - 0.3); // 30% flexibility
+              const lostCapacity = totalCapacity * impactPct;
+              const isHigh = preset.severityPct >= 60;
+              return (
+                <div
+                  key={preset.id}
+                  className={`rounded-lg border p-3 ${isHigh ? "border-red-500/20 bg-red-500/5" : "border-amber-500/20 bg-amber-500/5"}`}
+                >
+                  <p className="text-xs font-semibold text-foreground">{preset.label}</p>
+                  <p className="mt-1 text-[10px] text-muted-foreground/70 leading-relaxed line-clamp-2">
+                    {preset.description}
+                  </p>
+                  <div className="mt-2 flex items-center gap-3 text-[10px]">
+                    <span className={isHigh ? "text-red-400 font-bold" : "text-amber-400 font-bold"}>
+                      ~{lostCapacity.toFixed(1)} MMTPA at risk
+                    </span>
+                    <span className="text-muted-foreground/50">{preset.expectedDurationDays}d duration</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Import substitution summary */}
+        <div className="glass-surface rounded-xl border border-white/10 p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <ArrowUpRight className="size-4 text-muted-foreground" />
+            <p className="text-sm font-bold uppercase tracking-widest text-foreground">Import Substitution Options</p>
+          </div>
+          <p className="text-[11px] text-muted-foreground/60 mb-3">
+            Alternative crude sources available for {activeCountry.name} during supply disruptions.
+          </p>
+          <div className="space-y-2">
+            {activeCountry.defaultAlternativeSources.map((src: any) => (
+              <div
+                key={src.id}
+                className="flex items-center justify-between rounded-lg border border-white/5 bg-white/[0.02] px-4 py-3"
+              >
+                <div>
+                  <p className="text-xs font-semibold text-foreground/90">{src.name}</p>
+                  <p className="text-[10px] text-muted-foreground">{src.origin} · {src.grade} · {src.transitDays}d transit</p>
+                  {src.note && <p className="text-[10px] text-muted-foreground/60 mt-0.5 italic">{src.note}</p>}
+                </div>
+                <div className="text-right shrink-0 ml-4">
+                  <p className={`text-sm font-black tabular-nums ${src.priceDiffBbl >= 0 ? "text-amber-400" : "text-emerald-400"}`}>
+                    {src.priceDiffBbl >= 0 ? "+" : ""}{src.priceDiffBbl.toFixed(1)} $/bbl
+                  </p>
+                  <div className="flex gap-0.5 mt-1 justify-end">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <div
+                        key={i}
+                        className={`w-1.5 h-1.5 rounded-full ${i < src.availabilityScore ? "bg-emerald-400" : "bg-white/10"}`}
+                      />
+                    ))}
+                  </div>
+                  <p className="text-[9px] text-muted-foreground/50 mt-0.5">{src.gradeCompatibility}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <p className="text-[9px] italic text-muted-foreground/30 text-center">
+          Source: {ep.dataSource} · Trade graph data calibrated for {activeCountry.name}
+        </p>
+      </div>
+    );
+  }
 
   if (!data) {
     return (

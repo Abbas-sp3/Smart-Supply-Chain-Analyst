@@ -7,6 +7,7 @@ import { Map, Marker, Popup } from "@/lib/maplibre/client";
 import type { MapLibreMapClass, MapLibreMarkerClass } from "@/lib/maplibre/client";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { CorridorExposureChart } from "./CorridorExposureChart";
+import { useCountry } from "@/hooks/useCountry";
 
 type Props = {
   corridors: AffectedTradeCorridor[];
@@ -121,6 +122,7 @@ export function TradeCorridors({
   const markersRef = useRef<MapLibreMarkerClass[]>([]);
   const [activeCorridorImpacts, setActiveCorridorImpacts] = useState<CorridorImpact[]>([]);
   const [selectedCorridor, setSelectedCorridor] = useState<CorridorImpact | null>(null);
+  const { activeCountry } = useCountry();
 
   // 1. Correlation Logic: recompute affected corridors
   useEffect(() => {
@@ -205,8 +207,8 @@ export function TradeCorridors({
     const map = new Map({
       container: mapContainerRef.current,
       style: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
-      center: [75, 15], // Wider view centered around Indian Ocean
-      zoom: 2.2,
+      center: activeCountry.mapView.center,
+      zoom: activeCountry.mapView.zoom,
       minZoom: 1.5,
       maxZoom: 6.0,
       attributionControl: false,
@@ -235,6 +237,16 @@ export function TradeCorridors({
       mapRef.current = null;
     };
   }, []);
+
+  // 2b. Listen for country changes and flyTo
+  useEffect(() => {
+    if (!mapRef.current) return;
+    mapRef.current.flyTo({
+      center: activeCountry.mapView.center,
+      zoom: activeCountry.mapView.zoom,
+      duration: 2000,
+    });
+  }, [activeCountry.id]);
 
   // 3. Update Hotspot layers dynamically
   useEffect(() => {
@@ -360,7 +372,7 @@ export function TradeCorridors({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3">
                 <div className="space-y-3">
                   <div>
-                    <span className="text-[9px] text-slate-400 uppercase block font-semibold mb-1">Exposed India Ports</span>
+                    <span className="text-[9px] text-slate-400 uppercase block font-semibold mb-1">Exposed Ports</span>
                     <div className="font-medium text-slate-100 text-xs">{selectedCorridor.affectedPorts.join(", ")}</div>
                   </div>
                   <div>

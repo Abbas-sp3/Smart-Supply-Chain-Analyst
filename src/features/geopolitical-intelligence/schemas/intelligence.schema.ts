@@ -104,7 +104,7 @@ const historicalEventSchema = z.object({
 
 const scenarioCaseSchema = z.object({
   description: z.string(),
-  impact_on_india: z.string(),
+  impact_on_country: z.string(),
 });
 
 const scenarioAnalysisSchema = z.object({
@@ -136,7 +136,7 @@ export const intelligenceReportSchema = z.object({
   possible_supply_chain_impacts: z.array(supplyChainImpactSchema).optional().default([]),
   alternative_supply_options: z.array(alternativeSupplyOptionSchema).optional().default([]),
   recommendations: z.array(recommendationSchema).optional().default([]),
-  why_india_should_care: z.string(),
+  strategic_implications: z.string(),
   supporting_evidence: z.array(supportingEvidenceSchema).optional().default([]),
   military_observations: z.array(militaryObservationSchema).optional().default([]),
   maritime_observations: z.array(maritimeObservationSchema).optional().default([]),

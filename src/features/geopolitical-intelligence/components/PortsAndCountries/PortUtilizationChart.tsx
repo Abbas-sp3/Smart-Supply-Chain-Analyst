@@ -1,37 +1,55 @@
 "use client";
 
 import { useMemo } from "react";
-import { RadialBarChart, RadialBar, PolarAngleAxis, ResponsiveContainer, Tooltip } from "recharts";
+import { RadialBarChart, RadialBar, PolarAngleAxis, ResponsiveContainer } from "recharts";
 import { getAllNodesByType } from "../../knowledge-graph/utils";
+import { useCountry } from "@/hooks/useCountry";
 
 type Props = {
   affectedPortNames: string[];
 };
 
 export function PortUtilizationChart({ affectedPortNames }: Props) {
+  const { activeCountry } = useCountry();
+
   const data = useMemo(() => {
-    const allPorts = getAllNodesByType("port");
-    
+    // Use the active country's trade graph — not the hardcoded India graph
+    const allPorts = getAllNodesByType("port", activeCountry.tradeGraph as any);
+
     return allPorts
-      .filter(p => {
-        return affectedPortNames.some(ap => 
-          ap.toLowerCase() === p.label.toLowerCase() || 
-          p.aliases?.some(alias => alias.toLowerCase() === ap.toLowerCase()) ||
-          ap.toLowerCase().includes(p.label.toLowerCase()) ||
-          p.label.toLowerCase().includes(ap.toLowerCase())
+      .filter((p) => {
+        // Match by LLM-generated port name or by alias
+        if (affectedPortNames.length === 0) return true; // show all ports if no filter
+        return affectedPortNames.some(
+          (ap) =>
+            ap.toLowerCase() === p.label.toLowerCase() ||
+            p.aliases?.some((alias) => alias.toLowerCase() === ap.toLowerCase()) ||
+            ap.toLowerCase().includes(p.label.toLowerCase()) ||
+            p.label.toLowerCase().includes(ap.toLowerCase()),
         );
       })
       .map((p) => ({
         name: p.label,
         utilization: p.baseUtilizationPct || 0,
         capacity: p.capacityMtpa || 0,
-        fill: (p.baseUtilizationPct || 0) >= 80 ? "#ef4444" : (p.baseUtilizationPct || 0) >= 60 ? "#eab308" : "#22c55e",
+        fill:
+          (p.baseUtilizationPct || 0) >= 85
+            ? "#ef4444"
+            : (p.baseUtilizationPct || 0) >= 70
+              ? "#eab308"
+              : "#22c55e",
       }))
       .sort((a, b) => b.utilization - a.utilization)
-      .slice(0, 4); // Show top 4 most constrained affected ports
-  }, [affectedPortNames]);
+      .slice(0, 4);
+  }, [affectedPortNames, activeCountry.tradeGraph]);
 
   if (data.length === 0) return null;
+
+  // Pick a dynamic source label
+  const sourceLabel =
+    activeCountry.id === "india"
+      ? "Ministry of Ports, Shipping & Waterways data."
+      : `${activeCountry.name} Maritime & Port Authority data.`;
 
   return (
     <div className="solid-card mt-4 rounded-xl border border-white/10 p-5">
@@ -40,28 +58,38 @@ export function PortUtilizationChart({ affectedPortNames }: Props) {
           At-Risk Port Constraints
         </h3>
         <p className="text-[10px] text-muted-foreground mt-1">
-          Base utilization vs Total Capacity (Mtpa). High utilization indicates limited slack to absorb shocks.
+          Base utilization vs Total Capacity (Mtpa). High utilization indicates limited slack to
+          absorb shocks.
         </p>
       </div>
 
       <div className="grid grid-cols-2 gap-4 mt-4">
         {data.map((port, i) => (
-          <div key={i} className="flex flex-col items-center p-3 rounded-lg bg-white/[0.02] border border-white/[0.05]">
-            <div className="text-xs font-medium text-slate-200 text-center line-clamp-1 mb-2">{port.name}</div>
+          <div
+            key={i}
+            className="flex flex-col items-center p-3 rounded-lg bg-white/[0.02] border border-white/[0.05]"
+          >
+            <div className="text-xs font-medium text-slate-200 text-center line-clamp-1 mb-2">
+              {port.name}
+            </div>
             <div className="relative h-24 w-24">
               <ResponsiveContainer width="100%" height="100%">
-                <RadialBarChart 
-                  cx="50%" cy="50%" 
-                  innerRadius="70%" outerRadius="100%" 
-                  barSize={8} 
-                  data={[port]} 
-                  startAngle={180} endAngle={-180}
+                <RadialBarChart
+                  cx="50%"
+                  cy="50%"
+                  innerRadius="70%"
+                  outerRadius="100%"
+                  barSize={8}
+                  data={[port]}
+                  startAngle={180}
+                  endAngle={-180}
                 >
                   <PolarAngleAxis type="number" domain={[0, 100]} angleAxisId={0} tick={false} />
-                  <RadialBar 
+                  <RadialBar
                     background={{ fill: "rgba(255,255,255,0.05)" }}
-                    dataKey="utilization" 
+                    dataKey="utilization"
                     cornerRadius={4}
+                    fill={port.fill}
                   />
                 </RadialBarChart>
               </ResponsiveContainer>
@@ -70,13 +98,14 @@ export function PortUtilizationChart({ affectedPortNames }: Props) {
               </div>
             </div>
             <div className="text-[10px] text-muted-foreground mt-2">
-              Capacity: <span className="text-slate-300 font-semibold">{port.capacity} Mtpa</span>
+              Capacity:{" "}
+              <span className="text-slate-300 font-semibold">{port.capacity} Mtpa</span>
             </div>
           </div>
         ))}
       </div>
       <div className="mt-3 text-[9px] text-muted-foreground/50 text-center">
-        * Baseline utilization derived from Ministry of Ports, Shipping & Waterways data.
+        * Baseline utilization derived from {sourceLabel}
       </div>
     </div>
   );

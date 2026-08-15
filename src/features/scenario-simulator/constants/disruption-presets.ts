@@ -26,7 +26,7 @@ export const DISRUPTION_PRESETS: DisruptionPreset[] = [
     id: "hormuz_partial",
     label: "Strait of Hormuz — Partial Closure (Heightened Tensions)",
     description:
-      "Naval standoff or Iranian interdiction reduces tanker traffic by 30–50%. Oil tankers slow-steam or anchor; LNG carriers reroute.",
+      "Naval standoff reduces tanker traffic by 30–50%. Geopolitical Intelligence Synthesis: 'Alliance consultation (coordinated signaling)' — outside powers (China/Allies) pressure both sides to keep diplomacy open. The most probable outcome is an uneasy, tense stalemate rather than full escalation.",
     affectedNodeIds: [
       "corridor_hormuz",
       "port_mundra",
@@ -35,10 +35,10 @@ export const DISRUPTION_PRESETS: DisruptionPreset[] = [
       "port_mangalore",
       "infra_refineries_west",
     ],
-    severityPct: 40,
-    severityRange: { min: 30, likely: 40, max: 55, unit: "percent" },
-    expectedDurationDays: 21,
-    durationRange: { min: 7, likely: 21, max: 60, unit: "days" },
+    severityPct: 35,
+    severityRange: { min: 25, likely: 35, max: 45, unit: "percent" },
+    expectedDurationDays: 45,
+    durationRange: { min: 14, likely: 45, max: 90, unit: "days" },
     spotFreightPenaltyPct: 45,
     insurancePremiumPeakBps: 250,
     premiumDecayModel: "linear_ramp_plateau_decay",
@@ -54,7 +54,7 @@ export const DISRUPTION_PRESETS: DisruptionPreset[] = [
     id: "hormuz_full_closure",
     label: "Strait of Hormuz — Full Closure (Armed Conflict)",
     description:
-      "Complete maritime blockade of Hormuz. All tanker traffic halted. India's Gulf crude supply (65%+ of imports) disrupted.",
+      "Complete maritime blockade of Hormuz. Geopolitical Intelligence Synthesis: If deterrence fails and strikes commence, Gulf States and China exert max economic pressure to reopen. Duration is heavily constrained by global alliance response, typically capped at 14–21 days before intervention.",
     affectedNodeIds: [
       "corridor_hormuz",
       "port_mundra",
@@ -67,8 +67,8 @@ export const DISRUPTION_PRESETS: DisruptionPreset[] = [
     ],
     severityPct: 95,
     severityRange: { min: 85, likely: 95, max: 100, unit: "percent" },
-    expectedDurationDays: 14,
-    durationRange: { min: 7, likely: 14, max: 45, unit: "days" },
+    expectedDurationDays: 18,
+    durationRange: { min: 10, likely: 18, max: 28, unit: "days" },
     spotFreightPenaltyPct: 120,
     insurancePremiumPeakBps: 800,
     premiumDecayModel: "linear_ramp_plateau_decay",
@@ -84,7 +84,7 @@ export const DISRUPTION_PRESETS: DisruptionPreset[] = [
     id: "red_sea_interdiction",
     label: "Bab-el-Mandeb / Red Sea — Active Interdiction",
     description:
-      "Drone/missile attacks on commercial vessels. Major carriers reroute via Cape of Good Hope, adding 10–14 days and ~25% freight cost.",
+      "Drone/missile attacks on commercial vessels. Geopolitical Intelligence Synthesis: Highly likely to settle into a chronic 'new normal'. Diplomatic efforts stall; major carriers permanently reroute via Cape of Good Hope, adding 10–14 days and establishing a long-term >25% freight cost premium.",
     affectedNodeIds: [
       "corridor_bab_el_mandeb",
       "corridor_suez",
@@ -92,10 +92,10 @@ export const DISRUPTION_PRESETS: DisruptionPreset[] = [
       "port_mundra",
       "port_kochi",
     ],
-    severityPct: 65,
-    severityRange: { min: 50, likely: 65, max: 80, unit: "percent" },
-    expectedDurationDays: 90,
-    durationRange: { min: 30, likely: 90, max: 365, unit: "days" },
+    severityPct: 30,
+    severityRange: { min: 20, likely: 30, max: 45, unit: "percent" },
+    expectedDurationDays: 180,
+    durationRange: { min: 90, likely: 180, max: 365, unit: "days" },
     spotFreightPenaltyPct: 28,
     insurancePremiumPeakBps: 180,
     premiumDecayModel: "linear_ramp_plateau_decay",
@@ -191,7 +191,7 @@ export const DISRUPTION_PRESETS: DisruptionPreset[] = [
     id: "south_china_sea_escalation",
     label: "South China Sea — Military Escalation / Taiwan Strait Crisis",
     description:
-      "Naval blockade or military exercises force commercial rerouting. Semiconductor and electronics supply chains severely disrupted. No-sail zones reduce corridor capacity by 40–60%.",
+      "Military exercises force commercial rerouting. Geopolitical Intelligence Synthesis: Risk of collateral interdiction remains high, but most likely branch is 'Managed Signal' where no-sail zones reduce corridor capacity by 40–60% for exactly the duration of announced military drills (typically 14-30 days).",
     affectedNodeIds: [
       "corridor_south_china_sea",
       "corridor_malacca",

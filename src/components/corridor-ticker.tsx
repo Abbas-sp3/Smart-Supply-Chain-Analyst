@@ -2,20 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { readCorridorStatus } from "@/lib/signal-bus";
+import { useCountry } from "@/hooks/useCountry";
 
 type TickerEntry = {
   label: string;
   status: string;
   cssClass: string;
 };
-
-const ALL_CORRIDORS = ["Hormuz", "Suez", "Bab-el-Mandeb", "Malacca"];
-
-const FALLBACK: TickerEntry[] = ALL_CORRIDORS.map((label) => ({
-  label,
-  status: "N/A",
-  cssClass: "insufficient",
-}));
 
 function statusCssClass(status: string): string {
   switch (status) {
@@ -28,7 +21,33 @@ function statusCssClass(status: string): string {
 }
 
 export function CorridorTicker() {
-  const [entries, setEntries] = useState<TickerEntry[]>(FALLBACK);
+  const { activeCountry } = useCountry();
+  
+  const activeCorridors = Object.keys(activeCountry.corridorFractions)
+    .sort((a, b) => activeCountry.corridorFractions[b] - activeCountry.corridorFractions[a])
+    .slice(0, 4)
+    .map(key => {
+      if (key.includes("hormuz")) return "Hormuz";
+      if (key.includes("suez")) return "Suez";
+      if (key.includes("bab")) return "Bab-el-Mandeb";
+      if (key.includes("malacca")) return "Malacca";
+      if (key.includes("south_china")) return "South China Sea";
+      if (key.includes("black_sea")) return "Black Sea";
+      if (key.includes("cape")) return "Cape of Good Hope";
+      return key.replace("corridor_", "");
+    });
+
+  const [entries, setEntries] = useState<TickerEntry[]>([]);
+
+  useEffect(() => {
+    setEntries(
+      activeCorridors.map((label) => ({
+        label,
+        status: "N/A",
+        cssClass: "insufficient",
+      }))
+    );
+  }, [activeCountry.id]);
 
   useEffect(() => {
     async function fetchCorridorData() {
@@ -55,21 +74,21 @@ export function CorridorTicker() {
         const data = await res.json();
         if (!Array.isArray(data.corridors)) return;
 
-        setEntries(
-          ALL_CORRIDORS.map((label) => {
+        setEntries((prev) => 
+          prev.map((e) => {
             const apiCorridor = data.corridors.find(
               (c: { shortName?: string; name?: string }) =>
-                c.shortName === label || c.name?.includes(label),
+                c.shortName === e.label || c.name?.includes(e.label)
             );
             if (apiCorridor) {
               return {
-                label,
+                label: e.label,
                 status: apiCorridor.status,
                 cssClass: statusCssClass(apiCorridor.status),
               };
             }
-            return { label, status: "N/A", cssClass: "insufficient" };
-          }),
+            return e;
+          })
         );
       } catch {
         // keep fallback
@@ -79,7 +98,7 @@ export function CorridorTicker() {
     fetchCorridorData();
     const id = setInterval(fetchCorridorData, 60_000);
     return () => clearInterval(id);
-  }, []);
+  }, [activeCountry.id]);
 
   return (
     <div className="corridor-ticker flex h-9 w-full items-center gap-4 border-b border-white/[0.04] bg-[#080b10] px-4">

@@ -118,9 +118,10 @@ export async function runIntelligenceModule<T>(
   systemPrompt: string,
   userPrompt: string,
   schema: z.ZodType<T>,
+  countryId: string,
   contextHash?: string,
 ): Promise<T> {
-  const cached = getModuleCache<T>(moduleName, contextHash);
+  const cached = getModuleCache<T>(moduleName, countryId, contextHash);
   if (cached) {
     console.log(`[module:${moduleName}] Returning cached output.`);
     return cached;
@@ -138,6 +139,6 @@ export async function runIntelligenceModule<T>(
     0,
   );
 
-  setModuleCache(moduleName, validated, contextHash);
+  setModuleCache(moduleName, validated, countryId, contextHash);
   return validated;
 }

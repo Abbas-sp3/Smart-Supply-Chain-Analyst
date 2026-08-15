@@ -64,23 +64,46 @@ export function EnergyPriceMonitor() {
     );
   }
 
-  if (error && commodities.length === 0) {
-    return (
-      <div className="h-full flex flex-col justify-center items-center gap-3 text-red-400">
-        <AlertCircle className="size-6 opacity-50" />
-        <span className="text-xs uppercase tracking-widest text-center">Live feed unavailable<br/>Using fallback data in Procurement</span>
-      </div>
-    );
-  }
+  const displayCommodities = (error && commodities.length === 0) ? [
+    {
+      value: "brent_crude_oil",
+      name: "Brent Crude",
+      price: "79.20",
+      change: "+1.2%",
+      isPositive: true,
+      history: [75, 76, 75.5, 77, 78, 77.5, 79.2],
+      isStale: true,
+    },
+    {
+      value: "natural_gas",
+      name: "Natural Gas",
+      price: "2.45",
+      change: "-0.5%",
+      isPositive: false,
+      history: [2.6, 2.5, 2.55, 2.4, 2.3, 2.45, 2.45],
+      isStale: true,
+    },
+    {
+      value: "coal",
+      name: "Coal (API2)",
+      price: "115.50",
+      change: "+0.8%",
+      isPositive: true,
+      history: [110, 112, 111, 113, 114, 115, 115.5],
+      isStale: true,
+    },
+  ] : commodities;
 
   return (
     <div className="h-full flex flex-col gap-3 justify-center">
       <div className="flex items-center gap-2 mb-1 px-1">
         <Clock className="size-3 text-muted-foreground" />
-        <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Live Feed Active</span>
+        <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
+          {(error && commodities.length === 0) ? "Fallback Data (Live feed unavailable)" : "Live Feed Active"}
+        </span>
       </div>
       
-      {commodities.map((item) => {
+      {displayCommodities.map((item) => {
         const meta = ENERGY_COMMODITY_META[item.value] || { unit: "" };
         const history = item.history || [];
         const chartData = history.map((val, i) => ({ value: val, index: i }));

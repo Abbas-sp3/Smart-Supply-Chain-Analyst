@@ -54,12 +54,12 @@ SSCA monitors every layer of India's import supply chain simultaneously. When a 
 │   • Military aviation  • OpenSky Network      │                     │
 │                               │               ▼                     │
 │                        Knowledge Graph   5 Parallel Modules         │
-│                        (100+ trade       ┌──────────────────┐       │
+│                        (101 trade       ┌──────────────────┐       │
 │                         nodes)           │ Executive Summary│       │
 │                               │          │ Supply Chain Map │       │
 │                               ▼          │ Recommendations  │       │
 │                        Structured        │ Scenario Analysis│       │
-│                        Context           │ Evidence & Intel │       │
+│                        Context           │ Evidence         │       │
 │                                          └──────────────────┘       │
 │                                                 │                   │
 │                                                 ▼                   │
@@ -75,26 +75,26 @@ SSCA monitors every layer of India's import supply chain simultaneously. When a 
 ```
 ┌──────────────────┬───────────────────┬───────────────────┬──────────────────┐
 │                  │                   │                   │                  │
-│  🌍 GEOPOLITICAL │  🗺️  LIVE MAP      │  📊 ANALYTICS     │  🔬 REFINERY     │
-│   INTELLIGENCE   │                   │                   │   MONITOR        │
+│  🌍 GEOPOLITICAL │  🗺️  COMMAND      │  📊 ANALYTICS     │  🔬 REFINERY     │
+│   RISK           │   CENTER          │                   │   & PROCESSING   │
 │                  │  Real-time AIS    │  Historical trade │                  │
 │  Tracks global   │  vessel tracking  │  flow charts,     │  Tracks India's  │
 │  events and      │  overlaid on a    │  commodity price  │  refinery        │
 │  reasons through │  geopolitical     │  trends, and      │  capacity,       │
 │  their impact    │  risk map of      │  corridor health  │  throughput,     │
 │  on India's      │  India's trade    │  indices          │  and crude       │
-│  imports         │  corridors                            │  intake          │
+│  imports         │  corridors        │                   │  intake          │
 │                  │                   │                   │                  │
 ├──────────────────┼───────────────────┼───────────────────┼──────────────────┤
 │                  │                   │                   │                  │
-│  📦 PROCUREMENT  │  🛢️  STRATEGIC     │  🎮 SCENARIO      │  ⚡ REAL-TIME    │
-│   INTELLIGENCE   │   RESERVE         │   SIMULATOR       │   ALERTS         │
+│  📦 ENERGY       │  🛢️  ENERGY       │  🎮 SCENARIO      │  ⚡ REAL-TIME    │
+│   PROCUREMENT    │   RESERVES        │   SIMULATOR       │   ALERTS         │
 │                  │                   │                   │                  │
 │  Tracks supplier │  Monitors India's │  Model disruption │  Live event feed │
 │  risk, contract  │  strategic oil,   │  scenarios:       │  with priority   │
-│  exposure, and   │  food, and        │  port closure,    │  classification  │
-│  sourcing        │  critical mineral │  sanctions, route │  and supply      │
-│  alternatives    │  reserve levels   │  deviation        │  chain impact    │
+│  exposure, and   │  sourcing, and    │  port closure,    │  classification  │
+│  sourcing        │  reserve levels   │  sanctions, route │  and supply      │
+│  alternatives    │                   │  deviation        │  chain impact    │
 │                  │                   │                   │                  │
 └──────────────────┴───────────────────┴───────────────────┴──────────────────┘
 ```
@@ -116,13 +116,13 @@ OpenSky (Military Aviation) ──┘               │
                               ┌───────────────────────────┐
                               │   KNOWLEDGE GRAPH ENGINE   │
                               │                           │
-                              │  100+ trade nodes         │
-                              │  30+ source countries     │
-                              │  20+ critical products    │
-                              │  12 Indian ports          │
-                              │  7 strategic corridors    │
-                              │  15 industries            │
-                              │  8 infrastructure nodes   │
+                              │  101 trade nodes        │
+                              │  29 source countries    │
+                              │  23 critical products   │
+                              │  11 Indian ports        │
+                              │  8 strategic corridors  │
+                              │  15 industries          │
+                              │  8 infrastructure nodes │
                               │                           │
                               │  BFS Supply Chain Trace   │
                               │  Event → Countries →      │
@@ -144,7 +144,7 @@ OpenSky (Military Aviation) ──┘               │
                     ┌──────────────────────▼───────────────────────┐
                     │         5 PARALLEL GROQ MODULES               │
                     │                                               │
-                    │  ① Executive Summary    ② Supply Chain Map   │
+                    │  ① Executive Summary    ② Supply Chain Impact│
                     │  ③ Recommendations      ④ Scenario Analysis  │
                     │                 ⑤ Evidence                   │
                     │                                               │
@@ -277,7 +277,7 @@ src/
 │
 ├── features/                   # Domain feature modules
 │   ├── geopolitical-intelligence/   # ★ Core intelligence engine
-│   │   ├── knowledge-graph/         # 100+ node trade graph + BFS tracer
+│   │   ├── knowledge-graph/         # 101 node trade graph + BFS tracer
 │   │   ├── modules/                 # 5 independent Groq AI modules
 │   │   ├── prompts/                 # Supply-chain-first LLM prompts
 │   │   ├── schemas/                 # Zod validation schemas
@@ -475,7 +475,7 @@ Each of the 5 modules caches independently. If news is stale but a new maritime 
 
 ## Knowledge Graph
 
-The intelligence engine is backed by a static strategic knowledge graph of India's import ecosystem — 100+ nodes representing real trade relationships, not invented by the AI.
+The intelligence engine is backed by a static strategic knowledge graph of India's import ecosystem — 101 nodes representing real trade relationships, not invented by the AI.
 
 ```
                     KNOWLEDGE GRAPH NODE TYPES

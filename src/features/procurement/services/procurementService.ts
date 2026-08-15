@@ -20,7 +20,7 @@ import {
   PROCUREMENT_NEWS_PAGE_SIZE,
 } from "../constants";
 import {
-  PROCUREMENT_SYSTEM_PROMPT,
+  getProcurementSystemPrompt,
   buildProcurementUserPrompt,
 } from "../prompts/system.prompt";
 import {
@@ -117,9 +117,10 @@ async function fetchArticles(): Promise<ProcurementArticle[]> {
 
 async function generateFromLLM(
   articles: ProcurementArticle[],
+  countryName: string,
 ): Promise<EnergyBriefing> {
   const raw = await callGroq(
-    PROCUREMENT_SYSTEM_PROMPT,
+    getProcurementSystemPrompt(countryName),
     buildProcurementUserPrompt(articles),
     PROCUREMENT_GROQ_MODEL,
     PROCUREMENT_GROQ_MAX_TOKENS,

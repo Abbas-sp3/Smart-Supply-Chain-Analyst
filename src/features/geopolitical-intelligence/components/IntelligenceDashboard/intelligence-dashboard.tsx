@@ -12,6 +12,7 @@
 import { RefreshCw, AlertCircle, Brain } from "lucide-react";
 
 import { useIntelligence } from "../../hooks/useIntelligence";
+import { useCountry } from "@/hooks/useCountry";
 import { IntelligenceLoader } from "../IntelligenceLoader/intelligence-loader";
 import { OperationalAssessment } from "../OperationalAssessment/operational-assessment";
 import { ExecutiveSummary } from "../ExecutiveSummary/executive-summary";
@@ -30,10 +31,11 @@ import { AlternativeSupply } from "../AlternativeSupply/alternative-supply";
 import { ScenarioAnalysis } from "../ScenarioAnalysis/scenario-analysis";
 import { Recommendations } from "../Recommendations/recommendations";
 import { HistoricalContext } from "../HistoricalContext/historical-context";
-import { WhyIndiaShouldCare } from "../WhyIndiaShouldCare/why-india-should-care";
+import { StrategicImplications } from "../StrategicImplications/strategic-implications";
 import { SupportingEvidence } from "../SupportingEvidence/supporting-evidence";
 import { AskIntelligencePanel } from "../AskIntelligence/AskIntelligencePanel";
 import { MonitoringPriorities } from "../MonitoringPriorities/monitoring-priorities";
+import { GeoHorusWidgets } from "@/features/geopolitical-risk/components/GeoHorusWidgets";
 
 // ---------------------------------------------------------------------------
 // Error state
@@ -130,7 +132,8 @@ function DashboardHeader({
 // Main dashboard
 // ---------------------------------------------------------------------------
 export function IntelligenceDashboard() {
-  const { data, isLoading, error, generatedAt, refetch } = useIntelligence();
+  const { activeCountry } = useCountry();
+  const { data, isLoading, error, generatedAt, refetch } = useIntelligence(activeCountry.id);
 
   return (
     <div className="space-y-4 p-4 sm:space-y-5 sm:p-5 lg:p-6 bg-background">
@@ -141,6 +144,10 @@ export function IntelligenceDashboard() {
       />
 
       <AskIntelligencePanel />
+      
+      <div className="py-2">
+        <GeoHorusWidgets />
+      </div>
 
       {isLoading && !data && <IntelligenceLoader />}
 
@@ -183,7 +190,7 @@ export function IntelligenceDashboard() {
 
           {/* Secondary / Contextual Information placed at the bottom */}
           <IntelligenceObservations observations={data.intelligence_observations} />
-          <WhyIndiaShouldCare content={data.why_india_should_care} />
+          <StrategicImplications content={data.strategic_implications} />
 
           <div className="grid gap-4 sm:gap-5 lg:grid-cols-2">
             <MilitaryObservations observations={data.military_observations} />

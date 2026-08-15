@@ -18,11 +18,13 @@ type CacheEntry<T> = {
 };
 
 type ModuleCacheStore = {
-  executive_summary?: CacheEntry<unknown>;
-  supply_chain_impact?: CacheEntry<unknown>;
-  recommendations?: CacheEntry<unknown>;
-  scenario_analysis?: CacheEntry<unknown>;
-  evidence?: CacheEntry<unknown>;
+  [countryId: string]: {
+    executive_summary?: CacheEntry<unknown>;
+    supply_chain_impact?: CacheEntry<unknown>;
+    recommendations?: CacheEntry<unknown>;
+    scenario_analysis?: CacheEntry<unknown>;
+    evidence?: CacheEntry<unknown>;
+  };
 };
 
 type GlobalModuleState = typeof globalThis & {
@@ -48,9 +50,13 @@ const MODULE_TTLS: Record<IntelligenceModuleName, number> = {
 
 export function getModuleCache<T>(
   module: IntelligenceModuleName,
+  countryId: string,
   contextHash?: string,
 ): T | null {
-  const entry = getStore()[module] as CacheEntry<T> | undefined;
+  const store = getStore();
+  if (!store[countryId]) return null;
+
+  const entry = store[countryId][module] as CacheEntry<T> | undefined;
   if (!entry) return null;
 
   if (module === "scenario_analysis") {
@@ -66,9 +72,14 @@ export function getModuleCache<T>(
 export function setModuleCache<T>(
   module: IntelligenceModuleName,
   data: T,
+  countryId: string,
   contextHash?: string,
 ): void {
-  getStore()[module] = {
+  const store = getStore();
+  if (!store[countryId]) {
+    store[countryId] = {};
+  }
+  store[countryId][module] = {
     data,
     generatedAt: Date.now(),
     contextHash,

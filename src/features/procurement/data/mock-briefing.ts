@@ -4,7 +4,7 @@ export const MOCK_PROCUREMENT_ARTICLES: ProcurementArticle[] = [
   {
     title: "Strait of Hormuz Tensions Rise Amid Iran-US Standoff",
     description:
-      "Naval standoffs in the Persian Gulf have increased insurance premiums for crude tankers. India imports a significant share of Gulf crude via routes near Hormuz.",
+      "Naval standoffs in the Persian Gulf have increased insurance premiums for crude tankers. Import-dependent economies import a significant share of Gulf crude via routes near Hormuz.",
     publishedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
     source: "Al Jazeera",
     url: "https://example.com/hormuz-tensions",
@@ -12,15 +12,15 @@ export const MOCK_PROCUREMENT_ARTICLES: ProcurementArticle[] = [
   {
     title: "OPEC+ Extends Production Cuts, Brent Crude Rises",
     description:
-      "OPEC+ extended output cuts. India, importing over 80% of crude, faces higher feedstock costs for refineries including Reliance, HPCL, and BPCL.",
+      "OPEC+ extended output cuts. Import-dependent economies facing over 80% crude reliance face higher feedstock costs for domestic refineries.",
     publishedAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
     source: "Financial Times",
     url: "https://example.com/opec-cuts",
   },
   {
-    title: "India Diversifies Energy Sources Amid Global Supply Chain Pressures",
+    title: "Economies Diversify Energy Sources Amid Global Supply Chain Pressures",
     description:
-      "Indian importers are diversifying crude, LNG, and coal sources as geopolitical disruptions and price volatility impact energy security for import-dependent economies.",
+      "Importers are diversifying crude, LNG, and coal sources as geopolitical disruptions and price volatility impact energy security for import-dependent economies.",
     publishedAt: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
     source: "Reuters",
     url: "https://example.com/india-energy-diversification",
@@ -29,7 +29,7 @@ export const MOCK_PROCUREMENT_ARTICLES: ProcurementArticle[] = [
 
 export const MOCK_PROCUREMENT_BRIEFING = {
   executive_summary:
-    "Gulf shipping risk and OPEC+ supply management are keeping energy import costs elevated for India as an import-dependent economy. Prioritize diversified energy sourcing across crude, LNG, and coal to limit single-corridor exposure. No acute physical shortage is indicated, but freight and insurance premiums warrant active sourcing review across all energy commodities.",
+    "Gulf shipping risk and OPEC+ supply management are keeping energy import costs elevated for import-dependent economies. Prioritize diversified energy sourcing across crude, LNG, and coal to limit single-corridor exposure. No acute physical shortage is indicated, but freight and insurance premiums warrant active sourcing review across all energy commodities.",
   historical_comparison:
     "Current conditions most closely resemble the 2023-24 Red Sea energy disruption pattern — a prolonged chokepoint risk rather than a sudden supply halt — though Hormuz-specific tension adds a 1990-91 style corridor-closure tail risk for crude and LNG.",
   alternatives: [
@@ -39,16 +39,16 @@ export const MOCK_PROCUREMENT_BRIEFING = {
       commodity: "crude_oil",
       tier: "recommended" as const,
       summary:
-        "Primary Gulf-grade crude supply with established Indian refinery compatibility and stable diplomatic ties.",
+        "Primary Gulf-grade crude supply with established refinery compatibility and stable diplomatic ties.",
       detail: [
-        "Arab Light / Medium grades align with Jamnagar-class refinery configurations.",
+        "Arab Light / Medium grades align with domestic refinery configurations.",
         "Existing long-term contracts reduce spot-market exposure during freight spikes.",
         "Payment and shipping lanes remain operational despite elevated insurance costs.",
       ],
       compatibility: "Compatible, minimal penalty",
       diplomatic_perspective: [
-        "Reinforces India's core Gulf partnerships without triggering secondary sanctions exposure.",
-        "Visible continuity with established energy diplomacy — low parliamentary or external friction risk.",
+        "Reinforces core Gulf partnerships without triggering secondary sanctions exposure.",
+        "Visible continuity with established energy diplomacy — low domestic or external friction risk.",
       ],
       source_article: null,
     },
@@ -60,7 +60,7 @@ export const MOCK_PROCUREMENT_BRIEFING = {
       summary:
         "Reliable LNG supply with long-term contracts diversifying away from pipeline dependency.",
       detail: [
-        "Qatar offers competitive LNG pricing with established regasification infrastructure in India.",
+        "Qatar offers competitive LNG pricing with established domestic regasification infrastructure.",
         "Australian LNG provides geographic diversification away from Gulf chokepoints.",
         "Long-term contracts hedge against spot market volatility.",
       ],

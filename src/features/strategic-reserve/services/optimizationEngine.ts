@@ -1,7 +1,6 @@
-import { INDIA_RESERVE_CONFIG, type ReserveConfig } from "@/features/scenario-simulator/constants/reserve-config";
 import type { PropagationResult } from "@/features/scenario-simulator/types";
-import { DISRUPTION_PRESETS } from "@/features/scenario-simulator/constants/disruption-presets";
-import { INDIA_TRADE_GRAPH } from "@/features/geopolitical-intelligence/knowledge-graph/indiaTradeGraph";
+import { CountryProfile } from "@/data/countries/types";
+import { indiaProfile } from "@/data/countries/india";
 
 export type OptimizationRecommendation = {
   /** The core Yes/No decision */
@@ -36,12 +35,13 @@ export type OptimizationRecommendation = {
 
 export function generateOptimizationStrategy(
   result: PropagationResult,
-  config: ReserveConfig = INDIA_RESERVE_CONFIG
+  country: CountryProfile = indiaProfile
 ): OptimizationRecommendation {
   const reasoning: string[] = [];
   const gapMtpa = result.metrics.supplyGapMtpa.likely;
+  const config = country.reserveConfig;
   
-  const preset = DISRUPTION_PRESETS.find((p) => p.id === result.presetId);
+  const preset = country.disruptionPresets.find((p) => p.id === result.presetId);
   const durationDays = preset?.expectedDurationDays ?? 30; // fallback if not found
 
   // Calculate volume needed over the disruption duration (MMT)
@@ -57,23 +57,27 @@ export function generateOptimizationStrategy(
   // Treat these as a starting point for calibration, not established policy.
   // Source: same honest-assumption pattern used for SSI weights, recovery ramps, etc.
   // ─────────────────────────────────────────────────────────────────────────────
-  const commercialBufferMMT = 31.8; // ~45 days OMC cover at normal consumption (PPAC estimate)
+  const commercialBufferMMT = country.commercialBufferMmt; 
   // Threshold 1 — Severe shock: gap exceeds 30% of annualized normal consumption
   const severeShockThreshold = config.normalConsumptionMtpa * 0.30; // illustrative: 30% of consumption
   // Threshold 2 — Sustained drain: total volume needed > 15% of commercial buffer
-  const bufferDrainThreshold = commercialBufferMMT * 0.15; // illustrative: 15% of OMC stocks
+  const bufferDrainThreshold = commercialBufferMMT * 0.15; // illustrative: 15% of commercial stocks
 
   let recommendRelease = false;
   let triggerReason = "";
+
+  const isMandated = country.reserveMechanism.type === "mandated_stockholding";
+  const bufferLabel = isMandated ? "industry-held stocks" : "OMC commercial stocks";
+  const sprLabel = isMandated ? "mandated reserves" : "SPR";
 
   if (gapMtpa > severeShockThreshold) {
     recommendRelease = true;
     triggerReason = `Severe shock detected: Supply gap (${gapMtpa.toFixed(2)} MMTPA) exceeds 30% of national consumption (illustrative threshold — not official policy).`;
   } else if (totalVolumeNeededMMT > bufferDrainThreshold) {
     recommendRelease = true;
-    triggerReason = `Buffer drain detected: Required volume (${totalVolumeNeededMMT.toFixed(2)} MMT over ${durationDays} days) exceeds 15% of estimated OMC commercial stocks (illustrative threshold — not official policy).`;
+    triggerReason = `Buffer drain detected: Required volume (${totalVolumeNeededMMT.toFixed(2)} MMT over ${durationDays} days) exceeds 15% of estimated ${bufferLabel} (illustrative threshold — not official policy).`;
   } else if (gapMtpa > 0) {
-    triggerReason = `Supply gap (${gapMtpa.toFixed(2)} MMTPA) over ${durationDays} days requires ${totalVolumeNeededMMT.toFixed(2)} MMT — within estimated OMC commercial buffer capacity (~${commercialBufferMMT} MMT). Preserve SPR reserves. Note: release thresholds are illustrative parameters, not official policy.`;
+    triggerReason = `Supply gap (${gapMtpa.toFixed(2)} MMTPA) over ${durationDays} days requires ${totalVolumeNeededMMT.toFixed(2)} MMT — within estimated ${bufferLabel} capacity (~${commercialBufferMMT} MMT). Preserve ${sprLabel}. Note: release thresholds are illustrative parameters, not official policy.`;
   } else {
     triggerReason = `No supply gap detected.`;
   }
@@ -90,7 +94,7 @@ export function generateOptimizationStrategy(
     if (requiredDailyRate > config.maxDailyDrawdownMtpa) {
       effectiveDailyRate = config.maxDailyDrawdownMtpa;
       cappedByRateLimit = true;
-      reasoning.push(`Target relief rate of ${(requiredDailyRate * 1000).toFixed(0)} kMT/day far exceeds India's physical SPR injection capacity of ${(config.maxDailyDrawdownMtpa * 1000).toFixed(1)} kMT/day. Drawdown recommendation is strictly capped at maximum deployable rate.`);
+      reasoning.push(`Target relief rate of ${(requiredDailyRate * 1000).toFixed(0)} kMT/day far exceeds physical injection capacity of ${(config.maxDailyDrawdownMtpa * 1000).toFixed(1)} kMT/day. Drawdown recommendation is strictly capped at maximum deployable rate.`);
     } else {
       reasoning.push(`Required daily rate of ${(requiredDailyRate * 1000).toFixed(0)} kMT/day is within physical limits.`);
     }
@@ -130,7 +134,7 @@ export function generateOptimizationStrategy(
       return isRefineryInfra && impact.lockedVolumeMtpa !== null && impact.lockedVolumeMtpa > 0;
     })
     .map((impact) => {
-      const node = INDIA_TRADE_GRAPH.find((n: any) => n.id === impact.nodeId);
+      const node = country.tradeGraph.find((n: any) => n.id === impact.nodeId);
       // Format the label: strip "infra_" prefix and title-case the rest
       const fallbackLabel = impact.nodeId
         .replace(/^infra_/, "")

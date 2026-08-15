@@ -35,7 +35,7 @@ const PIPELINE_STAGES: PipelineStage[] = [
   {
     id: "propagation",
     label: "Impact Propagation",
-    description: "BFS propagation across India Trade Knowledge Graph",
+    description: "BFS propagation across Trade Knowledge Graph",
     status: "complete",
     module: "Propagation Engine",
   },

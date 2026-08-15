@@ -5,7 +5,7 @@ import { IntelligenceDashboard } from "@/features/geopolitical-intelligence/comp
 export const metadata: Metadata = {
   title: "Geopolitical Intelligence | Smart Supply Chain Analyst",
   description:
-    "AI-powered geopolitical and supply chain intelligence for India's import ecosystem.",
+    "AI-powered geopolitical and supply chain intelligence for national import ecosystems.",
 };
 
 export default function GeopoliticalRiskPage() {

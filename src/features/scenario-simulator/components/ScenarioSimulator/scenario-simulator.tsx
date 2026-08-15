@@ -44,12 +44,12 @@ import { SupplyGapWaterfallChart } from "@/features/scenario-simulator/component
 import { IndustryCascadeChart } from "@/features/scenario-simulator/components/charts/IndustryCascadeChart";
 import { SingleRangeBarChart } from "@/features/scenario-simulator/components/charts/SingleRangeBarChart";
 import { SsiRadarChart } from "@/features/scenario-simulator/components/charts/SsiRadarChart";
+import { useCountry } from "@/hooks/useCountry";
 import type {
   PropagationResult,
   RangeEstimate,
   CorridorImpactResult,
 } from "@/features/scenario-simulator/types";
-import { ProcurementAlternatives } from "@/features/procurement/components/ProcurementAlternatives";
 
 
 
@@ -335,21 +335,33 @@ function ResultsSection({ result }: { result: PropagationResult }) {
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export function ScenarioSimulator() {
-  const [selectedPresetId, setSelectedPresetId] = useState<string>(
-    DISRUPTION_PRESETS[0].id,
-  );
+  const { activeCountry } = useCountry();
+
+  // Use the active country's own preset list; fall back to global list
+  const countryPresets =
+    activeCountry.disruptionPresets?.length > 0
+      ? activeCountry.disruptionPresets
+      : DISRUPTION_PRESETS;
+
+  const defaultPresetId = countryPresets[0]?.id ?? DISRUPTION_PRESETS[0].id;
+
+  const [selectedPresetId, setSelectedPresetId] = useState<string>(defaultPresetId);
   const [leverState, setLeverState] = useState<LeverState>(DEFAULT_LEVER_STATE);
   const resultsRef = useRef<HTMLDivElement>(null);
 
   const { baseline, withLevers, loading, error, runBaseline, runWithLevers, reset } =
     useSimulation();
 
-  const selectedPreset = DISRUPTION_PRESETS.find(
-    (p) => p.id === selectedPresetId,
-  )!;
+  // Ensure selectedPresetId is always valid for the current country
+  const effectivePresetId = countryPresets.find((p) => p.id === selectedPresetId)
+    ? selectedPresetId
+    : defaultPresetId;
+
+  const selectedPreset = countryPresets.find((p) => p.id === effectivePresetId)
+    ?? countryPresets[0];;
 
   const handleRunBaseline = async () => {
-    await runBaseline(selectedPresetId);
+    await runBaseline(effectivePresetId);
     setTimeout(() => {
       resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 100);
@@ -357,7 +369,7 @@ export function ScenarioSimulator() {
 
   const handleApplyLevers = async () => {
     const levers = buildLeversArray(leverState);
-    await runWithLevers(selectedPresetId, levers);
+    await runWithLevers(effectivePresetId, levers);
     setTimeout(() => {
       resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 100);
@@ -371,50 +383,35 @@ export function ScenarioSimulator() {
 
   return (
     <div className="flex h-full flex-col overflow-y-auto bg-transparent">
-      {/* ── Header ── */}
-      <div className="sticky top-0 z-10 border-b border-white/10 bg-background/80 backdrop-blur-md">
-        <div className="mx-auto max-w-7xl px-6 py-4">
-          <div className="flex items-center gap-3">
-            <div className="flex size-9 items-center justify-center rounded-xl bg-white/[0.06] border border-white/10">
-              <FlaskConical className="size-5 text-muted-foreground" aria-hidden />
-            </div>
-            <div>
-              <h1 className="text-sm font-semibold uppercase tracking-widest text-foreground">
-                Scenario Simulator
-              </h1>
-              <p className="text-xs text-muted-foreground/60">
-                Deterministic capacity-constrained propagation · Triangular range estimates
-              </p>
-            </div>
-            {(baseline || withLevers) && (
-              <button
-                type="button"
-                onClick={() => {
-                  reset();
-                  setLeverState(DEFAULT_LEVER_STATE);
-                }}
-                className="ml-auto flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.06] px-3 py-1.5 text-xs font-semibold text-foreground transition-all duration-200 hover:bg-white/10 hover:border-white/20"
-              >
-                <RotateCcw className="size-3.5" aria-hidden />
-                Reset
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
 
       <div className="mx-auto w-full max-w-7xl flex-1 px-6 py-6">
+        {(baseline || withLevers) && (
+          <div className="mb-4 flex justify-end">
+            <button
+              type="button"
+              onClick={() => {
+                reset();
+                setLeverState(DEFAULT_LEVER_STATE);
+              }}
+              className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.06] px-3 py-1.5 text-xs font-semibold text-foreground transition-all duration-200 hover:bg-white/10 hover:border-white/20"
+            >
+              <RotateCcw className="size-3.5" aria-hidden />
+              Reset
+            </button>
+          </div>
+        )}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_380px]">
 
           {/* ── Left: Preset selector ── */}
           {/* ── Left: Preset selector ── */}
           <DisruptionPresetSelector
-            selectedPresetId={selectedPresetId}
+            selectedPresetId={effectivePresetId}
             onPresetChange={handlePresetChange}
             onRunBaseline={handleRunBaseline}
             loading={loading}
             hasBaseline={baseline !== null}
             error={error}
+            presets={countryPresets}
           />
 
           {/* ── Right: Preset detail + Decision Levers ── */}
@@ -488,8 +485,8 @@ export function ScenarioSimulator() {
                 </span>
               </div>
               <ul className="space-y-0.5 text-sm text-muted-foreground">
-                <li>BFS propagation through India trade graph</li>
-                <li>Capacity-constrained · 20 annotated nodes</li>
+                <li>BFS propagation through {activeCountry.name} trade graph</li>
+                <li>Capacity-constrained · {activeCountry.tradeGraph.length} annotated nodes</li>
                 <li>Transit vs. production node branching</li>
                 <li>Route-family deduplication</li>
                 <li>Port-corridor flow fraction scaling</li>
@@ -506,10 +503,6 @@ export function ScenarioSimulator() {
               loading={loading}
             />
 
-            {/* Procurement Alternatives — appears for energy scenarios */}
-            <div className="solid-card rounded-xl border border-white/10 p-5">
-              <ProcurementAlternatives preset={selectedPreset} />
-            </div>
           </div>
         </div>
 

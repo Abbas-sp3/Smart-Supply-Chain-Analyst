@@ -7,10 +7,10 @@ import { GROQ_MODEL, GROQ_MAX_TOKENS } from "@/features/geopolitical-intelligenc
 import type { LLMGenerateRequest, LLMProvider } from "./types";
 import { LLM_REQUEST_TIMEOUT_MS } from "./constants";
 
-function createClient(): Groq {
-  const apiKey = process.env.GROQ_API_KEY;
+function createClient(envVarName: string): Groq {
+  const apiKey = process.env[envVarName];
   if (!apiKey) {
-    throw new Error("[groqProvider] GROQ_API_KEY is not set.");
+    throw new Error(`[groqProvider] ${envVarName} is not set.`);
   }
   return new Groq({ apiKey });
 }
@@ -34,14 +34,20 @@ function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise
 }
 
 export class GroqProvider implements LLMProvider {
-  readonly name = "groq" as const;
+  readonly name: "groq";
+  readonly envVarName: string;
+
+  constructor(envVarName: string = "GROQ_API_KEY") {
+    this.name = "groq";
+    this.envVarName = envVarName;
+  }
 
   isConfigured(): boolean {
-    return Boolean(process.env.GROQ_API_KEY);
+    return Boolean(process.env[this.envVarName]);
   }
 
   async generate(request: LLMGenerateRequest): Promise<string> {
-    const client = createClient();
+    const client = createClient(this.envVarName);
     const model = request.model ?? GROQ_MODEL;
     const maxTokens = request.maxTokens ?? GROQ_MAX_TOKENS;
     const temperature = request.temperature ?? 0.3;
@@ -84,4 +90,5 @@ export class GroqProvider implements LLMProvider {
   }
 }
 
-export const groqProvider = new GroqProvider();
+export const groqProvider = new GroqProvider("GROQ_API_KEY");
+export const groqProvider2 = new GroqProvider("GROQ_API_KEY_2");
