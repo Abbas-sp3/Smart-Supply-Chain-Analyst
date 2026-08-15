@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Package, FileText, RefreshCw, TrendingUp, TrendingDown,
   BarChart3, Zap, Flame, Thermometer, Droplets, Hexagon, Ship, Train, Truck,
@@ -274,6 +274,17 @@ export default function ProcurementPage() {
       cancelled = true;
     };
   }, [fetchTrigger, forceRefresh, activeCountry]);
+
+  // When the country changes, immediately clear stale data and re-fetch
+  const prevCountryRef = useRef(activeCountry.id);
+  useEffect(() => {
+    if (prevCountryRef.current !== activeCountry.id) {
+      prevCountryRef.current = activeCountry.id;
+      setData(null);          // clear stale data immediately
+      setError(null);
+      setFetchTrigger(n => n + 1);
+    }
+  }, [activeCountry.id]);
 
   useEffect(() => { loadForecast(); loadCommodities(); }, [loadForecast, loadCommodities]);
 

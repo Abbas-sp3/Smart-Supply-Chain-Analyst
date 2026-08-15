@@ -59,7 +59,7 @@ async function fetchEnergyPrices() {
   return Object.fromEntries(entries);
 }
 
-async function fetchNews() {
+async function fetchNews(_country?: string) {
   // Support dual API keys — round-robin by minute to spread quota usage
   const keys = [NEWS_API_KEY, NEWS_API_KEY_2].filter(Boolean) as string[];
   if (keys.length === 0) {

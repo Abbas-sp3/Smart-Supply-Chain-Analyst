@@ -187,7 +187,7 @@ async function generateFresh(): Promise<EnergyBriefing> {
   }
 
   try {
-    return await generateFromLLM(articles);
+    return await generateFromLLM(articles, "India");
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     console.error("[procurementService] LLM generation failed:", message);

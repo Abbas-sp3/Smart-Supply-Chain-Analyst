@@ -10,6 +10,7 @@ import { EnergySupplyOverview } from "@/components/command-center/EnergySupplyOv
 import { EnergyPriceMonitor } from "@/components/command-center/EnergyPriceMonitor";
 import { EnergyCorridorWatch } from "@/components/command-center/EnergyCorridorWatch";
 import { ImportDependencyMetrics } from "@/components/command-center/ImportDependencyMetrics";
+import { EnergyDependencyGraph3D } from "@/features/geopolitical-risk/components/EnergyDependencyGraph3D";
 import { calculateGrf, calculateSrf, calculateNesi, type NesiComponents, type AlertSeverity } from "@/lib/nesi";
 import { ISPRL_CURRENT_STATE, ISPRL_TOTAL_CAPACITY_MMT } from "@/features/scenario-simulator/constants/reserve-config";
 import { useCountry } from "@/hooks/useCountry";
@@ -111,6 +112,11 @@ export function WorkspaceContent() {
           </FloatingPanel>
           
         </div>
+
+        {/* Energy Dependency Network — full width below the grid */}
+        <FloatingPanel title="Energy Dependency Network" className="mt-0" noBorder>
+          <EnergyDependencyGraph3D />
+        </FloatingPanel>
 
       </div>
     </motion.div>
