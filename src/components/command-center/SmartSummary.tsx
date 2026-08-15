@@ -18,6 +18,16 @@ export function SmartSummary({ components, activeAlerts, countryId = "india", co
   const [error, setError] = useState<string | null>(null);
   const [generatedAt, setGeneratedAt] = useState<string | null>(null);
 
+  // Clear stale summary immediately when country changes
+  const prevCountryRef = useState(countryId);
+  useEffect(() => {
+    if (prevCountryRef[0] !== countryId) {
+      prevCountryRef[0] = countryId;
+      setSummary(null);
+      setGeneratedAt(null);
+    }
+  }, [countryId]);
+
   useEffect(() => {
     let isMounted = true;
     
@@ -66,7 +76,7 @@ export function SmartSummary({ components, activeAlerts, countryId = "india", co
     return () => {
       isMounted = false;
     };
-  }, [components, activeAlerts]);
+  }, [components, activeAlerts, countryId, countryName]);
 
   return (
     <motion.div
