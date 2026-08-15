@@ -23,8 +23,10 @@ export function AisStatusBadge() {
     return () => clearInterval(id);
   }, []);
 
-  // Don't show anything when fully connected and data is flowing
+  // Don't show anything when fully connected, OR when reconnecting but we still have fresh data (< 2 mins old).
+  // The AISStream free tier drops connections frequently; we don't want the UI flashing yellow constantly.
   if (status === "connected") return null;
+  if (status === "reconnecting" && lastUpdated && Date.now() - lastUpdated.getTime() < 120_000) return null;
 
   if (status === "reconnecting") {
     return (
