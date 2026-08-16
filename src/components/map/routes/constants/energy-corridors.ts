@@ -73,8 +73,14 @@ export const ENERGY_CORRIDOR_DEFINITIONS: EnergyCorridorDefinition[] = [
       [28.0, 33.0],
       [20.0, 36.0],
       [12.0, 38.0],
-      [3.0, 42.0],
-      [4.48, 51.92],
+      [3.0, 39.0], // Mediterranean
+      [-5.5, 35.8], // Gibraltar
+      [-9.5, 38.5], // Portugal coast
+      [-10.0, 43.0], // Spain coast
+      [-5.0, 48.5], // English Channel entrance
+      [0.0, 50.5], // English Channel
+      [3.0, 51.5], // English Channel
+      [4.48, 51.92], // Rotterdam
     ],
   },
   {
@@ -97,8 +103,10 @@ export const ENERGY_CORRIDOR_DEFINITIONS: EnergyCorridorDefinition[] = [
       [-10.0, -15.0],
       [-15.0, 0.0],
       [-10.0, 25.0],
-      [-5.0, 42.0],
-      [4.48, 51.92],
+      [-10.0, 43.0], // Spain coast
+      [-5.0, 48.5], // English Channel entrance
+      [0.0, 50.5], // English Channel
+      [4.48, 51.92], // Rotterdam
     ],
   },
   {
@@ -135,9 +143,9 @@ export const ENERGY_CORRIDOR_DEFINITIONS: EnergyCorridorDefinition[] = [
       [-130.0, 15.0],
       [-160.0, 22.0],
       [-175.0, 28.0],
-      [145.0, 30.0],
-      [130.0, 28.0],
-      [121.47, 31.23],
+      [-215.0, 30.0], // 145 - 360 to keep continuous westward path across anti-meridian
+      [-230.0, 28.0], // 130 - 360
+      [-238.53, 31.23], // 121.47 - 360
     ],
   },
 ];
