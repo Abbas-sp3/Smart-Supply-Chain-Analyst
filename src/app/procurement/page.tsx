@@ -193,12 +193,12 @@ export default function ProcurementPage() {
     if (!selectedReplayDate) { setReplaySnapshot(null); return; }
     let cancelled = false;
     setReplayLoading(true);
-    fetch(`/api/procurement/replay/${selectedReplayDate}`)
+    fetch(`/api/procurement/replay/${selectedReplayDate}?countryName=${encodeURIComponent(activeCountry.name)}`)
       .then((r) => r.json())
       .then((data) => { if (!cancelled) { setReplaySnapshot(data); setReplayLoading(false); } })
       .catch(() => { if (!cancelled) setReplayLoading(false); });
     return () => { cancelled = true; };
-  }, [selectedReplayDate]);
+  }, [selectedReplayDate, activeCountry.name]);
 
   const loadForecast = useCallback(async () => {
     try {
