@@ -81,21 +81,24 @@ export const SEA_VIA: Record<string, [number, number][]> = {
   "USA>Taiwan Strait": [[30, -160], [22, 175]],
   "South Africa>Strait of Malacca": [[-27, 45], [-10, 70], [0, 92]],
   
-  // Custom Energy Lanes to prevent crossing land:
-  "Saudi Arabia>India": [[22, 60], [18, 68]],
-  "Iraq>India": [[28, 50], [24, 58], [19, 68]],
-  "UAE>India": [[24, 58], [19, 68]],
-  "Qatar>India": [[25, 53], [24, 58], [19, 68]],
-  "Kuwait>India": [[28, 50], [24, 58], [19, 68]],
-  "Russia>India": [[60, 5], [50, -10], [10, -20], [-35, 15], [-35, 40], [-10, 55], [5, 65]],
-  "USA>India": [[30, -70], [10, -40], [-35, 15], [-35, 40], [-10, 55], [5, 65]],
-  "Nigeria>India": [[2, 5], [-35, 15], [-35, 40], [-10, 55], [5, 65]],
+  // Chokepoint to Chokepoint (Routing around landmasses)
+  "Strait of Hormuz>Strait of Malacca": [[23, 62], [13, 67], [6, 75], [5, 85], [6, 95]],
+  "Strait of Hormuz>Suez Canal": [[25, 57], [20, 60], [13, 52], [12, 45], [12.6, 43.4], [20, 39], [25, 36]],
   
-  "Saudi Arabia>Strait of Malacca": [[22, 60], [12, 65], [6, 75], [6, 90]],
-  "Iraq>Strait of Malacca": [[28, 50], [24, 58], [12, 65], [6, 75], [6, 90]],
-  "UAE>Strait of Malacca": [[24, 58], [12, 65], [6, 75], [6, 90]],
-  "Qatar>Strait of Malacca": [[25, 53], [24, 58], [12, 65], [6, 75], [6, 90]],
-  "Russia>Strait of Malacca": [[60, 5], [50, -10], [10, -20], [-35, 15], [-35, 40], [-10, 75], [0, 92]],
+  // Russia (Vladivostok) to Asia/India via Pacific
+  "Russia>Taiwan Strait": [[35, 130], [30, 125]],
+  "Russia>South China Sea": [[35, 130], [25, 121], [18, 117]],
+  "Russia>Strait of Malacca": [[35, 130], [25, 121], [10, 110], [5, 106]],
+  "Russia>India": [[35, 130], [25, 121], [10, 110], [5, 106], [6, 90], [6, 75]],
+
+  // USA (California) to Panama via coast
+  "USA>Panama Canal": [[23, -110], [15, -95]],
+  
+  // USA (California) to India via Pacific
+  "USA>India": [[25, -140], [15, -170], [5, 150], [0, 120], [5, 106], [6, 90], [6, 75]],
+  
+  // Nigeria to India via Cape of Good Hope
+  "Nigeria>India": [[2, 5], [-35, 15], [-35, 40], [-10, 55], [5, 65]],
 };
 
 export function seaVia(a: string, b: string): [number, number][] {
