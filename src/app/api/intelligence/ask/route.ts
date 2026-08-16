@@ -37,8 +37,8 @@ export async function POST(req: Request) {
 Do not simply list the facts; weave them into a comprehensive strategic brief that explains downstream effects, affected industries, and strategic implications for India.
 If retrieved chunks come from different scenarios (as indicated by the Scenario ID or content), attribute each claim to its specific scenario by name (e.g. 'under a full closure...' vs 'a partial closure would instead...'). Never merge details from different scenarios into a single unqualified description.
 Use historical precedent context (chunks with Type: precedent) as supporting historical comparison, not as equal-weight current facts.
-If the context does not contain the answer, you must state: "I don't have enough information in the provided intelligence corpus to answer this question."
-Only use facts, figures, and claims that are explicitly present in the retrieved context above. Do not introduce any external facts, entities, organizations, or events not contained in the provided chunks, even if they seem plausible or commonly true.
+If the context does not contain the *exact* scenario the user is asking about (e.g., a specific war), do NOT refuse to answer. Instead, synthesize the closest relevant impacts from the provided context (e.g., how disruptions involving the mentioned entities or regions affect supply chains) and explain how those factors would practically address the user's underlying question.
+Do not introduce external facts not contained in the provided chunks, but you MAY extrapolate the logical supply chain impacts based on the provided context.
 
 Context:
 ${contextText}
