@@ -25,7 +25,7 @@ export function CountrySelectionModal() {
             className="w-full max-w-lg overflow-hidden rounded-2xl border border-white/10 bg-black/60 shadow-2xl p-6 md:p-8 relative"
           >
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500" />
-            
+
             <div className="flex flex-col items-center text-center mb-8">
               <div className="size-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center mb-4">
                 <Globe2 className="size-6 text-indigo-400" />
@@ -42,7 +42,7 @@ export function CountrySelectionModal() {
               {availableCountryIds.map((id) => {
                 const profile = COUNTRY_REGISTRY[id];
                 if (!profile) return null;
-                
+
                 return (
                   <button
                     key={id}

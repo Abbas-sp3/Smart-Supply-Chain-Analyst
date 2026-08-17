@@ -9,11 +9,11 @@
 
 import type { DataSourceOutput } from "../types";
 import {
-  INDIA_TRADE_GRAPH,
   ALTERNATIVE_SUPPLIERS,
   type KnowledgeGraphNode,
   type AlternativeSupplierMapping,
 } from "./tradeGraph";
+import type { CountryProfile } from "@/data/countries/types";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Public types — consumed by intelligenceContextService
@@ -52,10 +52,7 @@ export type KnowledgeGraphResult = {
 // Internal helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
-const nodeMap = new Map<string, KnowledgeGraphNode>();
-for (const node of INDIA_TRADE_GRAPH) {
-  nodeMap.set(node.id, node);
-}
+
 
 function matchesText(node: KnowledgeGraphNode, text: string): boolean {
   const lower = text.toLowerCase();
@@ -74,7 +71,7 @@ function matchesText(node: KnowledgeGraphNode, text: string): boolean {
  * Scans intelligence sources for entity mentions.
  * Returns the set of directly matched KG nodes.
  */
-function findMatchedEntities(sources: DataSourceOutput[]): KnowledgeGraphNode[] {
+function findMatchedEntities(sources: DataSourceOutput[], country: CountryProfile): KnowledgeGraphNode[] {
   const allText = sources
     .map((s) =>
       typeof s.data === "string"
@@ -83,7 +80,7 @@ function findMatchedEntities(sources: DataSourceOutput[]): KnowledgeGraphNode[] 
     )
     .join(" ");
 
-  return INDIA_TRADE_GRAPH.filter((node) => matchesText(node, allText));
+  return country.tradeGraph.filter((node) => matchesText(node, allText));
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -96,6 +93,8 @@ function findMatchedEntities(sources: DataSourceOutput[]): KnowledgeGraphNode[] 
  */
 export function traceSupplyChainImpact(
   matchedNodes: KnowledgeGraphNode[],
+  country: CountryProfile,
+  nodeMap: Map<string, KnowledgeGraphNode>
 ): SupplyChainExposure {
   const visited = new Set<string>();
   const reachableNodes = new Map<string, { node: KnowledgeGraphNode; reason: string }>();
@@ -105,7 +104,7 @@ export function traceSupplyChainImpact(
 
   for (const node of matchedNodes) {
     visited.add(node.id);
-    reachableNodes.set(node.id, { node, reason: `Directly mentioned in intelligence` });
+    reachableNodes.set(node.id, { node, reason: `Identified in current risk alerts` });
     for (const edge of node.connections) {
       if (!visited.has(edge.targetId)) {
         const target = nodeMap.get(edge.targetId);
@@ -113,7 +112,7 @@ export function traceSupplyChainImpact(
           queue.push({
             nodeId: edge.targetId,
             depth: 1,
-            reason: `${node.label} ${edge.relationship} ${target.label}`,
+            reason: `${node.label} ${edge.relationship.replace(/_/g, " ")} ${target.label}`,
           });
         }
       }
@@ -138,7 +137,7 @@ export function traceSupplyChainImpact(
           queue.push({
             nodeId: edge.targetId,
             depth: item.depth + 1,
-            reason: `${node.label} ${edge.relationship} ${target.label}`,
+            reason: `${node.label} ${edge.relationship.replace(/_/g, " ")} ${target.label}`,
           });
         }
       }
@@ -146,7 +145,7 @@ export function traceSupplyChainImpact(
   }
 
   // Also trace reverse connections: find nodes that DEPEND ON matched nodes
-  for (const node of INDIA_TRADE_GRAPH) {
+  for (const node of country.tradeGraph) {
     if (visited.has(node.id)) continue;
     for (const edge of node.connections) {
       if (matchedNodes.some((m) => m.id === edge.targetId)) {
@@ -155,7 +154,7 @@ export function traceSupplyChainImpact(
           const target = nodeMap.get(edge.targetId);
           reachableNodes.set(node.id, {
             node,
-            reason: `${node.label} ${edge.relationship} ${target?.label ?? edge.targetId}`,
+            reason: `${node.label} ${edge.relationship.replace(/_/g, " ")} ${target?.label ?? edge.targetId}`,
           });
         }
       }
@@ -174,7 +173,7 @@ export function traceSupplyChainImpact(
   for (const [, { node, reason }] of reachableNodes) {
     switch (node.type) {
       case "country":
-        if (node.id !== "country_india") {
+        if (node.id !== `country_${country.id.toLowerCase()}`) {
           countries.push({ country: node.label, reason });
         }
         break;
@@ -214,33 +213,29 @@ export function traceSupplyChainImpact(
 
   const alternatives: SupplyChainExposure["alternative_suppliers"] = [];
 
+  // Match specific products from the graph to ALTERNATIVE_SUPPLIERS
   for (const mapping of ALTERNATIVE_SUPPLIERS) {
-    if (!affectedProductIds.has(mapping.productId)) continue;
-
-    // Find which current sources are affected
-    const currentSources = mapping.alternatives
-      .filter((alt) => affectedCountryIds.has(alt.countryId))
-      .map((alt) => alt.countryLabel);
-
-    // Find alternatives NOT in the affected set
-    const availableAlts = mapping.alternatives
-      .filter((alt) => !affectedCountryIds.has(alt.countryId))
-      .map((alt) => `${alt.countryLabel} (${alt.viability}: ${alt.notes})`);
-
-    if (currentSources.length > 0 && availableAlts.length > 0) {
+    if (affectedProductIds.has(mapping.productId)) {
       alternatives.push({
         product: mapping.productLabel,
-        current_source: currentSources.join(", "),
-        alternative_sources: availableAlts,
-        reason: `Disruption to ${currentSources.join("/")} supply; alternatives available`,
+        current_source: "Disrupted Routes",
+        alternative_sources: mapping.alternatives.map((alt) => `${alt.countryLabel} (${alt.notes})`),
+        reason: "Available strategic alternatives for affected import",
       });
-    } else if (availableAlts.length > 0) {
-      // Product is affected but no specific country disruption — still provide alternatives
+    }
+  }
+
+  // Fallback: If no specific products were matched (e.g., Singapore's graph which focuses on corridors/infra),
+  // but there are disruptions, provide the country's default alternative sources.
+  if (alternatives.length === 0 && country.defaultAlternativeSources && country.defaultAlternativeSources.length > 0) {
+    if (reachableNodes.size > 0) {
       alternatives.push({
-        product: mapping.productLabel,
-        current_source: "Multiple sources",
-        alternative_sources: availableAlts.slice(0, 3),
-        reason: `Potential supply disruption via affected corridors`,
+        product: "Strategic Energy Imports",
+        current_source: "Disrupted Supply Lines",
+        alternative_sources: country.defaultAlternativeSources.map(
+          (alt) => `${alt.name} (${alt.note ?? alt.gradeCompatibility ?? ""})`
+        ),
+        reason: "Alternative sourcing options to bypass current disruptions",
       });
     }
   }
@@ -267,8 +262,14 @@ export function traceSupplyChainImpact(
  */
 export function buildKnowledgeGraphContext(
   sources: DataSourceOutput[],
+  country: CountryProfile
 ): KnowledgeGraphResult {
-  const matchedNodes = findMatchedEntities(sources);
+  const nodeMap = new Map<string, KnowledgeGraphNode>();
+  for (const node of country.tradeGraph) {
+    nodeMap.set(node.id, node);
+  }
+
+  const matchedNodes = findMatchedEntities(sources, country);
 
   if (matchedNodes.length === 0) {
     return {
@@ -288,7 +289,7 @@ export function buildKnowledgeGraphContext(
     };
   }
 
-  const exposure = traceSupplyChainImpact(matchedNodes);
+  const exposure = traceSupplyChainImpact(matchedNodes, country, nodeMap);
 
   // Build a concise summary for the LLM
   const summaryParts: string[] = [];

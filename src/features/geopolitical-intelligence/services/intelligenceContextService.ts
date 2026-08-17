@@ -26,6 +26,7 @@ import {
   buildKnowledgeGraphContext,
   type KnowledgeGraphResult,
 } from "../knowledge-graph";
+import type { CountryProfile } from "@/data/countries/types";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Observation → Compact converters
@@ -246,7 +247,8 @@ function parseKnowledgeGraphEntries(kgContext: string): CompactKnowledgeGraphEnt
  */
 export function buildIntelligenceContext(
   observations: AugmentedObservation[],
-  rawSources?: DataSourceOutput[],
+  rawSources: DataSourceOutput[] | undefined,
+  country: CountryProfile
 ): IntelligenceContext {
   const critical_events: CompactCriticalEvent[] = [];
   const military_observations: CompactMilitaryObservation[] = [];
@@ -277,7 +279,7 @@ export function buildIntelligenceContext(
     data: obs.fact,
   }));
 
-  const kgResult: KnowledgeGraphResult = buildKnowledgeGraphContext(kgSources);
+  const kgResult: KnowledgeGraphResult = buildKnowledgeGraphContext(kgSources, country);
 
   // --- Evidence Fusion ---
   const evidenceSignals = fuseEvidence(

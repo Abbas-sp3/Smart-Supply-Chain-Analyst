@@ -43,7 +43,7 @@ export const MODULE_TTL_EVIDENCE_MS = 30 * 60 * 1000; // 30 minutes
 export const MAX_ARTICLES_PER_FETCH = 25;
 
 /** Groq model to use for intelligence generation */
-export const GROQ_MODEL = "llama-3.3-70b-versatile";
+export const GROQ_MODEL = "openai/gpt-oss-120b";
 
 /** Max tokens for the legacy single-call path (kept for fact extraction) */
 export const GROQ_MAX_TOKENS = 4096;

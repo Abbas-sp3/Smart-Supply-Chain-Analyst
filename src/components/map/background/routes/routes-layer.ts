@@ -79,7 +79,7 @@ export function addRoutesBackgroundLayer(map: MapInstance) {
 
   resolvedRoutes.forEach((route, routeIdx) => {
     const sampler = createPathSampler(route.coordinates);
-    
+
     // Create 3 particles per route, staggered
     const numParticles = 3;
     for (let i = 0; i < numParticles; i++) {
@@ -87,7 +87,7 @@ export function addRoutesBackgroundLayer(map: MapInstance) {
       // Flow very slowly: full loop takes between 120s and 180s
       const durationMs = 120_000 + Math.random() * 60_000;
       const speed = 1 / durationMs;
-      
+
       particles.push({
         sampler,
         progress,

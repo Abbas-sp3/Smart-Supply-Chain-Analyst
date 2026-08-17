@@ -29,6 +29,72 @@ export const singaporeProfile: CountryProfile = {
 
   tradeGraph: [
     {
+      id: "country_saudi_arabia",
+      type: "country",
+      label: "Saudi Arabia",
+      description: "Primary crude oil supplier for Singapore's refineries.",
+      capacityMtpa: 300,
+      baseUtilizationPct: 85,
+      connections: [
+        { targetId: "corridor_hormuz", relationship: "routes_through", strategicWeight: "Critical" },
+      ],
+    },
+    {
+      id: "country_uae",
+      type: "country",
+      label: "United Arab Emirates",
+      description: "Major supplier of crude and refined products.",
+      capacityMtpa: 200,
+      baseUtilizationPct: 80,
+      connections: [
+        { targetId: "corridor_hormuz", relationship: "routes_through", strategicWeight: "Critical" },
+      ],
+    },
+    {
+      id: "country_iraq",
+      type: "country",
+      label: "Iraq",
+      description: "Basra crude supplier for heavy refining.",
+      capacityMtpa: 150,
+      baseUtilizationPct: 90,
+      connections: [
+        { targetId: "corridor_hormuz", relationship: "routes_through", strategicWeight: "High" },
+      ],
+    },
+    {
+      id: "country_qatar",
+      type: "country",
+      label: "Qatar",
+      description: "Critical LNG supplier for Singapore's power generation.",
+      capacityMtpa: 100,
+      baseUtilizationPct: 95,
+      connections: [
+        { targetId: "corridor_hormuz", relationship: "routes_through", strategicWeight: "Critical" },
+      ],
+    },
+    {
+      id: "country_russia",
+      type: "country",
+      label: "Russia",
+      description: "Opportunistic crude and fuel oil supplier.",
+      capacityMtpa: 120,
+      baseUtilizationPct: 70,
+      connections: [
+        { targetId: "corridor_malacca", relationship: "routes_through", strategicWeight: "Medium" },
+      ],
+    },
+    {
+      id: "country_china",
+      type: "country",
+      label: "China",
+      description: "Supplier of refined petroleum products via South China Sea.",
+      capacityMtpa: 80,
+      baseUtilizationPct: 60,
+      connections: [
+        { targetId: "corridor_south_china_sea", relationship: "routes_through", strategicWeight: "High" },
+      ],
+    },
+    {
       id: "corridor_malacca",
       type: "corridor",
       label: "Strait of Malacca",
@@ -53,6 +119,8 @@ export const singaporeProfile: CountryProfile = {
       flexibilityFactor: 0.05,
       connections: [
         { targetId: "corridor_malacca", relationship: "feeds_into", strategicWeight: "Critical" },
+        { targetId: "port_jurong", relationship: "routes_through", strategicWeight: "Critical" },
+        { targetId: "port_bukom", relationship: "routes_through", strategicWeight: "Critical" },
       ],
     },
     {

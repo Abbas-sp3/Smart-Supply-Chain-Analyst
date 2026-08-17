@@ -158,7 +158,7 @@ export function AskIntelligencePanel() {
       const res = await fetch("/api/intelligence/ask", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: query }),
+        body: JSON.stringify({ question: query, country: activeCountry.name }),
       });
       data = await res.json();
 
@@ -266,7 +266,7 @@ export function AskIntelligencePanel() {
             <PhaseStep
               icon={Sparkles}
               label="Grounded Synthesis"
-              sublabel="LLaMA-3.3-70B reads ONLY the retrieved context — zero outside knowledge"
+              sublabel="GPT OSS 120B reads ONLY the retrieved context — zero outside knowledge"
               status={getPhaseStatus("generating")}
             />
           </div>
@@ -322,8 +322,10 @@ export function AskIntelligencePanel() {
                   Synthesized Answer — grounded in retrieved context only
                 </span>
               </div>
-              <div className="text-sm text-foreground/90 leading-relaxed whitespace-pre-wrap">
-                {result.answer}
+              <div className="text-sm text-foreground/90 leading-relaxed space-y-2">
+                {result.answer.split("\n").filter(line => line.trim() !== "").map((line, i) => (
+                  <p key={i}>{line}</p>
+                ))}
               </div>
             </div>
           )}

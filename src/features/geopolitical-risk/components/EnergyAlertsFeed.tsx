@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 
+
 // Ported from carbon-evolution/horus AlertsView — energy-specific priority alert feed.
 export type AlertSeverity = "high" | "medium" | "low";
 
@@ -57,7 +58,7 @@ export function EnergyAlertsFeed({ alerts: allAlerts }: { alerts: EnergyAlert[] 
               {/* severity dot */}
               <span className={`mt-1 h-2 w-2 shrink-0 rounded-full ${SEVERITY_STYLES[a.severity].dot}`} />
               <div className="min-w-0">
-                <div className="truncate text-sm leading-tight">{a.title}</div>
+                <div className="line-clamp-2 text-sm leading-tight">{a.title}</div>
                 <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-[var(--text-faint)]">
                   <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${SEVERITY_STYLES[a.severity].badge}`}>
                     {a.severity.toUpperCase()}
@@ -68,11 +69,6 @@ export function EnergyAlertsFeed({ alerts: allAlerts }: { alerts: EnergyAlert[] 
                 </div>
               </div>
             </div>
-            {a.href && (
-              <a href={a.href} className="shrink-0 text-xs text-[var(--accent)] hover:underline whitespace-nowrap">
-                View →
-              </a>
-            )}
           </li>
         ))}
         {alerts.length === 0 && (

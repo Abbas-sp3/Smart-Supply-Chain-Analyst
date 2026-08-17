@@ -158,9 +158,10 @@ function getIcon(iconName: string) {
   }
 }
 
-function fmtPrice(p: number | undefined | null, unit?: string): string {
-  if (p == null || isNaN(p)) return "\u2014";
-  return `$${p.toFixed(2)}${unit ? ` /${unit}` : ""}`;
+function fmtPrice(p: number | string | undefined | null, unit?: string): string {
+  const n = typeof p === "string" ? parseFloat(p) : p;
+  if (n == null || isNaN(n)) return "—";
+  return `$${n.toFixed(2)}${unit ? ` /${unit}` : ""}`;
 }
 
 function cls(...classes: (string | false | undefined | null)[]) {

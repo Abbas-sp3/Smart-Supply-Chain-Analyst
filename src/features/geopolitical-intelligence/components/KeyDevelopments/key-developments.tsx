@@ -39,36 +39,46 @@ export function KeyDevelopments({ developments }: Props) {
       </header>
 
       <ol className="space-y-3">
-        {developments.map((dev, i) => {
-          const config = getImportanceConfig(dev.importance);
-          const Icon = config.icon;
+        {developments.length === 0 ? (
+          <li className="rounded-lg border border-white/[0.07] bg-white/[0.02] p-6 text-center">
+            <Info className="mx-auto mb-2 size-5 text-muted-foreground" aria-hidden />
+            <p className="text-sm font-medium text-foreground/80">No Key Developments Detected</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Current intelligence sources do not indicate any major supply chain developments at this time.
+            </p>
+          </li>
+        ) : (
+          developments.map((dev, i) => {
+            const config = getImportanceConfig(dev.importance);
+            const Icon = config.icon;
 
-          return (
-            <li
-              key={i}
-              className="rounded-lg border border-white/[0.07] bg-white/[0.02] p-4 transition-colors hover:bg-white/[0.04]"
-            >
-              <div className="mb-2 flex items-start justify-between gap-3">
-                <h3 className="text-sm font-medium leading-snug text-foreground/90">
-                  {dev.title}
-                </h3>
-                <span
-                  className={`inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide ${config.classes}`}
-                >
-                  <Icon aria-hidden className="size-2.5" />
-                  {dev.importance}
-                </span>
-              </div>
-              <p className="mb-2 text-xs leading-relaxed text-muted-foreground">
-                {dev.description}
-              </p>
-              <p className="text-xs leading-relaxed text-foreground/60">
-                <span className="mr-1 font-medium text-primary/60">Impact:</span>
-                {dev.why_it_matters}
-              </p>
-            </li>
-          );
-        })}
+            return (
+              <li
+                key={i}
+                className="rounded-lg border border-white/[0.07] bg-white/[0.02] p-4 transition-colors hover:bg-white/[0.04]"
+              >
+                <div className="mb-2 flex items-start justify-between gap-3">
+                  <h3 className="text-sm font-medium leading-snug text-foreground/90">
+                    {dev.title}
+                  </h3>
+                  <span
+                    className={`inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide ${config.classes}`}
+                  >
+                    <Icon aria-hidden className="size-2.5" />
+                    {dev.importance}
+                  </span>
+                </div>
+                <p className="mb-2 text-xs leading-relaxed text-muted-foreground">
+                  {dev.description}
+                </p>
+                <p className="text-xs leading-relaxed text-foreground/60">
+                  <span className="mr-1 font-medium text-primary/60">Impact:</span>
+                  {dev.why_it_matters}
+                </p>
+              </li>
+            );
+          })
+        )}
       </ol>
     </section>
   );

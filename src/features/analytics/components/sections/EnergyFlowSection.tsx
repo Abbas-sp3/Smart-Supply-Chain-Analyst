@@ -15,6 +15,8 @@ const ENERGY_SUPPLIER_IDS = new Set([
   "country_qatar",
   "country_kuwait",
   "country_usa",
+  "country_australia",
+  "country_indonesia",
 ]);
 
 const ENERGY_CORRIDOR_IDS = new Set([
@@ -40,6 +42,7 @@ const SG_SUPPLIER_IDS = new Set([
   "country_uae",
   "country_russia",
   "country_qatar",
+  "country_china",
 ]);
 
 const SG_CORRIDOR_IDS = new Set([

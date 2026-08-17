@@ -106,7 +106,7 @@ async function generateFresh(country: CountryProfile): Promise<IntelligenceRepor
   const augmentedObservations = await preprocessIntelligence(allSources, country);
 
   // Step 3: Build enriched intelligence context (with KG tracing + evidence fusion)
-  const context = buildIntelligenceContext(augmentedObservations, allSources);
+  const context = buildIntelligenceContext(augmentedObservations, allSources, country);
   const contextHash = hashIntelligenceContext(context);
 
   console.log(
@@ -116,25 +116,19 @@ async function generateFresh(country: CountryProfile): Promise<IntelligenceRepor
       `${context.evidence_signals.length} corroborated signals.`,
   );
 
-  // Step 4: Run Groq modules sequentially (not parallel) to stay within per-minute RPM limits.
-  // 5 parallel calls saturate both Groq keys + Gemini fallback simultaneously.
-  // Sequential calls with a 1.5s gap spread load across ~10s — well within the 60s window.
-  // Impact on end-users: negligible once the 30-min cache (Stage A) is warm.
-  const MODULE_INTER_CALL_DELAY_MS = Number(process.env.MODULE_INTER_CALL_DELAY_MS) || 1500;
-  const delay = (ms: number) => new Promise(r => setTimeout(r, ms));
+  // Step 4: Run all 5 Groq modules in parallel.
+  // The llmRouter distributes calls across Groq Key 1 → Key 2 → Gemini fallback,
+  // so concurrent requests spread naturally across providers.
+  console.log(`[intelligenceService] Running 5 modules in parallel...`);
 
-  console.log(`[intelligenceService] Running 5 modules sequentially (${MODULE_INTER_CALL_DELAY_MS}ms gap)...`);
-
-  const executive = await runExecutiveSummaryModule(context, country);
-  await delay(MODULE_INTER_CALL_DELAY_MS);
-  const supplyChain = await runSupplyChainImpactModule(context, country);
-  await delay(MODULE_INTER_CALL_DELAY_MS);
-  const recommendations = await runRecommendationsModule(context, country);
-  await delay(MODULE_INTER_CALL_DELAY_MS);
-  const scenarios = await runScenarioAnalysisModule(context, contextHash, country);
-  await delay(MODULE_INTER_CALL_DELAY_MS);
-  const evidence = await runEvidenceModule(context, country);
-
+  const [executive, supplyChain, recommendations, scenarios, evidence] =
+    await Promise.all([
+      runExecutiveSummaryModule(context, country),
+      runSupplyChainImpactModule(context, country),
+      runRecommendationsModule(context, country),
+      runScenarioAnalysisModule(context, contextHash, country),
+      runEvidenceModule(context, country),
+    ]);
 
   // Step 5: Assemble into unified IntelligenceReport (with KG gap-filling)
   const report = assembleIntelligenceReport(

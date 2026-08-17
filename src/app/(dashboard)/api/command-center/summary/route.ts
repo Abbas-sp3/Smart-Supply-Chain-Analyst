@@ -67,12 +67,7 @@ export async function POST(req: Request) {
 
     const scenarioContext = scenarioRun
       ? `Most Recent Scenario Simulation:\n  Name: ${scenarioRun.name}\n  Modelled Supply Gap: ${scenarioRun.supplyGap} MMT\n  Supply Shock Index (SSI): ${scenarioRun.ssi}`
-      : "[CONTEXT NOTE: No scenario simulation has been run. Note this briefly — it means cascading supply-chain impact is unmodelled.]";
-
-    // GRF penalty breakdown for transparency in prompt
-    const criticalCount = (activeAlerts ?? []).filter((a: any) => a.severity === "Critical").length;
-    const highCount = (activeAlerts ?? []).filter((a: any) => a.severity === "High").length;
-    const grfPenalty = criticalCount * 15 + highCount * 10;
+      : "";
 
     const prompt = `You are a senior energy supply-chain analyst briefing a decision-maker in 4–5 sentences. The analysis must be specifically scoped to ${countryName}.
 
@@ -81,9 +76,9 @@ CRITICAL RULES — violations make the briefing useless:
 2. DO NOT use bullet points, headings, or markdown. Flowing prose only.
 3. DO NOT invent events, ports, prices, or news. Use ONLY the data supplied below.
 4. The FIRST sentence must identify the primary operational risk in concrete terms (which corridor, which commodity/product flow, which ports are exposed).
-5. The SECOND sentence must explain the GRF driver: ${criticalCount} Critical and ${highCount} High-severity alert(s) each carrying illustrative penalty points (Critical=15pts, High=10pts) yielding a ${grfPenalty}-point reduction from GRF baseline.
-6. The THIRD/FOURTH sentence must address practical implication for ${countryName}'s energy supply chain — rerouting risk, freight cost exposure, which specific commodity/refinery input is strained — again, only using data below.
-7. Close with a one-sentence note on the scenario simulation status and what it means for risk confidence.
+5. Synthesize the impact of current corridor alerts on the supply chain's geopolitical resilience. Do NOT recite any arbitrary point mechanics or penalty calculations.
+6. Address practical implications for ${countryName}'s energy supply chain — rerouting risk, freight cost exposure, which specific commodity/refinery input is strained.
+${scenarioRun ? "7. Close by summarizing the insights from the recent scenario simulation and what it means for risk confidence." : ""}
 
 SUPPLIED CONTEXT:
 ---
@@ -99,9 +94,9 @@ Briefing:`;
 
     const completion = await groq.chat.completions.create({
       messages: [{ role: "user", content: prompt }],
-      model: "llama-3.3-70b-versatile",
+      model: "openai/gpt-oss-20b",
       temperature: 0.15,
-      max_tokens: 350,
+      max_tokens: 2048,
     });
 
     const summary = completion.choices[0]?.message?.content || "Summary could not be generated.";

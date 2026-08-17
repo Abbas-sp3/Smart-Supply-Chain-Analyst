@@ -80,7 +80,7 @@ ${JSON.stringify(newsData, null, 2)}
     const rawResponse = await callGroq(
       "You are a strict JSON data extractor specializing in supply chain intelligence.",
       prompt,
-      "llama-3.1-8b-instant",
+      "openai/gpt-oss-20b",
       2048,
     );
     const { normalized } = parseAndNormalizeLLMResponse(
@@ -374,7 +374,7 @@ export async function preprocessIntelligence(
 
     const kgResult = buildKnowledgeGraphContext([
       { source: "Extraction", data: contextStr },
-    ]);
+    ], country);
     const priority = assignPriority(kgResult, contextStr);
     augmented.push({
       type: "News",
@@ -389,7 +389,7 @@ export async function preprocessIntelligence(
     const contextStr = `${fact.observation} ${fact.region} ${fact.country} ${fact.aircraft}`;
     const kgResult = buildKnowledgeGraphContext([
       { source: "Extraction", data: contextStr },
-    ]);
+    ], country);
     const priority = assignPriority(kgResult, contextStr);
     // Military gets minimum LOW (never BACKGROUND) since any military activity has baseline relevance
     if (priority.priority_level === "BACKGROUND")
@@ -407,7 +407,7 @@ export async function preprocessIntelligence(
     const contextStr = `${fact.observation} ${fact.route} ${fact.event} ${fact.vessel_type}`;
     const kgResult = buildKnowledgeGraphContext([
       { source: "Extraction", data: contextStr },
-    ]);
+    ], country);
     const priority = assignPriority(kgResult, contextStr);
     // Maritime gets minimum LOW
     if (priority.priority_level === "BACKGROUND")

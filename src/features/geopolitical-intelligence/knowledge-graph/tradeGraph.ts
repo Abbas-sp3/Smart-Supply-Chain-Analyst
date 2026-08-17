@@ -321,6 +321,8 @@ export const INDIA_TRADE_GRAPH: KnowledgeGraphNode[] = [
       { targetId: "product_fertilizers", relationship: "supplies", strategicWeight: "High" },
       { targetId: "product_coal", relationship: "supplies", strategicWeight: "High" },
       { targetId: "product_defence_equipment", relationship: "supplies", strategicWeight: "High" },
+      { targetId: "corridor_suez", relationship: "routes_through", strategicWeight: "Critical" },
+      { targetId: "corridor_bab_el_mandeb", relationship: "routes_through", strategicWeight: "Critical" },
     ],
   },
   {
@@ -335,6 +337,8 @@ export const INDIA_TRADE_GRAPH: KnowledgeGraphNode[] = [
       { targetId: "product_lng", relationship: "supplies", strategicWeight: "High" },
       { targetId: "product_semiconductors", relationship: "supplies", strategicWeight: "High" },
       { targetId: "product_defence_equipment", relationship: "supplies", strategicWeight: "Medium" },
+      { targetId: "corridor_suez", relationship: "routes_through", strategicWeight: "High" },
+      { targetId: "corridor_bab_el_mandeb", relationship: "routes_through", strategicWeight: "High" },
     ],
   },
   {
@@ -404,6 +408,7 @@ export const INDIA_TRADE_GRAPH: KnowledgeGraphNode[] = [
       { targetId: "product_lng", relationship: "supplies", strategicWeight: "High" },
       { targetId: "product_lithium", relationship: "supplies", strategicWeight: "High" },
       { targetId: "product_rare_earths", relationship: "supplies", strategicWeight: "Medium" },
+      { targetId: "corridor_malacca", relationship: "routes_through", strategicWeight: "Critical" },
     ],
   },
   {

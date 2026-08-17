@@ -58,7 +58,7 @@ export function addShipsBackgroundLayer(map: MapInstance) {
     for (let i = 0; i < numShips; i++) {
       // Stagger start positions along the route to prevent bunching
       const progress = (i / numShips) + (Math.random() * (1 / numShips));
-      
+
       // Ships move VERY slowly (takes between 180s and 300s to complete a full loop)
       const loopDurationMs = 180_000 + Math.random() * 120_000;
       const speed = 1 / loopDurationMs;

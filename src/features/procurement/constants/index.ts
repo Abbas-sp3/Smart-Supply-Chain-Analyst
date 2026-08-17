@@ -1,4 +1,4 @@
-export const PROCUREMENT_GROQ_MODEL = "llama-3.1-8b-instant";
+export const PROCUREMENT_GROQ_MODEL = "openai/gpt-oss-20b";
 
 export const PROCUREMENT_GROQ_MAX_TOKENS = 2500;
 

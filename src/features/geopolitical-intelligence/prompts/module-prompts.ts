@@ -107,6 +107,7 @@ ${reasoning}
 
 SPECIFIC INSTRUCTIONS:
 - Use the pre-computed supply_chain_exposure as your STARTING POINT. Validate and expand with LLM reasoning.
+- You MUST explicitly include a fact for EVERY entity listed in the provided \`supply_chain_exposure\` (especially ALL affected_corridors and affected_products). Do not omit any pre-computed entities.
 - You MUST emit facts for ALL relevant entity types: country, product, port, corridor, industry, category, infrastructure.
 - Do NOT leave gaps: if products are identified, industries and import categories MUST follow logically.
 - If corridors are identified, affected ports MUST follow.
