@@ -9,7 +9,7 @@ import {
   computeMitigationComparison,
 } from "@/features/analytics/services/analyticsEngine";
 
-import { DataFreshnessPanel } from "@/features/analytics/components/sections/DataFreshnessPanel";
+
 import { ExecutiveStrategicBrief } from "@/features/analytics/components/sections/ExecutiveStrategicBrief";
 import { SystemicVulnerabilityAnalysis } from "@/features/analytics/components/sections/SystemicVulnerabilityAnalysis";
 import { MitigationEffectiveness } from "@/features/analytics/components/sections/MitigationEffectiveness";
@@ -55,10 +55,6 @@ export default function AnalyticsPage() {
 
   return (
       <div className="mx-auto w-full max-w-7xl flex-1 space-y-6 px-6 py-6">
-        <section aria-labelledby="freshness-heading">
-          <h2 id="freshness-heading" className="sr-only">Data Freshness</h2>
-          <DataFreshnessPanel />
-        </section>
         <section aria-labelledby="exec-brief-heading">
           <h2 id="exec-brief-heading" className="sr-only">Executive Strategic Brief</h2>
           <ExecutiveStrategicBrief
