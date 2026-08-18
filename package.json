@@ -4,6 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:full": "concurrently --names \"next,monte-carlo\" --prefix-colors \"cyan,magenta\" \"next dev\" \"python simulation-engine/monte_carlo_server.py\"",
+    "mc": "python simulation-engine/monte_carlo_server.py",
+    "mc:install": "python -m pip install fastapi uvicorn pydantic",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
@@ -40,6 +43,7 @@
     "@types/three": "^0.185.4",
     "@types/ws": "^8.18.1",
     "babel-plugin-react-compiler": "1.0.0",
+    "concurrently": "^9.2.4",
     "eslint": "^9",
     "eslint-config-next": "16.2.10",
     "tailwindcss": "^4",

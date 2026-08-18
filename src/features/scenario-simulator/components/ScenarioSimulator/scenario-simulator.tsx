@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import type { MonteCarloResult } from "@/app/(dashboard)/api/monte-carlo/route";
 import {
   FlaskConical,
   Play,
@@ -21,6 +22,9 @@ import {
   Leaf,
   Factory,
   Hexagon,
+  Cpu,
+  Wifi,
+  WifiOff,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -69,6 +73,95 @@ const SSI_LABEL = (score: number) => {
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
+/** Badge that shows Monte Carlo MCTS status + results inline in the results header. */
+function MonteCarloPanel({ mc }: { mc: MonteCarloResult | null | undefined }) {
+  const [open, setOpen] = useState(false);
+
+  if (mc === undefined) return null; // simulation not run yet
+
+  if (mc === null) {
+    return (
+      <div className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs text-muted-foreground/60">
+        <WifiOff className="size-3" />
+        <span>Static severity (Python server offline)</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="solid-card rounded-xl border border-violet-500/20 bg-[#16120d] shadow-lg">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="flex w-full items-center gap-2 px-4 py-2.5 text-left"
+      >
+        <Cpu className="size-3.5 text-violet-400" />
+        <span className="text-xs font-semibold text-violet-300">Monte Carlo MCTS</span>
+        <span className="ml-2 rounded-full bg-violet-500/20 px-2 py-0.5 text-[10px] font-bold text-violet-300">
+          {mc.iterations_run.toLocaleString()} iterations
+        </span>
+        <span className="ml-auto flex items-center gap-1 text-[10px] text-violet-400/60">
+          <Wifi className="size-3" />
+          {mc.computation_ms.toFixed(0)} ms
+        </span>
+        {open ? <ChevronDown className="size-3.5 text-violet-400/60" /> : <ChevronRight className="size-3.5 text-violet-400/60" />}
+      </button>
+
+      {open && (
+        <div className="border-t border-violet-500/10 px-4 pb-4 pt-3 space-y-3">
+          {/* Key scores row */}
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              { label: "Severity", value: mc.severity_pct, color: "text-rose-400" },
+              { label: "Escalation", value: mc.escalation_pct, color: "text-orange-400" },
+              { label: "Econ. Stress", value: mc.economic_stress_pct, color: "text-amber-400" },
+            ].map(({ label, value, color }) => (
+              <div key={label} className="rounded-lg bg-white/[0.04] p-2 text-center">
+                <div className={`text-lg font-black tabular-nums ${color}`}>{value}%</div>
+                <div className="text-[10px] text-muted-foreground/60">{label}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Best action */}
+          <div className="flex items-center gap-2 text-xs">
+            <span className="text-muted-foreground/60">Best action:</span>
+            <span className="rounded bg-violet-500/20 px-2 py-0.5 font-mono text-violet-300">
+              {mc.best_action}
+            </span>
+            <span className="ml-auto text-muted-foreground/50">
+              negotiation score {mc.negotiation_score}%
+            </span>
+          </div>
+
+          {/* Phase distribution */}
+          <div className="space-y-1">
+            <div className="text-[10px] text-muted-foreground/50 uppercase tracking-wider">Visit distribution by phase</div>
+            <div className="flex gap-1">
+              {Object.entries(mc.phase_distribution).map(([phase, pct]) => (
+                <div
+                  key={phase}
+                  className="flex flex-col items-center gap-0.5"
+                  style={{ flex: pct }}
+                >
+                  <div
+                    className="w-full rounded-sm bg-violet-500/40"
+                    style={{ height: `${Math.max(4, pct / 3)}px` }}
+                  />
+                  <span className="text-[9px] text-muted-foreground/40 truncate max-w-[64px]">{phase}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <p className="text-[10px] text-muted-foreground/40">
+            Severity derived via Monte Carlo Tree Search — {mc.root_visits.toLocaleString()} tree nodes visited across {mc.iterations_run} rollouts. Terminal phase: <span className="text-violet-400/60">{mc.terminal_phase}</span>.
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
 
 
 function MetricCard({
@@ -567,6 +660,9 @@ export function ScenarioSimulator() {
                   </div>
                 </div>
               </div>
+
+              {/* Monte Carlo MCTS status panel */}
+              <MonteCarloPanel mc={baseline.monteCarloData} />
 
               {/* Delta comparison (appears only when a lever run exists) */}
               {withLevers && (

@@ -238,15 +238,40 @@ export function TradeCorridors({
     };
   }, []);
 
-  // 2b. Listen for country changes and flyTo
+  // 2b. Listen for country changes or active corridor updates and adjust map bounds
   useEffect(() => {
     if (!mapRef.current) return;
-    mapRef.current.flyTo({
-      center: activeCountry.mapView.center,
-      zoom: activeCountry.mapView.zoom,
-      duration: 2000,
-    });
-  }, [activeCountry.id]);
+    
+    if (activeCorridorImpacts.length > 0) {
+      // Calculate bounds including all active corridors and the country center
+      let minLng = activeCountry.mapView.center[0];
+      let maxLng = activeCountry.mapView.center[0];
+      let minLat = activeCountry.mapView.center[1];
+      let maxLat = activeCountry.mapView.center[1];
+
+      activeCorridorImpacts.forEach(c => {
+        if (c.coordinates[0] < minLng) minLng = c.coordinates[0];
+        if (c.coordinates[0] > maxLng) maxLng = c.coordinates[0];
+        if (c.coordinates[1] < minLat) minLat = c.coordinates[1];
+        if (c.coordinates[1] > maxLat) maxLat = c.coordinates[1];
+      });
+
+      // Add padding
+      const paddingLng = (maxLng - minLng) * 0.1 || 5;
+      const paddingLat = (maxLat - minLat) * 0.1 || 5;
+
+      mapRef.current.fitBounds([
+        [minLng - paddingLng, minLat - paddingLat],
+        [maxLng + paddingLng, maxLat + paddingLat]
+      ], { padding: 40, duration: 2000, maxZoom: 5 });
+    } else {
+      mapRef.current.flyTo({
+        center: activeCountry.mapView.center,
+        zoom: activeCountry.mapView.zoom,
+        duration: 2000,
+      });
+    }
+  }, [activeCountry.id, activeCorridorImpacts]);
 
   // 3. Update Hotspot layers dynamically
   useEffect(() => {

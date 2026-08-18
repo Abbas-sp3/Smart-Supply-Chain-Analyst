@@ -181,6 +181,44 @@ export const singaporeProfile: CountryProfile = {
       bufferDays: 14,
       connections: [],
     },
+    {
+      id: "industry_petrochemicals",
+      type: "industry",
+      label: "Petrochemicals & Refining",
+      description: "Singapore's Jurong Island petrochemical complex is Asia's largest integrated chemical hub, directly dependent on uninterrupted crude feedstock.",
+      connections: [
+        { targetId: "port_jurong", relationship: "depends_on", strategicWeight: "Critical" },
+        { targetId: "port_bukom", relationship: "depends_on", strategicWeight: "Critical" },
+      ],
+    },
+    {
+      id: "industry_power_generation",
+      type: "industry",
+      label: "Power Generation",
+      description: "Singapore's power sector runs on imported LNG (~95% of electricity). Disruption to Qatar and Malaysia LNG flows directly impacts grid stability.",
+      connections: [
+        { targetId: "corridor_hormuz", relationship: "depends_on", strategicWeight: "High" },
+        { targetId: "corridor_malacca", relationship: "depends_on", strategicWeight: "Critical" },
+      ],
+    },
+    {
+      id: "industry_maritime_trade",
+      type: "industry",
+      label: "Maritime Trade & Bunkering",
+      description: "Singapore is the world's largest bunkering port. Disruption to Malacca or Hormuz raises fuel costs and reduces vessel throughput at PSA terminals.",
+      connections: [
+        { targetId: "corridor_malacca", relationship: "depends_on", strategicWeight: "Critical" },
+      ],
+    },
+    {
+      id: "industry_aviation",
+      type: "industry",
+      label: "Aviation & Aerospace",
+      description: "Singapore Changi Airport and Singapore Airlines are exposed to jet fuel price spikes driven by crude supply disruptions in the Middle East.",
+      connections: [
+        { targetId: "corridor_hormuz", relationship: "depends_on", strategicWeight: "High" },
+      ],
+    },
   ],
 
   corridorFractions: {

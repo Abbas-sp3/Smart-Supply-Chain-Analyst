@@ -82,9 +82,7 @@ SPECIFIC INSTRUCTIONS:
 - Key developments must explain IMPORT IMPACT, not just what happened geopolitically.
 - Each key development's "why_it_matters" must reference specific ${country.name} products, industries, or trade corridors.
 - intelligence_observations must connect dots across multiple intelligence sources.
-- "strategic_implications" must be operationally specific — mention affected products, ports, or industries.
-- Use the supply_chain_exposure data to ground your analysis in known trade relationships.
-- Use qualitative language only (High Risk, Likely, Emerging). No fabricated percentages.
+- "strategic_implications" must explain WHY ${country.name} is specifically and uniquely exposed to this threat — focus on the structural reasons (e.g., import dependency, corridor reliance, single-source suppliers). Do NOT list recommendations or actions. Write 2–3 sentences of plain prose that a non-expert can understand: what is ${country.name}'s specific vulnerability, and what makes this situation particularly dangerous for ${country.name} compared to other countries.
 
 OUTPUT SCHEMA:
 {
@@ -92,7 +90,7 @@ OUTPUT SCHEMA:
   "current_operational_assessment": { "threat_level": "Critical|High|Medium|Low", "summary": "string — import disruption risk statement" },
   "key_developments": [{ "title": "string", "description": "string", "importance": "High|Medium|Low", "why_it_matters": "string — specific ${country.name} import impact" }],
   "intelligence_observations": [{ "observation": "string — cross-source fused insight", "significance": "string — what it means for ${country.name}'s supply chains" }],
-  "strategic_implications": "string — operational, specific, mentions products/ports/industries"
+  "strategic_implications": "string — 2-3 sentences explaining WHY ${country.name} is specifically vulnerable to this threat, referencing its structural import dependencies, corridor reliance, or supplier concentration. No recommendations."
 }`;
   }
 

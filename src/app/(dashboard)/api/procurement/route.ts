@@ -159,13 +159,7 @@ RULES:
 - ALWAYS return EXACTLY 3 alternatives with option_number 1, 2, and 3
 - Each option must include a "commodity" field specifying which energy commodity
 - tier: "recommended", "viable", or "caution"
-- detail and diplomatic_perspective: arrays of 2-3 short bullets each
-- diplomatic_perspective grounding: Ground every diplomatic_perspective bullet in a REAL, NAMED piece of diplomatic or institutional machinery — not generic sentiment like 'strengthen relations' or 'monitor tensions.' A real Indian diplomat's working vocabulary includes specific things; use it. Draw from (where genuinely relevant to the option being discussed, not forced into every bullet):
-  • Named agreements and mechanisms: India-UAE Comprehensive Economic Partnership Agreement (CEPA), the India-Russia rupee-ruble trade settlement mechanism, the G7/EU price cap on Russian seaborne crude (currently structured around a per-barrel ceiling), India-Saudi Strategic Partnership Council, India-US iCET (initiative on Critical and Emerging Technology) where relevant to broader bilateral context.
-  • Named Indian foreign policy doctrine: 'strategic autonomy,' 'multi-alignment,' Act East Policy, Neighbourhood First — use the actual vocabulary Indian policymakers use, not generic diplomatic language.
-  • Named institutions, not vague references to 'the government': Energy ministries, central planning cells, national oil companies, and key domestic procuring entities.
-  • Named multilateral context where relevant: how a sourcing shift reads within regional partner relationships.
-  If a specific named agreement or mechanism isn't genuinely applicable to a given option, it's fine to have a bullet without one — do not force a citation-like reference where none is real. The goal is credibility through specificity where specificity is real, not decoration.
+- detail and diplomatic_perspective: arrays of 2-3 short bullets. diplomatic_perspective grounding: Ground every diplomatic_perspective bullet in a REAL, NAMED piece of diplomatic or institutional machinery relevant to ${countryName}. Use the actual vocabulary of ${countryName}'s policymakers. If a specific named mechanism is not genuinely applicable, do not force a citation — credibility comes from specificity where it is real.
 - compatibility: specific to the energy commodity and import-dependent economy context
 - source_article: Only attach a source_article if that specific article directly supports the specific recommendation or fact being stated in this option.
 - historical_comparison: identify closest energy disruption pattern from the calibration set ONLY
@@ -439,7 +433,35 @@ export async function GET(req: NextRequest) {
 
     // If NewsAPI is unavailable (rate limit, server-side block, etc.),
     // fall back to curated mock articles so Gemini still produces a real briefing.
-    const MOCK_ARTICLES = [
+    // Country-specific mock articles used only when NewsAPI is unavailable
+    const MOCK_ARTICLES_BY_COUNTRY: Record<string, typeof MOCK_ARTICLES_INDIA> = {
+      Singapore: [
+        {
+          title: "Strait of Hormuz Tensions Threaten Singapore's Crude Imports",
+          description: "Military activity near the Strait of Hormuz has heightened security alerts on tanker routes. Singapore, which imports 60% of its crude from Gulf states, faces rising freight premiums at Jurong Island and Pulau Bukom terminals.",
+          publishedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+          source: "Al Jazeera",
+          url: "https://example.com/hormuz-tensions",
+        },
+        {
+          title: "OPEC+ Production Cuts Squeeze Singapore Refining Margins",
+          description: "OPEC+ output reductions are tightening Middle Eastern crude supply, raising feedstock costs for Singapore's Jurong Island refineries operated by ExxonMobil and SRC. LNG spot prices from Qatar also elevated.",
+          publishedAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
+          source: "Financial Times",
+          url: "https://example.com/opec-cuts",
+        },
+        {
+          title: "Singapore Explores Alternative Crude Sources to Reduce Gulf Dependence",
+          description: "The Energy Market Authority (EMA) and major Singapore traders are evaluating US Gulf Coast WTI, West African Bonny Light, and Australian condensates to diversify away from Hormuz-exposed Middle Eastern crude supply lines.",
+          publishedAt: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
+          source: "Reuters",
+          url: "https://example.com/singapore-energy-diversification",
+        },
+      ],
+    };
+
+    // Default India-specific mocks as the baseline
+    const MOCK_ARTICLES_INDIA = [
       {
         title: "Strait of Hormuz Tensions Rise Amid Iran-US Standoff",
         description: "Naval standoffs in the Persian Gulf have increased insurance premiums for crude tankers. India imports a significant share of Gulf crude via routes near Hormuz.",
@@ -462,6 +484,8 @@ export async function GET(req: NextRequest) {
         url: "https://example.com/india-energy-diversification",
       },
     ];
+
+    const MOCK_ARTICLES = MOCK_ARTICLES_BY_COUNTRY[country] ?? MOCK_ARTICLES_INDIA;
 
     const articlesToUse = articles.length > 0 ? articles : MOCK_ARTICLES;
     if (articles.length === 0) {

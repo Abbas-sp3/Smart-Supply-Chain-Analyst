@@ -12,7 +12,6 @@ import { EnergyCorridorWatch } from "@/components/command-center/EnergyCorridorW
 import { ImportDependencyMetrics } from "@/components/command-center/ImportDependencyMetrics";
 import { EnergyDependencyGraph3D } from "@/features/geopolitical-risk/components/EnergyDependencyGraph3D";
 import { calculateGrf, calculateSrf, calculateNesi, type NesiComponents, type AlertSeverity } from "@/lib/nesi";
-import { ISPRL_CURRENT_STATE, ISPRL_TOTAL_CAPACITY_MMT } from "@/features/scenario-simulator/constants/reserve-config";
 import { useCountry } from "@/hooks/useCountry";
 
 export function WorkspaceContent() {
@@ -47,18 +46,20 @@ export function WorkspaceContent() {
       // 2. Compute GRF
       const grf = calculateGrf(alerts.map((a: any) => ({ severity: a.severity as AlertSeverity })));
       
-      // 3. Compute SRF
-      const srf = calculateSrf(ISPRL_CURRENT_STATE.currentFillMmt, ISPRL_TOTAL_CAPACITY_MMT);
+      // 3. Compute SRF — use the active country's reserve configuration
+      // reserveConfig.totalReserveDays as a proxy for fill level vs IEA norm (90 days)
+      const reserveDays = activeCountry.reserveConfig?.totalReserveDays ?? 60;
+      const ieaNorm = 90; // IEA standard
+      const srf = calculateSrf(reserveDays, ieaNorm);
       
       // 4. Compute ScRF (Baseline = 95)
-      // Since there is no persisted scenario state yet, we use a strong baseline
       const scrf = 95; 
 
       setComponents(calculateNesi(grf, srf, scrf));
     }
 
     loadState();
-  }, []);
+  }, [activeCountry]);
 
   if (!components) {
     return (
