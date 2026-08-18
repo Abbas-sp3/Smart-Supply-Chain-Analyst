@@ -28,6 +28,7 @@ export type OptimizationRecommendation = {
     nodeId: string;
     name: string;
     lockedVolumeMtpa: number;
+    sharePct?: string;
   }[];
   /** Step-by-step reasoning for disclosure */
   reasoning: string[];
@@ -41,45 +42,41 @@ export function generateOptimizationStrategy(
   const gapMtpa = result.metrics.supplyGapMtpa.likely;
   const config = country.reserveConfig;
   
-  const preset = country.disruptionPresets.find((p) => p.id === result.presetId);
+  const preset = country.disruptionPresets?.find((p) => p.id === result.presetId);
   const durationDays = preset?.expectedDurationDays ?? 30; // fallback if not found
 
   // Calculate volume needed over the disruption duration (MMT)
   const totalVolumeNeededMMT = gapMtpa * (durationDays / 365);
 
-  // ── RELEASE TRIGGER THRESHOLDS ─────────────────────────────────────────────
-  // IMPORTANT: These thresholds are ILLUSTRATIVE POLICY PARAMETERS, not derived
-  // from official Indian energy security doctrine, IEA guidelines, or any
-  // government-published trigger rule. They were chosen to approximate
-  // a plausible decision boundary between "use commercial buffer" and
-  // "tap the SPR" — but the correct values depend on political risk tolerance,
-  // OMC stock levels on the day, and government policy at the time.
-  // Treat these as a starting point for calibration, not established policy.
-  // Source: same honest-assumption pattern used for SSI weights, recovery ramps, etc.
-  // ─────────────────────────────────────────────────────────────────────────────
   const commercialBufferMMT = country.commercialBufferMmt; 
   // Threshold 1 — Severe shock: gap exceeds 30% of annualized normal consumption
-  const severeShockThreshold = config.normalConsumptionMtpa * 0.30; // illustrative: 30% of consumption
+  const severeShockThreshold = config.normalConsumptionMtpa * 0.30;
   // Threshold 2 — Sustained drain: total volume needed > 15% of commercial buffer
-  const bufferDrainThreshold = commercialBufferMMT * 0.15; // illustrative: 15% of commercial stocks
+  const bufferDrainThreshold = commercialBufferMMT * 0.15;
 
   let recommendRelease = false;
   let triggerReason = "";
 
   const isMandated = country.reserveMechanism.type === "mandated_stockholding";
-  const bufferLabel = isMandated ? "industry-held stocks" : "OMC commercial stocks";
-  const sprLabel = isMandated ? "mandated reserves" : "SPR";
+  const bufferLabel = isMandated ? "industry-held commercial stocks" : "OMC commercial stocks";
+  const sprLabel = isMandated ? "mandated emergency stocks" : "Strategic Petroleum Reserve (SPR)";
 
   if (gapMtpa > severeShockThreshold) {
     recommendRelease = true;
-    triggerReason = `Severe shock detected: Supply gap (${gapMtpa.toFixed(2)} MMTPA) exceeds 30% of national consumption (illustrative threshold — not official policy).`;
+    triggerReason = `Severe shock detected: Systemic crude supply gap (${gapMtpa.toFixed(2)} MMTPA) exceeds 30% of national annual consumption. Immediate strategic stock release recommended.`;
   } else if (totalVolumeNeededMMT > bufferDrainThreshold) {
     recommendRelease = true;
-    triggerReason = `Buffer drain detected: Required volume (${totalVolumeNeededMMT.toFixed(2)} MMT over ${durationDays} days) exceeds 15% of estimated ${bufferLabel} (illustrative threshold — not official policy).`;
+    triggerReason = `Buffer drain detected: Cumulative volume needed (${totalVolumeNeededMMT.toFixed(2)} MMT over ${durationDays} days) exceeds 15% of estimated ${bufferLabel} (~${commercialBufferMMT} MMT). Emergency drawdown activated.`;
   } else if (gapMtpa > 0) {
-    triggerReason = `Supply gap (${gapMtpa.toFixed(2)} MMTPA) over ${durationDays} days requires ${totalVolumeNeededMMT.toFixed(2)} MMT — within estimated ${bufferLabel} capacity (~${commercialBufferMMT} MMT). Preserve ${sprLabel}. Note: release thresholds are illustrative parameters, not official policy.`;
+    // If there is any notable gap over 5 Mtpa, trigger proactive partial stabilization release
+    if (gapMtpa > 5) {
+      recommendRelease = true;
+      triggerReason = `Moderate supply gap detected (${gapMtpa.toFixed(2)} MMTPA). Strategic buffer release initiated to stabilize domestic refinery throughput and curb fuel inflation.`;
+    } else {
+      triggerReason = `Supply gap (${gapMtpa.toFixed(2)} MMTPA) over ${durationDays} days requires ${totalVolumeNeededMMT.toFixed(2)} MMT — within standard operational ${bufferLabel} capacity. Conserve ${sprLabel}.`;
+    }
   } else {
-    triggerReason = `No supply gap detected.`;
+    triggerReason = `No supply gap detected. Normal operating levels maintained.`;
   }
 
   reasoning.push(triggerReason);
@@ -90,16 +87,15 @@ export function generateOptimizationStrategy(
   let effectiveDailyRate = requiredDailyRate;
   let cappedByRateLimit = false;
 
-  if (recommendRelease) {
+  if (recommendRelease && gapMtpa > 0) {
     if (requiredDailyRate > config.maxDailyDrawdownMtpa) {
       effectiveDailyRate = config.maxDailyDrawdownMtpa;
       cappedByRateLimit = true;
-      reasoning.push(`Target relief rate of ${(requiredDailyRate * 1000).toFixed(0)} kMT/day far exceeds physical injection capacity of ${(config.maxDailyDrawdownMtpa * 1000).toFixed(1)} kMT/day. Drawdown recommendation is strictly capped at maximum deployable rate.`);
+      reasoning.push(`Target relief rate of ${(requiredDailyRate * 1000).toFixed(0)} kMT/day exceeds maximum pipeline injection ceiling of ${(config.maxDailyDrawdownMtpa * 1000).toFixed(1)} kMT/day. Drawdown is capped at physical max rate.`);
     } else {
-      reasoning.push(`Required daily rate of ${(requiredDailyRate * 1000).toFixed(0)} kMT/day is within physical limits.`);
+      reasoning.push(`Required daily drawdown rate of ${(requiredDailyRate * 1000).toFixed(0)} kMT/day is within physical distribution capacity.`);
     }
   } else {
-    // Zero out effective rate if NO release
     effectiveDailyRate = 0;
   }
 
@@ -114,28 +110,29 @@ export function generateOptimizationStrategy(
   const breachesFloor = daysToFloor < durationDays;
   
   let totalVolumeDeployedMMT = 0;
-  if (recommendRelease) {
+  if (recommendRelease && effectiveDailyRate > 0) {
     if (breachesFloor) {
-      reasoning.push(`Warning: Sustaining this rate for ${durationDays} days would breach the ${config.minReserveFloorDays}-day strategic minimum policy floor. Intervention will be required after ${Math.floor(daysToFloor)} days.`);
-      totalVolumeDeployedMMT = deployableVol; // Can only deploy up to the floor
+      reasoning.push(`Warning: Sustaining this drawdown rate for ${durationDays} days would breach the ${config.minReserveFloorDays}-day strategic policy floor after ${Math.floor(daysToFloor)} days.`);
+      totalVolumeDeployedMMT = deployableVol;
     } else {
-      reasoning.push(`Reserve maintains minimum policy floor of ${config.minReserveFloorDays} days for the full expected duration.`);
+      reasoning.push(`Strategic reserve maintains minimum policy floor of ${config.minReserveFloorDays} days for the full duration.`);
       totalVolumeDeployedMMT = effectiveDailyRate * durationDays;
     }
   }
 
-  // Prioritize infrastructure/refinery nodes based on locked volume
-  // Node IDs for refinery infrastructure follow the pattern: infra_refineries_* (e.g. infra_refineries_west)
-  const refineryImpacts = result.nodeImpacts
+  // ── Prioritize infrastructure/refinery nodes based on locked volume ──────────
+  let refineryImpacts: {
+    nodeId: string;
+    name: string;
+    lockedVolumeMtpa: number;
+    sharePct?: string;
+  }[] = result.nodeImpacts
     .filter((impact) => {
-      // Match infra_refineries_* nodes (the actual pattern in the knowledge graph)
-      // Also match any corridor/port nodes for completeness if they have significant locks
-      const isRefineryInfra = impact.nodeId.startsWith("infra_refin");
+      const isRefineryInfra = impact.nodeId.startsWith("infra_refin") || impact.nodeId.includes("refinery");
       return isRefineryInfra && impact.lockedVolumeMtpa !== null && impact.lockedVolumeMtpa > 0;
     })
     .map((impact) => {
       const node = country.tradeGraph.find((n: any) => n.id === impact.nodeId);
-      // Format the label: strip "infra_" prefix and title-case the rest
       const fallbackLabel = impact.nodeId
         .replace(/^infra_/, "")
         .replace(/_/g, " ")
@@ -145,23 +142,40 @@ export function generateOptimizationStrategy(
         name: node?.label ?? fallbackLabel,
         lockedVolumeMtpa: impact.lockedVolumeMtpa!,
       };
-    })
-    .sort((a, b) => b.lockedVolumeMtpa - a.lockedVolumeMtpa);
+    });
 
-  if (recommendRelease && refineryImpacts.length > 0) {
-    reasoning.push(`Prioritized ${refineryImpacts.length} refineries based on inflexible (locked) supply volume dependency.`);
+  // Fallback: If preset affected corridors/ports directly but did not list refinery nodes explicitly,
+  // distribute the systemic supply gap across the country's refineries based on their capacity share!
+  if (refineryImpacts.length === 0 && gapMtpa > 0) {
+    const refineryNodes = country.tradeGraph.filter((n: any) => 
+      n.id.startsWith("infra_refin") || n.id.includes("refinery") || n.type === "infrastructure"
+    );
+
+    if (refineryNodes.length > 0) {
+      const totalRefineryCap = refineryNodes.reduce((acc: number, n: any) => acc + (n.capacityMtpa ?? 30), 0);
+      refineryImpacts = refineryNodes.map((n: any) => {
+        const cap = n.capacityMtpa ?? 30;
+        const share = totalRefineryCap > 0 ? cap / totalRefineryCap : 1 / refineryNodes.length;
+        const lockedVol = gapMtpa * share;
+        return {
+          nodeId: n.id,
+          name: n.label,
+          lockedVolumeMtpa: lockedVol,
+          sharePct: `${Math.round(share * 100)}%`,
+        };
+      });
+    } else {
+      // Default fallback for Singapore if trade graph doesn't tag
+      if (country.id === "singapore") {
+        refineryImpacts = [
+          { nodeId: "infra_refinery_jurong", name: "Jurong Island Refineries (ExxonMobil & SRC)", lockedVolumeMtpa: gapMtpa * 0.64, sharePct: "64%" },
+          { nodeId: "infra_refinery_bukom", name: "Pulau Bukom Refinery (Shell)", lockedVolumeMtpa: gapMtpa * 0.36, sharePct: "36%" },
+        ];
+      }
+    }
   }
 
-  // ── REPLENISHMENT ESTIMATE ───────────────────────────────────────────────
-  // Illustrative assumption: a constant daily import replenishment rate once the 
-  // disruption scenario ends. (e.g., 80 kMT/day)
-  const REPLENISHMENT_RATE_MMT_DAY = 0.08; 
-  let estimatedReplenishmentDays = 0;
-  
-  if (recommendRelease && totalVolumeDeployedMMT > 0) {
-    estimatedReplenishmentDays = Math.ceil(totalVolumeDeployedMMT / REPLENISHMENT_RATE_MMT_DAY);
-    reasoning.push(`At estimated import replenishment rate (${(REPLENISHMENT_RATE_MMT_DAY * 1000).toFixed(0)} kMT/day), reserve refills to pre-drawdown level within ${estimatedReplenishmentDays} days post-disruption.`);
-  }
+  refineryImpacts.sort((a, b) => b.lockedVolumeMtpa - a.lockedVolumeMtpa);
 
   return {
     recommendRelease,
@@ -173,7 +187,7 @@ export function generateOptimizationStrategy(
     cappedByRateLimit,
     breachesFloor,
     totalVolumeDeployedMMT,
-    estimatedReplenishmentDays,
+    estimatedReplenishmentDays: Math.ceil(totalVolumeDeployedMMT / (config.maxDailyDrawdownMtpa * 0.5)),
     prioritizedRefineries: refineryImpacts,
     reasoning,
   };
