@@ -16,6 +16,7 @@ import { ImportSubstitutionCalculator } from "@/components/refinery/import-subst
 import { RefineryVulnerabilityMap } from "@/components/refinery/vulnerability-map";
 import { CrudeCompatibilityPanel } from "@/components/refinery/crude-compatibility-panel";
 import { useCountry } from "@/hooks/useCountry";
+import { SingaporeRefineryPage } from "@/features/refinery/components/SingaporeRefineryPage";
 
 
 // ── Types ──────────────────────────────────────────────────────────
@@ -159,6 +160,12 @@ export default function RefineryPage() {
     }
   }, []);
 
+  // Singapore gets the full feature-rich dedicated page
+  if (activeCountry.id === "singapore") {
+    return <SingaporeRefineryPage country={activeCountry} />;
+  }
+
+  // Generic fallback for any other non-India country
   if (activeCountry.id !== "india") {
     const refineries = activeCountry.tradeGraph.filter(
       (n) => n.type === "infrastructure" && n.capacityType === "production_output",
