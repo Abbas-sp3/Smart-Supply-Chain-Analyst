@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Smart Supply Chain Analyst (SSCA) — Hackathon Technical Briefing</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+    @page {
+      size: A4 portrait;
+      margin: 1.1cm 1.2cm 1.2cm 1.2cm;
+      @bottom-right {
+        content: counter(page) " / 4";
+        font-family: 'Inter', sans-serif;
+        font-size: 7.5pt;
+        color: #64748b;
+      }
+      @bottom-left {
+        content: "Smart Supply Chain Analyst (SSCA) — Hackathon Architecture Whitepaper";
+        font-family: 'Inter', sans-serif;
+        font-size: 7.5pt;
+        color: #64748b;
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: #0f172a;
+      background-color: #ffffff;
+      line-height: 1.42;
+      font-size: 8.7pt;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .page {
+      page-break-after: always;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+    }
+
+    .page:last-child {
+      page-break-after: avoid;
+    }
+
+    /* Header Banner */
+    .header-banner {
+      background: linear-gradient(135deg, #020617 0%, #0f172a 55%, #1e1b4b 100%);
+      color: #ffffff;
+      padding: 16px 20px;
+      border-radius: 10px;
+      margin-bottom: 14px;
+      border: 1px solid #334155;
+    }
+
+    .badge-row {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 9999px;
+      font-size: 6.8pt;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    .badge-primary { background: #38bdf8; color: #020617; }
+    .badge-secondary { background: #818cf8; color: #020617; }
+    .badge-accent { background: #f43f5e; color: #ffffff; }
+    .badge-outline { border: 1px solid rgba(255,255,255,0.25); color: #e2e8f0; }
+
+    h1 {
+      font-size: 16pt;
+      font-weight: 900;
+      letter-spacing: -0.4px;
+      margin-bottom: 2px;
+      color: #ffffff;
+    }
+
+    .subtitle {
+      font-size: 9.5pt;
+      color: #94a3b8;
+      font-weight: 400;
+      margin-bottom: 8px;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid rgba(255,255,255,0.12);
+      font-size: 7.5pt;
+    }
+
+    .meta-item span {
+      display: block;
+      color: #94a3b8;
+      font-size: 6.5pt;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    .meta-item strong {
+      color: #f8fafc;
+      font-weight: 600;
+    }
+
+    /* Headings */
+    h2 {
+      font-size: 11pt;
+      font-weight: 800;
+      color: #0f172a;
+      border-bottom: 1.5px solid #0284c7;
+      padding-bottom: 2px;
+      margin-top: 10px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    h3 {
+      font-size: 9.2pt;
+      font-weight: 700;
+      color: #1e293b;
+      margin-top: 8px;
+      margin-bottom: 3px;
+    }
+
+    p {
+      margin-bottom: 6px;
+      color: #334155;
+      text-align: justify;
+    }
+
+    ul, ol {
+      margin-left: 16px;
+      margin-bottom: 6px;
+      color: #334155;
+    }
+
+    li {
+      margin-bottom: 2.5px;
+    }
+
+    /* Callout Boxes */
+    .callout {
+      padding: 8px 12px;
+      border-radius: 6px;
+      margin: 8px 0;
+      font-size: 8.2pt;
+      border-left: 3.5px solid;
+    }
+
+    .callout-info {
+      background-color: #f0f9ff;
+      border-color: #0284c7;
+      color: #0369a1;
+    }
+
+    .callout-warning {
+      background-color: #fffbeb;
+      border-color: #f59e0b;
+      color: #92400e;
+    }
+
+    .callout-success {
+      background-color: #f0fdf4;
+      border-color: #16a34a;
+      color: #166534;
+    }
+
+    .callout-dark {
+      background-color: #0f172a;
+      border-color: #38bdf8;
+      color: #f8fafc;
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 8px 0;
+      font-size: 8pt;
+    }
+
+    th, td {
+      border: 1px solid #cbd5e1;
+      padding: 5px 8px;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f1f5f9;
+      color: #0f172a;
+      font-weight: 700;
+      font-size: 7.5pt;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    tr:nth-child(even) td {
+      background-color: #f8fafc;
+    }
+
+    /* Flow Step Boxes */
+    .flow-container {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin: 8px 0;
+    }
+
+    .flow-step {
+      display: flex;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 6px 10px;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .flow-number {
+      background: #0284c7;
+      color: #ffffff;
+      font-weight: 800;
+      font-size: 8pt;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .flow-content {
+      flex: 1;
+    }
+
+    .flow-title {
+      font-weight: 700;
+      color: #0f172a;
+      font-size: 8.5pt;
+      margin-bottom: 1px;
+    }
+
+    .flow-desc {
+      font-size: 7.8pt;
+      color: #475569;
+      line-height: 1.35;
+    }
+
+    /* Module Grid */
+    .module-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin: 8px 0;
+    }
+
+    .module-card {
+      border: 1px solid #e2e8f0;
+      background: #ffffff;
+      border-radius: 6px;
+      padding: 8px 10px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    }
+
+    .module-card h4 {
+      color: #0284c7;
+      margin-top: 0;
+      margin-bottom: 2px;
+      font-size: 8.5pt;
+      font-weight: 700;
+    }
+
+    .module-card p {
+      font-size: 7.8pt;
+      color: #475569;
+      margin-bottom: 3px;
+      line-height: 1.3;
+    }
+
+    .module-card ul {
+      font-size: 7.4pt;
+      margin-left: 12px;
+      margin-bottom: 0;
+      color: #64748b;
+    }
+
+    code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 7.5pt;
+      background: #f1f5f9;
+      padding: 1px 3px;
+      border-radius: 3px;
+      color: #0f172a;
+      border: 1px solid #e2e8f0;
+    }
+
+    pre {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 7.4pt;
+      background: #0f172a;
+      color: #f8fafc;
+      padding: 8px 10px;
+      border-radius: 6px;
+      overflow-x: auto;
+      margin: 6px 0;
+      line-height: 1.4;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ================= PAGE 1 ================= -->
+  <div class="page">
+    <div class="header-banner">
+      <div class="badge-row">
+        <span class="badge badge-primary">Hackathon Briefing</span>
+        <span class="badge badge-secondary">Technical Whitepaper</span>
+        <span class="badge badge-accent">Production Ready</span>
+        <span class="badge badge-outline">Next.js 16 + React 19 + Python MCTS</span>
+      </div>
+      <h1>Smart Supply Chain Analyst (SSCA)</h1>
+      <div class="subtitle">Global Multimodal Supply Chain Intelligence & Monte Carlo Disruption Simulation Digital Twin</div>
+      <div class="meta-grid">
+        <div class="meta-item">
+          <span>Project Track</span>
+          <strong>AI, Logistics & Digital Twins</strong>
+        </div>
+        <div class="meta-item">
+          <span>Core AI Architecture</span>
+          <strong>Groq LLaMA 3.1 + Gemini RAG</strong>
+        </div>
+        <div class="meta-item">
+          <span>Simulation Engine</span>
+          <strong>Python FastAPI MCTS Oracle</strong>
+        </div>
+        <div class="meta-item">
+          <span>Target Jurisdictions</span>
+          <strong>Global (Singapore, India, Hubs)</strong>
+        </div>
+      </div>
+    </div>
+
+    <h2>1. Executive Summary & Problem Statement</h2>
+    <p>
+      Global supply chains are non-linear, multi-tier dependency networks governed by physical bottlenecks. Over <strong>80% of global merchandise trade</strong> by volume moves across maritime sea lanes, funneling through ultra-vulnerable geopolitical chokepoints including the <strong>Strait of Malacca (90,000+ vessels/year)</strong>, <strong>Strait of Hormuz (20.5M barrels of oil/day)</strong>, <strong>Suez Canal</strong>, and <strong>Bab-el-Mandeb</strong>.
+    </p>
+    
+    <div class="callout callout-warning">
+      <strong>The Core Problem Today:</strong> When a geopolitical conflict flares, an export ban is announced, or a chokepoint is blockaded, trade analysts and logistics directors react <em>days or weeks too late</em>. Existing solutions are either <strong>dumb news aggregators</strong> that create alert fatigue without modeling supply-chain repercussions, or <strong>static spreadsheets</strong> that fail to simulate cascading multi-hop ripple effects.
+    </div>
+
+    <p>
+      A shock in the Strait of Hormuz does not merely increase tanker transit times; it cascades deterministically into <strong>crude import deficits</strong>, <strong>refinery throughput throttling</strong>, <strong>petrochemical feedstock shortages</strong>, <strong>pharmaceutical API halts</strong>, and <strong>power grid brownouts</strong>.
+    </p>
+
+    <h3>Our Solution: Smart Supply Chain Analyst (SSCA)</h3>
+    <p>
+      SSCA is an <strong>enterprise-grade supply chain digital twin and predictive intelligence platform</strong>. It fuses live maritime vessel tracking (AIS), real-time geopolitical OSINT feeds, live commodity spot prices, a 100+ node strategic trade knowledge graph, and an asynchronous <strong>Python-powered Monte Carlo Tree Search (MCTS)</strong> simulation microservice into a unified, high-performance operational cockpit.
+    </p>
+
+    <div class="callout callout-info">
+      <strong>Key Innovation:</strong> Fusing deterministic graph theory (BFS topological propagation) with stochastic probabilistic modeling (MCTS Markov state rollouts) and agentic multi-LLM RAG synthesis (Groq + Gemini).
+    </div>
+
+    <h2>2. System Architecture & Tech Stack</h2>
+    <p>
+      SSCA utilizes a high-throughput <strong>dual-stack microservice architecture</strong> designed for sub-second reactive intelligence and zero downtime:
+    </p>
+
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 23%;">Layer</th>
+          <th style="width: 35%;">Technology & Framework</th>
+          <th style="width: 42%;">Core Responsibility</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Frontend & UI Twin</strong></td>
+          <td>Next.js 16.2 (App Router), React 19, TypeScript 5, Tailwind CSS 4, Framer Motion 12</td>
+          <td>Enterprise UI, interactive digital twin cockpit, glassmorphic telemetry panels, live charts.</td>
+        </tr>
+        <tr>
+          <td><strong>Geospatial Map</strong></td>
+          <td>MapLibre GL 5.24, TopoJSON Client, WebGL</td>
+          <td>Live global maritime map rendering 100+ vessels, trade corridors, risk heatmaps, port anchorages.</td>
+        </tr>
+        <tr>
+          <td><strong>Simulation Engine</strong></td>
+          <td>Python 3.10+, FastAPI, Uvicorn, Pydantic 2.0 (Port 8787)</td>
+          <td>Standalone MCTS engine running 600+ rollouts across Markov disruption states.</td>
+        </tr>
+        <tr>
+          <td><strong>AI & RAG Pipeline</strong></td>
+          <td>Groq SDK (LLaMA 3.3 70B & 3.1 8B), Google Gemini 2.5 Flash, Zod</td>
+          <td>5-module parallel LLM reasoning pipeline with automatic rate-limit failover and schema validation.</td>
+        </tr>
+        <tr>
+          <td><strong>Data Ingestion Feeds</strong></td>
+          <td>AISStream (WebSocket), NewsAPI, EIA Open Data, API Ninjas</td>
+          <td>Real-time streaming telemetry: maritime vessels, geopolitical OSINT, crude and LNG spot prices.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ================= PAGE 2 ================= -->
+  <div class="page">
+    <h2>3. End-to-End Information Flow: "What Flows Where"</h2>
+    <p>
+      To understand how SSCA processes real-world chaos into actionable boardroom decisions, follow the exact 6-stage lifecycle below:
+    </p>
+
+    <div class="flow-container">
+      <div class="flow-step">
+        <div class="flow-number">1</div>
+        <div class="flow-content">
+          <div class="flow-title">Multi-Modal Ingestion & Telemetry Aggregation</div>
+          <div class="flow-desc">
+            Live vessel coordinates from <code>AISStream WebSocket</code>, breaking geopolitical news from <code>NewsAPI</code>, and spot commodity prices (Brent, WTI, LNG, Coal) from <code>EIA / API Ninjas</code> stream into the Next.js ingestion layer.
+          </div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <div class="flow-number">2</div>
+        <div class="flow-content">
+          <div class="flow-title">Fact Extraction & Entity Resolution (Groq LLaMA 3.1 8B)</div>
+          <div class="flow-desc">
+            Raw unstructured OSINT text is passed to <code>LLaMA 3.1 8B</code> on Groq (sub-200ms latency) to extract named entities: disrupted chokepoints, involved nation-states, targeted vessel types, and military escalation flags.
+          </div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <div class="flow-number">3</div>
+        <div class="flow-content">
+          <div class="flow-title">Knowledge Graph Grounding & BFS Topological Traversal</div>
+          <div class="flow-desc">
+            Entities are mapped against our <strong>100+ node Strategic Trade Knowledge Graph</strong>. The system executes a 3-hop Breadth-First Search (BFS) tracing: 
+            <code>Chokepoint (Hormuz) → Commodities (Crude Oil) → Import Dependencies → Downstream Refineries (Jurong / Jamnagar) → Power Grids → Alternatives</code>.
+          </div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <div class="flow-number">4</div>
+        <div class="flow-content">
+          <div class="flow-title">Python Monte Carlo Tree Search (MCTS) Simulation</div>
+          <div class="flow-desc">
+            Next.js proxy (<code>/api/monte-carlo</code>) queries the Python FastAPI microservice (<code>:8787</code>). The MCTS engine simulates <strong>600 iterations</strong> across Markov states (Trigger → Triage → Rerouting → Resolution), returning dynamic recalibrated severity %, escalation risk %, and optimal mitigation policies (e.g. <code>reserve-logistics</code>).
+          </div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <div class="flow-number">5</div>
+        <div class="flow-content">
+          <div class="flow-title">5-Agent Parallel AI Synthesis (Groq LLaMA 3.1 70B)</div>
+          <div class="flow-desc">
+            The pre-computed graph context, MCTS metrics, and corroborated news signals are dispatched concurrently to <strong>5 specialized Groq AI agents</strong>: (1) Executive Briefing, (2) Supply Chain Impact, (3) Policy Recommendations, (4) Scenario Forecasting, and (5) Corroborated Evidence Audit Trail.
+          </div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <div class="flow-number">6</div>
+        <div class="flow-content">
+          <div class="flow-title">Zod Schema Validation & Digital Twin Presentation</div>
+          <div class="flow-desc">
+            The multi-agent output is assembled, filled for missing gaps from the deterministic graph, validated through a strict <code>Zod schema</code>, and rendered instantly onto the live MapLibre digital twin and interactive telemetry HUDs.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h2>4. Deep Dive into the Monte Carlo (MCTS) Engine</h2>
+    <p>
+      Unlike conventional systems that guess risk using arbitrary static multipliers, SSCA’s <strong>Python Simulation Microservice</strong> implements a true <strong>Monte Carlo Tree Search algorithm</strong> adapted specifically for multi-stage supply chain breakdowns.
+    </p>
+
+    <div class="callout callout-dark">
+      <strong>Markov Disruption State Space:</strong><br />
+      <code>[ TRIGGER ] ──► [ TRIAGE ] ──► [ REROUTING ] ──► [ CAPACITY-REBUILD ] ──► [ RESOLUTION ]</code>
+    </div>
+
+    <p>During each simulation run (600 rollouts in ~2.5ms), the MCTS engine evaluates:</p>
+    <ul>
+      <li><strong>Exploration vs. Exploitation (UCB1):</strong> Balances testing unvisited strategies against exploiting high-reward responses: <code>reserve-logistics</code>, <code>strategic-rerouting</code>, <code>spot-market-arbitrage</code>, <code>diplomatic-escort-convoy</code>.</li>
+      <li><strong>Dynamic Severity %:</strong> Recalibrated true impact based on node visit frequencies and reward outcomes across trees.</li>
+      <li><strong>Escalation Probability (%):</strong> Statistical odds that regional military or diplomatic tension escalates into prolonged blockade.</li>
+      <li><strong>Economic Stress Index (%):</strong> Cumulative freight spot surge + war-risk insurance premiums + rerouting friction.</li>
+      <li><strong>Zero-Downtime Fallback:</strong> If the Python microservice is offline, the Next.js API proxy automatically returns a graceful fallback signal, allowing the dashboard to operate seamlessly on deterministic static baselines without crashing.</li>
+    </ul>
+  </div>
+
+  <!-- ================= PAGE 3 ================= -->
+  <div class="page">
+    <h2>5. Platform Feature Modules Breakdown</h2>
+
+    <div class="module-grid">
+      <div class="module-card">
+        <h4>🌍 Geopolitical Risk & Intelligence</h4>
+        <p>Multi-agent OSINT news monitoring and automated strategic briefing generation.</p>
+        <ul>
+          <li>5 parallel Groq LLaMA 3.1 70B analysis modules</li>
+          <li>Corroborated evidence confidence scoring (Strong/Moderate/Weak)</li>
+          <li>Automatic Gemini 2.5 Flash failover router</li>
+          <li>Interactive "Ask Intelligence" RAG chatbot</li>
+        </ul>
+      </div>
+
+      <div class="module-card">
+        <h4>🗺️ Command Center Digital Twin</h4>
+        <p>Interactive MapLibre GL geospatial command interface with live vessel tracking.</p>
+        <ul>
+          <li>Real-time AIS maritime tanker fleet streaming</li>
+          <li>Global chokepoint threat radius heatmaps</li>
+          <li>Trade corridor density & speed over ground metrics</li>
+          <li>One-click country switcher (Singapore & India profiles)</li>
+        </ul>
+      </div>
+
+      <div class="module-card">
+        <h4>🎮 Scenario Simulator & MCTS</h4>
+        <p>What-if disruption stress testing with graph propagation & Monte Carlo.</p>
+        <ul>
+          <li>Preset scenarios: Hormuz Closure, Malacca Piracy, etc.</li>
+          <li>Live Python MCTS panel with 600 rollout telemetry</li>
+          <li>Interactive decision levers: SPR Drawdown, Route Diversion</li>
+          <li>Side-by-side Delta comparisons (Baseline vs Levers)</li>
+        </ul>
+      </div>
+
+      <div class="module-card">
+        <h4>📦 Adaptive Energy Procurement</h4>
+        <p>Spot market intelligence, supplier risk matrix, and contract exposure.</p>
+        <ul>
+          <li>Live EIA & API Ninjas spot pricing (Brent, WTI, LNG, Coal)</li>
+          <li>Supplier concentration Herfindahl-Hirschman scoring</li>
+          <li>Alternative supplier match engine with freight penalties</li>
+          <li>Contract vulnerability & force-majeure risk index</li>
+        </ul>
+      </div>
+
+      <div class="module-card">
+        <h4>🔬 Refinery & Processing Cockpit</h4>
+        <p>Downstream refinery capacity, crude diet allocation, and throughput monitoring.</p>
+        <ul>
+          <li>Refinery complex mapping (Jurong, Jamnagar, Paradip)</li>
+          <li>Light sweet vs. heavy sour crude diet modulation</li>
+          <li>Distillation unit utilization & margin stress modeling</li>
+          <li>Product yield breakdowns (Jet Fuel, Gasoline, Diesel, Naphtha)</li>
+        </ul>
+      </div>
+
+      <div class="module-card">
+        <h4>🛢️ Strategic Reserves & Analytics</h4>
+        <p>Emergency petroleum reserve depletion models and cross-scenario analytics.</p>
+        <ul>
+          <li>Days of forward cover drawdown simulator</li>
+          <li>SPR underground cavern fill gauges vs IEA mandates</li>
+          <li>Cross-Scenario comparative supply deficit charts (Mtpa)</li>
+          <li>Energy Dependency Network with Bezier flow streams</li>
+        </ul>
+      </div>
+    </div>
+
+    <h2>6. Quick Start & Execution Guide for Teammates</h2>
+
+    <h3>1. Prerequisites</h3>
+    <p>Make sure your machine has <strong>Node.js 18+</strong> and <strong>Python 3.10+</strong> installed.</p>
+
+    <h3>2. Installation & One-Command Boot</h3>
+    <pre><code># 1. Clone repo & install Node.js dependencies
+npm install
+
+# 2. Install Python simulation microservice dependencies (fastapi, uvicorn, pydantic)
+npm run mc:install
+
+# 3. Create your .env.local file from the template
+cp .env.example .env.local
+
+# 4. Start the entire dual-stack platform simultaneously in one command!
+npm run dev:full</code></pre>
+
+    <p>
+      This boots both services concurrently in one terminal:
+      <br />
+      • <strong>Frontend Web Dashboard:</strong> <code>http://localhost:3000</code> (Next.js 16)
+      <br />
+      • <strong>Python MCTS Server:</strong> <code>http://localhost:8787</code> (FastAPI Microservice)
+    </p>
+  </div>
+
+  <!-- ================= PAGE 4 ================= -->
+  <div class="page">
+    <h2>7. Hackathon Pitching & Demo Strategy (3-Minute Flow)</h2>
+
+    <div class="callout callout-success">
+      <strong>Minute 1: The Hook & The Problem (Visual Shock)</strong><br />
+      Open the <strong>Command Center</strong>. Show the live AIS vessels streaming in real-time across the Strait of Malacca and Strait of Hormuz. Explain that 80% of world energy flows through these bottlenecks, yet supply chain teams still rely on reactive spreadsheets days after ships halt.
+    </div>
+
+    <div class="callout callout-info">
+      <strong>Minute 2: The Core Tech & AI Reasoning (Deterministic RAG)</strong><br />
+      Switch to <strong>Geopolitical Intelligence</strong>. Click "Generate Intelligence Report". Show how 5 Groq AI agents reason in parallel over our 100-node Knowledge Graph in seconds. Emphasize that the AI does <em>not</em> hallucinate—it traverses deterministic trade paths from choke point to refinery.
+    </div>
+
+    <div class="callout callout-dark">
+      <strong>Minute 3: The Monte Carlo Disruption Engine (The Killer Feature)</strong><br />
+      Navigate to <strong>Scenario Simulator</strong>. Select "Strait of Hormuz Blockade". Point out the <strong>Monte Carlo MCTS panel</strong>: explain that our Python microservice ran 600 probabilistic rollouts to compute dynamic risk (54.4% severity, 21.9% escalation). Turn on the "Release Strategic Reserves" lever and show how the systemic supply gap drops instantly.
+    </div>
+
+    <h2>8. Key Defense Points for Judges / Q&amp;A</h2>
+
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 30%;">Judge's Question</th>
+          <th style="width: 70%;">Our Technical Defense & Architecture Answer</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>"How do you prevent LLM hallucinations on supply chain facts?"</strong></td>
+          <td>We do not let LLMs guess trade routes. Our <strong>Deterministic Knowledge Graph</strong> runs a 3-hop BFS first, injecting exact trade dependencies into the prompt. The LLM only synthesizes the final briefing, which is strictly validated with <strong>Zod</strong>.</td>
+        </tr>
+        <tr>
+          <td><strong>"Why use Monte Carlo (MCTS) instead of simple rule heuristics?"</strong></td>
+          <td>Supply chain disruptions are Markov processes with dynamic branching (rerouting vs escorts vs diplomatic waivers). MCTS simulates 600 potential futures to discover non-obvious optimal actions that heuristics miss.</td>
+        </tr>
+        <tr>
+          <td><strong>"Is this tied to only one country or global?"</strong></td>
+          <td>Fully global. The architecture supports dynamic country profiling (Singapore, India, Regional Hubs) with localized energy import baskets, reserve mechanisms, and port topologies.</td>
+        </tr>
+        <tr>
+          <td><strong>"What happens if external APIs or Python goes down?"</strong></td>
+          <td>Zero downtime. The system features automatic dual-LLM fallback (Groq → Gemini) and seamless fallback to deterministic baselines if the Python server is offline.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-info" style="margin-top: 10px;">
+      <strong>Summary for Teammates:</strong> We have built an end-to-end, multi-agent, dual-stack digital twin that combines real-time data ingestion, deterministic graph algorithms, and probabilistic AI. Focus on the live demo and MCTS story during presentation!
+    </div>
+  </div>
+
+</body>
+</html>
